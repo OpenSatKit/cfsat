@@ -1,0 +1,27 @@
+{
+   "title": "OSK Scheduler",
+   "description": ["Define runtime configurations. See kit_sch::app_cfg.h for definitions"],
+   "config": {
+      
+      "APP_CFE_NAME":      "KIT_SCH",
+      "APP_PERF_ID":       91,
+           
+      "CMD_MID":           7952,
+      "SEND_HK_MID":       7953,
+      "HK_TLM_MID":        3856,
+      "DIAG_TLM_MID":      3857,
+      "TBL_ENTRY_TLM_MID": 3858,
+      
+      "CMD_PIPE_DEPTH":    10,
+      "CMD_PIPE_NAME":     "KIT_SCH_CMD",
+      
+      "MSG_TBL_LOAD_FILE": "/cf/kit_sch_msgtbl.json",
+      "MSG_TBL_DUMP_FILE": "/cf/kit_sch_msgtbl~.json",
+
+      "SCH_TBL_LOAD_FILE": "/cf/kit_sch_schtbl.json",
+      "SCH_TBL_DUMP_FILE": "/cf/kit_sch_schtbl~.json",
+
+      "STARTUP_SYNC_TIMEOUT": 10000
+
+   }
+}

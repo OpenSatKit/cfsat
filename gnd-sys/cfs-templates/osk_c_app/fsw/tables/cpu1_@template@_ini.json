@@ -1,0 +1,16 @@
+{
+   "title": "@Template@ initialization file",
+   "description": ["Define runtime configurations"],
+   "config": {
+      
+      "APP_CFE_NAME": "@TEMPLATE@",
+      "APP_PERF_ID":  127,
+          
+      "CMD_PIPE_DEPTH": 5,
+      "CMD_PIPE_NAME":  "@TEMPLATE@_CMD",
+
+      "TBL_LOAD_FILE": "/cf/@template@_tbl.json",
+      "TBL_DUMP_FILE": "/cf/@template@~.json"
+      
+   }
+}

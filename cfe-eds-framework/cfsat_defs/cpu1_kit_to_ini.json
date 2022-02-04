@@ -1,0 +1,40 @@
+{
+   "title": "OSK Telemetry Output",
+   "description": [ "Define runtime configurations. See kit_to::app_cfg.h for definitions"],
+   "config": {
+      
+      "APP_CFE_NAME":     "KIT_TO",
+      "APP_PERF_ID":      92,
+           
+      "APP_CMD_PIPE_NAME":  "KIT_TO_CMD",
+      "APP_CMD_PIPE_DEPTH": 5,
+
+      "APP_RUN_LOOP_DELAY":     250,
+      "APP_RUN_LOOP_DELAY_MIN": 200,
+      "APP_RUN_LOOP_DELAY_MAX": 1000,
+
+      "APP_CMD_MID":           7968,
+      "APP_SEND_HK_MID":       7969,
+      "APP_HK_TLM_MID":        3872,
+      "APP_DATA_TYPE_TLM_MID": 3874,
+      "PKTMGR_TLM_MID":        3873,
+      "EVT_PLBK_TLM_MID":      3875,
+      
+      "PKTMGR_PIPE_DEPTH":   50,
+      "PKTMGR_PIPE_NAME":    "KIT_TO_PKT",
+      "PKTMGR_UDP_TLM_PORT": 1235,
+
+      "PKTMGR_STATS_INIT_DELAY":   20000,
+      "PKTMGR_STATS_CONFIG_DELAY": 5000,
+
+      "PKTTBL_LOAD_FILE":  "/cf/kit_to_pkt_tbl.json",
+      "PKTTBL_DUMP_FILE":  "/cf/kit_to_pkt_tbl~.json",
+
+      "EVT_PLBK_HK_PERIOD": 2,
+      "EVT_PLBK_LOG_FILE":  "/cf/kit_to_evt_log.dat",
+
+      "EVT_PLBK_EVS_CMD_MID":      6145,
+      "EVT_PLBK_EVS_WRITE_LOG_FC": 18
+
+   }
+}

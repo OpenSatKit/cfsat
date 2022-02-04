@@ -1,0 +1,9 @@
+{
+  "time-stamp": "02/03/2022-15:39:29",
+  "title": "Create Hello World App",
+  "objective": [
+    "Introduce cFS app concepts by creating a Hello World ",
+    "app and making some modifications to it. The app uses ",
+    "the OSK C application framework (osk_c_fw)."
+  ]
+}
