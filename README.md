@@ -15,10 +15,11 @@ The system can be developed on any GNU/Linux development host. The following dev
 of Debian/Ubuntu packages that are installed with *'sudo apt-get install <package>'*; other Linux distributions should provide a similar set but, the
 package names and installation tool names may vary. 
 
-- `build-essential` (contains gcc, libc-dev, make, etc.) 
-- `cmake` (at least v2.8.12 recommended)
+- 'update package respositories` *(Ubunutu command is 'sudo apt-get update -y')*
+- `build-essential` *(contains gcc, libc-dev, make, etc.)* 
+- `cmake` *(at least v2.8.12 recommended)*
 - `libexpat1-dev`
-- `liblua5.3-dev` (older versions of Lua may work, at least v5.1 is required)
+- `liblua5.3-dev` *(older versions of Lua may work, at least v5.1 is required)*
 - `libjson-c-dev'
 - `python3-dev`
 - `python3-pip`
@@ -50,8 +51,8 @@ Run the software on the development host:
     cd build/exe/cpu1
     ./core-cpu1
     
-## Run Python Applcation 
-Run the software on the development host and establish telemetry flow:
+## Run Python Ground System Applcation 
+In a new terminal window run the python application on the development host and establish telemetry flow:
 
     cd cfsat/gnd-sys/app
     . ./setvars.sh
