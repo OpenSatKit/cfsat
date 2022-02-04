@@ -20,9 +20,10 @@ package names and installation tool names may vary.
 - `cmake` *(at least v2.8.12 recommended)*
 - `libexpat1-dev`
 - `liblua5.3-dev` *(older versions of Lua may work, at least v5.1 is required)*
-- `libjson-c-dev'
+- `libjson-c-dev`
 - `python3-dev`
 - `python3-pip`
+- `python3-tk`
 
 The python appplication uses [PySimpleGUI](https://pysimplegui.readthedocs.io/en/latest/) which can be installed with the following command:
 
@@ -31,14 +32,6 @@ The python appplication uses [PySimpleGUI](https://pysimplegui.readthedocs.io/en
 ## Clone cFSAT Repository
     git clone https://github.com/OpenSatKit/cfsat.git
 
-### Important Directories 
-- `cfsat/cfe-eds-framework` *(Run cmake buid)*
-- `cfsat/cfe-eds-framework/build/exe/cpu1` *(Run cFS executable)*
-- `cfsat/cfe-eds-framework/build/exe/lib/python` *(EDS python libraries)*
-- `cfsat/cfe-eds-framework/cfsat_defs` *(cmake build definitions)*
-- `cfsat/cfs-apps` *(OpenSatKit & user apps)*
-- `cfsat/gnd-sys/app` *(Python application)*
-
 ## Build and Run Flight Software
 Prepare build tree, build binaries, and install executable in ./build/exe/cpu1:
 
@@ -46,13 +39,13 @@ Prepare build tree, build binaries, and install executable in ./build/exe/cpu1:
     make SIMULATION=native prep
     make install
     
-Run the software on the development host:
+Run the flight software on the development host:
 
     cd build/exe/cpu1
     ./core-cpu1
     
 ## Run Python Ground System Applcation 
-In a new terminal window run the python application on the development host and establish telemetry flow:
+In a new terminal window run the Ground System application and establish telemetry flow:
 
     cd cfsat/gnd-sys/app
     . ./setvars.sh
@@ -64,3 +57,5 @@ In a new terminal window run the python application on the development host and 
 In the docs folder refer to
 - *cFSAT Quick Start Guide*
 - *OpenSatKit Application Developer's Guide* 
+
+
