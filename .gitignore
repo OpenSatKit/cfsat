@@ -76,7 +76,8 @@ instance/
 docs/_build/
 
 # PyBuilder
-target/
+# conflicts with cfe-eds-framework/cfe/cmake/target 
+#target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
