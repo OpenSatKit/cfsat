@@ -3,6 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# cfsat folders and files
+cfe-eds-framework/build
+gnd-sys/logs/*.logs.*
+
 # C extensions
 *.so
 

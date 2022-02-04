@@ -19,7 +19,7 @@ package names and installation tool names may vary.
 - `cmake` (at least v2.8.12 recommended)
 - `libexpat1-dev`
 - `liblua5.3-dev` (older versions of Lua may work, at least v5.1 is required)
-- `python3-dev`
+- `libjson-c-dev'
 - `python3-dev`
 - `python3-pip`
 
