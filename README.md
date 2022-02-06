@@ -43,7 +43,10 @@ Run the flight software on the development host:
 
     cd build/exe/cpu1
     ./core-cpu1
-    
+
+If the cFS fails to start and you get a message like *Aborted (core dumped)* then try running in privileged mode and refer to the *cFSAT Quick Start Guide* for potential reasons why unprivilged mode failed.
+    sudo ./core-cpu1
+
 ## Run Python Ground System Applcation 
 In a new terminal window run the Ground System application and establish telemetry flow:
 
@@ -55,7 +58,7 @@ In a new terminal window run the Ground System application and establish telemet
     
 ## Next Steps
 In the docs folder refer to
-- *cFSAT Quick Start Guide*
-- *OpenSatKit Application Developer's Guide* 
+- *cFSAT Quick Start Guide* (coming soon)
+- [OpenSatKit Application Developer's Guide](https://github.com/OpenSatKit-Apps/osk_c_fw/blob/main/docs/OSK-App-Dev-Guide.pdf)
 
 

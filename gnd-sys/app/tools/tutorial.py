@@ -76,7 +76,7 @@ class Lesson():
     """
     Manage the display for a lesson. The lesson's JSON file is used to 
     determine the initial state. The execute() method allows a lesson to be
-    reatarted and override the JSON. The new lesson state is recorded in the
+    restarted and override the JSON. The new lesson state is recorded in the
     JSON when the lesson is exited.
     """
     def __init__(self, number, path, slides):
@@ -154,7 +154,7 @@ class Lesson():
 
 class Tutorial():
     """
-    Manage the display for a tutorial. A tutorial folder conatins a
+    Manage the display for a tutorial. A tutorial folder contains a
     tutorial.json that describes the tutorial and a lesson folder that 
     contains numbered lesson folders. Each lesson folder contains a 
     lesson.json file.  
@@ -165,16 +165,18 @@ class Tutorial():
         self.json = TutorialJson(os.path.join(tutorial_path, TUTORIAL_JSON_FILE))
         
         self.lesson_path = os.path.join(tutorial_path,LESSON_DIR)
-        logger.debug("self.lesson_path  = " + self.lesson_path)
+        logger.info("self.lesson_path  = " + self.lesson_path)
         self.lesson_list = [int(l) for l in os.listdir(self.lesson_path) if l.isnumeric()]
-        logger.debug("self.lessons_list = " + str(self.lesson_list))
+        self.lesson_list.sort()
+        logger.info("self.lesson_list = " + str(self.lesson_list))
         self.lesson_objs = {}
         for l in self.lesson_list:
-            lesson_path = os.path.join(self.lesson_path, str(l))
-            logger.debug("lessons_path = " + lesson_path)
-            lesson_pngs = [f for f in os.listdir(lesson_path) if f.lower().endswith('.png')]
-            logger.debug("lessons_pngs = " + str(lesson_pngs))
-            self.lesson_objs[l] = Lesson(l, lesson_path, lesson_pngs)
+            lesson_num_path = os.path.join(self.lesson_path, str(l))
+            logger.info("lesson_num_path = " + lesson_num_path)
+            lesson_pngs = [f for f in os.listdir(lesson_num_path) if f.lower().endswith('.png')]
+            lesson_pngs.sort()
+            logger.info("lesson_pngs = " + str(lesson_pngs))
+            self.lesson_objs[l] = Lesson(l, lesson_num_path, lesson_pngs)
         
         self.window  = None
         self.display = True

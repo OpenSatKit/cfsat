@@ -1,0 +1,354 @@
+[2022-02-05 09:58:59,849] INFO [cfsat.py __main__ shutdown (699)]: Starting app shutdown sequence
+[2022-02-05 09:58:59,850] INFO [telemetry.py cfsinterface.telemetry shutdown (256)]: Telemetry server shutting down
+[2022-02-05 09:58:59,965] INFO [telemetry.py cfsinterface.telemetry _recv_tlm_handler (238)]: TelemetryServer terminating receive telemetry handler thread
+[2022-02-05 09:59:23,335] INFO [tutorial.py tools.tutorial __init__ (168)]: self.lesson_path  = ../tutorials/demo-app/lesson
+[2022-02-05 09:59:23,335] INFO [tutorial.py tools.tutorial __init__ (171)]: self.lesson_list = [1, 2]
+[2022-02-05 09:59:23,335] INFO [tutorial.py tools.tutorial __init__ (175)]: lesson_num_path = ../tutorials/demo-app/lesson/1
+[2022-02-05 09:59:23,335] INFO [tutorial.py tools.tutorial __init__ (178)]: lesson_pngs = ['Slide1.PNG', 'Slide2.PNG', 'Slide3.PNG']
+[2022-02-05 09:59:23,335] INFO [tutorial.py tools.tutorial __init__ (175)]: lesson_num_path = ../tutorials/demo-app/lesson/2
+[2022-02-05 09:59:23,335] INFO [tutorial.py tools.tutorial __init__ (178)]: lesson_pngs = ['Slide1.PNG', 'Slide2.PNG']
+[2022-02-05 09:59:23,336] INFO [tutorial.py tools.tutorial __init__ (168)]: self.lesson_path  = ../tutorials/hello-app/lesson
+[2022-02-05 09:59:23,336] INFO [tutorial.py tools.tutorial __init__ (171)]: self.lesson_list = [1, 2]
+[2022-02-05 09:59:23,336] INFO [tutorial.py tools.tutorial __init__ (175)]: lesson_num_path = ../tutorials/hello-app/lesson/1
+[2022-02-05 09:59:23,336] INFO [tutorial.py tools.tutorial __init__ (178)]: lesson_pngs = ['Slide1.PNG', 'Slide2.PNG', 'Slide3.PNG']
+[2022-02-05 09:59:23,336] INFO [tutorial.py tools.tutorial __init__ (175)]: lesson_num_path = ../tutorials/hello-app/lesson/2
+[2022-02-05 09:59:23,336] INFO [tutorial.py tools.tutorial __init__ (178)]: lesson_pngs = ['Slide1.PNG', 'Slide2.PNG']
+[2022-02-05 09:59:23,336] INFO [tutorial.py tools.tutorial __init__ (168)]: self.lesson_path  = ../tutorials/build-run-cfs/lesson
+[2022-02-05 09:59:23,336] INFO [tutorial.py tools.tutorial __init__ (171)]: self.lesson_list = [1]
+[2022-02-05 09:59:23,336] INFO [tutorial.py tools.tutorial __init__ (175)]: lesson_num_path = ../tutorials/build-run-cfs/lesson/1
+[2022-02-05 09:59:23,337] INFO [tutorial.py tools.tutorial __init__ (178)]: lesson_pngs = ['Slide1.PNG', 'Slide2.PNG', 'Slide3.PNG', 'Slide4.PNG', 'Slide5.PNG', 'Slide6.PNG', 'Slide7.PNG']
+[2022-02-05 09:59:23,337] INFO [cfsat.py __main__ execute (712)]: cFSAT version 0.1.0 initialized with mission samplemission, target cpu1 on 02/05/2022
+[2022-02-05 09:59:23,337] INFO [cfsat.py __main__ execute (713)]: cFSAT target host 127.0.0.1, command port 1234, telemetry port 1235
+[2022-02-05 09:59:23,337] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_ES, Msg HK_TLM, Id: 64
+[2022-02-05 09:59:23,337] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_ES, Msg APP_TLM, Id: 65
+[2022-02-05 09:59:23,338] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_ES, Msg MEMSTATS_TLM, Id: 67
+[2022-02-05 09:59:23,338] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_TIME, Msg HK_TLM, Id: 68
+[2022-02-05 09:59:23,338] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_TIME, Msg DIAG_TLM, Id: 69
+[2022-02-05 09:59:23,338] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_EVS, Msg HK_TLM, Id: 70
+[2022-02-05 09:59:23,338] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_EVS, Msg SHORT_EVENT_MSG, Id: 71
+[2022-02-05 09:59:23,338] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_EVS, Msg LONG_EVENT_MSG, Id: 72
+[2022-02-05 09:59:23,338] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_SB, Msg HK_TLM, Id: 73
+[2022-02-05 09:59:23,338] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_SB, Msg STATS_TLM, Id: 74
+[2022-02-05 09:59:23,338] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_SB, Msg ALLSUBS_TLM, Id: 75
+[2022-02-05 09:59:23,338] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_SB, Msg ONESUB_TLM, Id: 76
+[2022-02-05 09:59:23,338] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_TBL, Msg HK_TLM, Id: 77
+[2022-02-05 09:59:23,339] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_TBL, Msg REG_TLM, Id: 78
+[2022-02-05 09:59:23,339] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CI_LAB, Msg HK_TLM, Id: 79
+[2022-02-05 09:59:23,339] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: TO_LAB, Msg HK_TLM, Id: 80
+[2022-02-05 09:59:23,339] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: TO_LAB, Msg DATA_TYPES, Id: 81
+[2022-02-05 09:59:23,339] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: SAMPLE_APP, Msg HK_TLM, Id: 82
+[2022-02-05 09:59:23,339] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: OSK_C_DEMO, Msg HK_TLM, Id: 85
+[2022-02-05 09:59:23,339] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: OSK_C_DEMO, Msg PLAYBK_TLM, Id: 86
+[2022-02-05 09:59:23,339] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_ES: HK_TLM
+[2022-02-05 09:59:23,339] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_ES: APP_TLM
+[2022-02-05 09:59:23,339] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_ES: MEMSTATS_TLM
+[2022-02-05 09:59:23,339] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_TIME: HK_TLM
+[2022-02-05 09:59:23,339] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_TIME: DIAG_TLM
+[2022-02-05 09:59:23,340] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_EVS: HK_TLM
+[2022-02-05 09:59:23,340] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_EVS: SHORT_EVENT_MSG
+[2022-02-05 09:59:23,340] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_EVS: LONG_EVENT_MSG
+[2022-02-05 09:59:23,340] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_SB: HK_TLM
+[2022-02-05 09:59:23,340] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_SB: STATS_TLM
+[2022-02-05 09:59:23,340] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_SB: ALLSUBS_TLM
+[2022-02-05 09:59:23,340] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_SB: ONESUB_TLM
+[2022-02-05 09:59:23,340] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_TBL: HK_TLM
+[2022-02-05 09:59:23,340] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_TBL: REG_TLM
+[2022-02-05 09:59:23,340] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for OSK_C_DEMO: HK_TLM
+[2022-02-05 09:59:23,340] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for OSK_C_DEMO: PLAYBK_TLM
+[2022-02-05 09:59:24,342] INFO [telemetry.py cfsinterface.telemetry _recv_tlm_handler (208)]: TelemetryServer started receive telemetry handler thread
+[2022-02-05 09:59:24,343] INFO [cfsat.py __main__ execute (729)]: Successfully created application objects
+[2022-02-05 10:00:21,519] INFO [cfsat.py __main__ shutdown (699)]: Starting app shutdown sequence
+[2022-02-05 10:00:21,519] INFO [telemetry.py cfsinterface.telemetry shutdown (256)]: Telemetry server shutting down
+[2022-02-05 10:00:22,448] INFO [telemetry.py cfsinterface.telemetry _recv_tlm_handler (238)]: TelemetryServer terminating receive telemetry handler thread
+[2022-02-05 10:00:24,590] INFO [tutorial.py tools.tutorial __init__ (168)]: self.lesson_path  = ../tutorials/demo-app/lesson
+[2022-02-05 10:00:24,591] INFO [tutorial.py tools.tutorial __init__ (171)]: self.lesson_list = [1, 2]
+[2022-02-05 10:00:24,591] INFO [tutorial.py tools.tutorial __init__ (175)]: lesson_num_path = ../tutorials/demo-app/lesson/1
+[2022-02-05 10:00:24,591] INFO [tutorial.py tools.tutorial __init__ (178)]: lesson_pngs = ['Slide1.PNG', 'Slide2.PNG', 'Slide3.PNG']
+[2022-02-05 10:00:24,591] INFO [tutorial.py tools.tutorial __init__ (175)]: lesson_num_path = ../tutorials/demo-app/lesson/2
+[2022-02-05 10:00:24,592] INFO [tutorial.py tools.tutorial __init__ (178)]: lesson_pngs = ['Slide1.PNG', 'Slide2.PNG']
+[2022-02-05 10:00:24,592] INFO [tutorial.py tools.tutorial __init__ (168)]: self.lesson_path  = ../tutorials/hello-app/lesson
+[2022-02-05 10:00:24,592] INFO [tutorial.py tools.tutorial __init__ (171)]: self.lesson_list = [1, 2]
+[2022-02-05 10:00:24,592] INFO [tutorial.py tools.tutorial __init__ (175)]: lesson_num_path = ../tutorials/hello-app/lesson/1
+[2022-02-05 10:00:24,592] INFO [tutorial.py tools.tutorial __init__ (178)]: lesson_pngs = ['Slide1.PNG', 'Slide2.PNG', 'Slide3.PNG']
+[2022-02-05 10:00:24,592] INFO [tutorial.py tools.tutorial __init__ (175)]: lesson_num_path = ../tutorials/hello-app/lesson/2
+[2022-02-05 10:00:24,592] INFO [tutorial.py tools.tutorial __init__ (178)]: lesson_pngs = ['Slide1.PNG', 'Slide2.PNG']
+[2022-02-05 10:00:24,593] INFO [tutorial.py tools.tutorial __init__ (168)]: self.lesson_path  = ../tutorials/build-run-cfs/lesson
+[2022-02-05 10:00:24,593] INFO [tutorial.py tools.tutorial __init__ (171)]: self.lesson_list = [1]
+[2022-02-05 10:00:24,593] INFO [tutorial.py tools.tutorial __init__ (175)]: lesson_num_path = ../tutorials/build-run-cfs/lesson/1
+[2022-02-05 10:00:24,593] INFO [tutorial.py tools.tutorial __init__ (178)]: lesson_pngs = ['Slide1.PNG', 'Slide2.PNG', 'Slide3.PNG', 'Slide4.PNG', 'Slide5.PNG', 'Slide6.PNG', 'Slide7.PNG']
+[2022-02-05 10:00:24,593] INFO [cfsat.py __main__ execute (712)]: cFSAT version 0.1.0 initialized with mission samplemission, target cpu1 on 02/05/2022
+[2022-02-05 10:00:24,593] INFO [cfsat.py __main__ execute (713)]: cFSAT target host 127.0.0.1, command port 1234, telemetry port 1235
+[2022-02-05 10:00:24,593] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_ES, Msg HK_TLM, Id: 64
+[2022-02-05 10:00:24,593] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_ES, Msg APP_TLM, Id: 65
+[2022-02-05 10:00:24,594] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_ES, Msg MEMSTATS_TLM, Id: 67
+[2022-02-05 10:00:24,594] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_TIME, Msg HK_TLM, Id: 68
+[2022-02-05 10:00:24,594] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_TIME, Msg DIAG_TLM, Id: 69
+[2022-02-05 10:00:24,594] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_EVS, Msg HK_TLM, Id: 70
+[2022-02-05 10:00:24,594] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_EVS, Msg SHORT_EVENT_MSG, Id: 71
+[2022-02-05 10:00:24,594] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_EVS, Msg LONG_EVENT_MSG, Id: 72
+[2022-02-05 10:00:24,594] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_SB, Msg HK_TLM, Id: 73
+[2022-02-05 10:00:24,594] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_SB, Msg STATS_TLM, Id: 74
+[2022-02-05 10:00:24,594] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_SB, Msg ALLSUBS_TLM, Id: 75
+[2022-02-05 10:00:24,594] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_SB, Msg ONESUB_TLM, Id: 76
+[2022-02-05 10:00:24,594] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_TBL, Msg HK_TLM, Id: 77
+[2022-02-05 10:00:24,594] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_TBL, Msg REG_TLM, Id: 78
+[2022-02-05 10:00:24,594] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CI_LAB, Msg HK_TLM, Id: 79
+[2022-02-05 10:00:24,594] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: TO_LAB, Msg HK_TLM, Id: 80
+[2022-02-05 10:00:24,594] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: TO_LAB, Msg DATA_TYPES, Id: 81
+[2022-02-05 10:00:24,594] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: SAMPLE_APP, Msg HK_TLM, Id: 82
+[2022-02-05 10:00:24,594] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: OSK_C_DEMO, Msg HK_TLM, Id: 85
+[2022-02-05 10:00:24,594] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: OSK_C_DEMO, Msg PLAYBK_TLM, Id: 86
+[2022-02-05 10:00:24,594] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_ES: HK_TLM
+[2022-02-05 10:00:24,595] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_ES: APP_TLM
+[2022-02-05 10:00:24,595] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_ES: MEMSTATS_TLM
+[2022-02-05 10:00:24,595] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_TIME: HK_TLM
+[2022-02-05 10:00:24,595] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_TIME: DIAG_TLM
+[2022-02-05 10:00:24,595] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_EVS: HK_TLM
+[2022-02-05 10:00:24,595] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_EVS: SHORT_EVENT_MSG
+[2022-02-05 10:00:24,595] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_EVS: LONG_EVENT_MSG
+[2022-02-05 10:00:24,595] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_SB: HK_TLM
+[2022-02-05 10:00:24,595] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_SB: STATS_TLM
+[2022-02-05 10:00:24,595] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_SB: ALLSUBS_TLM
+[2022-02-05 10:00:24,595] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_SB: ONESUB_TLM
+[2022-02-05 10:00:24,595] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_TBL: HK_TLM
+[2022-02-05 10:00:24,595] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_TBL: REG_TLM
+[2022-02-05 10:00:24,595] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for OSK_C_DEMO: HK_TLM
+[2022-02-05 10:00:24,595] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for OSK_C_DEMO: PLAYBK_TLM
+[2022-02-05 10:00:25,597] INFO [telemetry.py cfsinterface.telemetry _recv_tlm_handler (208)]: TelemetryServer started receive telemetry handler thread
+[2022-02-05 10:00:25,597] INFO [cfsat.py __main__ execute (729)]: Successfully created application objects
+[2022-02-05 10:03:17,818] INFO [cfsat.py __main__ shutdown (699)]: Starting app shutdown sequence
+[2022-02-05 10:03:17,819] INFO [telemetry.py cfsinterface.telemetry shutdown (256)]: Telemetry server shutting down
+[2022-02-05 10:03:17,969] INFO [telemetry.py cfsinterface.telemetry _recv_tlm_handler (238)]: TelemetryServer terminating receive telemetry handler thread
+[2022-02-05 10:03:20,939] INFO [tutorial.py tools.tutorial __init__ (168)]: self.lesson_path  = ../tutorials/demo-app/lesson
+[2022-02-05 10:03:20,939] INFO [tutorial.py tools.tutorial __init__ (171)]: self.lesson_list = [1, 2]
+[2022-02-05 10:03:20,940] INFO [tutorial.py tools.tutorial __init__ (175)]: lesson_num_path = ../tutorials/demo-app/lesson/1
+[2022-02-05 10:03:20,940] INFO [tutorial.py tools.tutorial __init__ (178)]: lesson_pngs = ['Slide1.PNG', 'Slide2.PNG', 'Slide3.PNG']
+[2022-02-05 10:03:20,940] INFO [tutorial.py tools.tutorial __init__ (175)]: lesson_num_path = ../tutorials/demo-app/lesson/2
+[2022-02-05 10:03:20,940] INFO [tutorial.py tools.tutorial __init__ (178)]: lesson_pngs = ['Slide1.PNG', 'Slide2.PNG']
+[2022-02-05 10:03:20,940] INFO [tutorial.py tools.tutorial __init__ (168)]: self.lesson_path  = ../tutorials/hello-app/lesson
+[2022-02-05 10:03:20,940] INFO [tutorial.py tools.tutorial __init__ (171)]: self.lesson_list = [1, 2]
+[2022-02-05 10:03:20,941] INFO [tutorial.py tools.tutorial __init__ (175)]: lesson_num_path = ../tutorials/hello-app/lesson/1
+[2022-02-05 10:03:20,941] INFO [tutorial.py tools.tutorial __init__ (178)]: lesson_pngs = ['Slide1.PNG', 'Slide2.PNG', 'Slide3.PNG']
+[2022-02-05 10:03:20,941] INFO [tutorial.py tools.tutorial __init__ (175)]: lesson_num_path = ../tutorials/hello-app/lesson/2
+[2022-02-05 10:03:20,941] INFO [tutorial.py tools.tutorial __init__ (178)]: lesson_pngs = ['Slide1.PNG', 'Slide2.PNG']
+[2022-02-05 10:03:20,941] INFO [tutorial.py tools.tutorial __init__ (168)]: self.lesson_path  = ../tutorials/build-run-cfs/lesson
+[2022-02-05 10:03:20,941] INFO [tutorial.py tools.tutorial __init__ (171)]: self.lesson_list = [1]
+[2022-02-05 10:03:20,941] INFO [tutorial.py tools.tutorial __init__ (175)]: lesson_num_path = ../tutorials/build-run-cfs/lesson/1
+[2022-02-05 10:03:20,942] INFO [tutorial.py tools.tutorial __init__ (178)]: lesson_pngs = ['Slide1.PNG', 'Slide2.PNG', 'Slide3.PNG', 'Slide4.PNG', 'Slide5.PNG', 'Slide6.PNG', 'Slide7.PNG']
+[2022-02-05 10:03:20,942] INFO [cfsat.py __main__ execute (712)]: cFSAT version 0.1.0 initialized with mission samplemission, target cpu1 on 02/05/2022
+[2022-02-05 10:03:20,942] INFO [cfsat.py __main__ execute (713)]: cFSAT target host 127.0.0.1, command port 1234, telemetry port 1235
+[2022-02-05 10:03:20,942] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_ES, Msg HK_TLM, Id: 64
+[2022-02-05 10:03:20,943] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_ES, Msg APP_TLM, Id: 65
+[2022-02-05 10:03:20,943] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_ES, Msg MEMSTATS_TLM, Id: 67
+[2022-02-05 10:03:20,943] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_TIME, Msg HK_TLM, Id: 68
+[2022-02-05 10:03:20,943] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_TIME, Msg DIAG_TLM, Id: 69
+[2022-02-05 10:03:20,943] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_EVS, Msg HK_TLM, Id: 70
+[2022-02-05 10:03:20,943] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_EVS, Msg SHORT_EVENT_MSG, Id: 71
+[2022-02-05 10:03:20,943] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_EVS, Msg LONG_EVENT_MSG, Id: 72
+[2022-02-05 10:03:20,943] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_SB, Msg HK_TLM, Id: 73
+[2022-02-05 10:03:20,943] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_SB, Msg STATS_TLM, Id: 74
+[2022-02-05 10:03:20,943] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_SB, Msg ALLSUBS_TLM, Id: 75
+[2022-02-05 10:03:20,944] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_SB, Msg ONESUB_TLM, Id: 76
+[2022-02-05 10:03:20,944] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_TBL, Msg HK_TLM, Id: 77
+[2022-02-05 10:03:20,944] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_TBL, Msg REG_TLM, Id: 78
+[2022-02-05 10:03:20,944] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CI_LAB, Msg HK_TLM, Id: 79
+[2022-02-05 10:03:20,944] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: TO_LAB, Msg HK_TLM, Id: 80
+[2022-02-05 10:03:20,944] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: TO_LAB, Msg DATA_TYPES, Id: 81
+[2022-02-05 10:03:20,944] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: SAMPLE_APP, Msg HK_TLM, Id: 82
+[2022-02-05 10:03:20,944] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: OSK_C_DEMO, Msg HK_TLM, Id: 85
+[2022-02-05 10:03:20,944] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: OSK_C_DEMO, Msg PLAYBK_TLM, Id: 86
+[2022-02-05 10:03:20,944] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_ES: HK_TLM
+[2022-02-05 10:03:20,944] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_ES: APP_TLM
+[2022-02-05 10:03:20,945] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_ES: MEMSTATS_TLM
+[2022-02-05 10:03:20,945] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_TIME: HK_TLM
+[2022-02-05 10:03:20,945] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_TIME: DIAG_TLM
+[2022-02-05 10:03:20,945] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_EVS: HK_TLM
+[2022-02-05 10:03:20,945] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_EVS: SHORT_EVENT_MSG
+[2022-02-05 10:03:20,945] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_EVS: LONG_EVENT_MSG
+[2022-02-05 10:03:20,945] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_SB: HK_TLM
+[2022-02-05 10:03:20,945] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_SB: STATS_TLM
+[2022-02-05 10:03:20,945] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_SB: ALLSUBS_TLM
+[2022-02-05 10:03:20,945] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_SB: ONESUB_TLM
+[2022-02-05 10:03:20,945] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_TBL: HK_TLM
+[2022-02-05 10:03:20,945] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_TBL: REG_TLM
+[2022-02-05 10:03:20,946] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for OSK_C_DEMO: HK_TLM
+[2022-02-05 10:03:20,946] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for OSK_C_DEMO: PLAYBK_TLM
+[2022-02-05 10:03:21,947] INFO [telemetry.py cfsinterface.telemetry _recv_tlm_handler (208)]: TelemetryServer started receive telemetry handler thread
+[2022-02-05 10:03:21,947] INFO [cfsat.py __main__ execute (729)]: Successfully created application objects
+[2022-02-05 10:07:26,671] INFO [cfsat.py __main__ shutdown (699)]: Starting app shutdown sequence
+[2022-02-05 10:07:26,671] INFO [telemetry.py cfsinterface.telemetry shutdown (256)]: Telemetry server shutting down
+[2022-02-05 10:07:27,357] INFO [telemetry.py cfsinterface.telemetry _recv_tlm_handler (238)]: TelemetryServer terminating receive telemetry handler thread
+[2022-02-05 10:07:29,986] INFO [tutorial.py tools.tutorial __init__ (168)]: self.lesson_path  = ../tutorials/demo-app/lesson
+[2022-02-05 10:07:29,986] INFO [tutorial.py tools.tutorial __init__ (171)]: self.lesson_list = [1, 2]
+[2022-02-05 10:07:29,986] INFO [tutorial.py tools.tutorial __init__ (175)]: lesson_num_path = ../tutorials/demo-app/lesson/1
+[2022-02-05 10:07:29,986] INFO [tutorial.py tools.tutorial __init__ (178)]: lesson_pngs = ['Slide1.PNG', 'Slide2.PNG', 'Slide3.PNG']
+[2022-02-05 10:07:29,986] INFO [tutorial.py tools.tutorial __init__ (175)]: lesson_num_path = ../tutorials/demo-app/lesson/2
+[2022-02-05 10:07:29,986] INFO [tutorial.py tools.tutorial __init__ (178)]: lesson_pngs = ['Slide1.PNG', 'Slide2.PNG']
+[2022-02-05 10:07:29,986] INFO [tutorial.py tools.tutorial __init__ (168)]: self.lesson_path  = ../tutorials/hello-app/lesson
+[2022-02-05 10:07:29,987] INFO [tutorial.py tools.tutorial __init__ (171)]: self.lesson_list = [1, 2]
+[2022-02-05 10:07:29,987] INFO [tutorial.py tools.tutorial __init__ (175)]: lesson_num_path = ../tutorials/hello-app/lesson/1
+[2022-02-05 10:07:29,987] INFO [tutorial.py tools.tutorial __init__ (178)]: lesson_pngs = ['Slide1.PNG', 'Slide2.PNG', 'Slide3.PNG']
+[2022-02-05 10:07:29,987] INFO [tutorial.py tools.tutorial __init__ (175)]: lesson_num_path = ../tutorials/hello-app/lesson/2
+[2022-02-05 10:07:29,987] INFO [tutorial.py tools.tutorial __init__ (178)]: lesson_pngs = ['Slide1.PNG', 'Slide2.PNG']
+[2022-02-05 10:07:29,987] INFO [tutorial.py tools.tutorial __init__ (168)]: self.lesson_path  = ../tutorials/build-run-cfs/lesson
+[2022-02-05 10:07:29,987] INFO [tutorial.py tools.tutorial __init__ (171)]: self.lesson_list = [1]
+[2022-02-05 10:07:29,987] INFO [tutorial.py tools.tutorial __init__ (175)]: lesson_num_path = ../tutorials/build-run-cfs/lesson/1
+[2022-02-05 10:07:29,987] INFO [tutorial.py tools.tutorial __init__ (178)]: lesson_pngs = ['Slide1.PNG', 'Slide2.PNG', 'Slide3.PNG', 'Slide4.PNG', 'Slide5.PNG', 'Slide6.PNG', 'Slide7.PNG']
+[2022-02-05 10:07:29,988] INFO [cfsat.py __main__ execute (712)]: cFSAT version 0.1.0 initialized with mission samplemission, target cpu1 on 02/05/2022
+[2022-02-05 10:07:29,988] INFO [cfsat.py __main__ execute (713)]: cFSAT target host 127.0.0.1, command port 1234, telemetry port 1235
+[2022-02-05 10:07:29,988] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_ES, Msg HK_TLM, Id: 64
+[2022-02-05 10:07:29,988] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_ES, Msg APP_TLM, Id: 65
+[2022-02-05 10:07:29,988] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_ES, Msg MEMSTATS_TLM, Id: 67
+[2022-02-05 10:07:29,988] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_TIME, Msg HK_TLM, Id: 68
+[2022-02-05 10:07:29,989] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_TIME, Msg DIAG_TLM, Id: 69
+[2022-02-05 10:07:29,989] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_EVS, Msg HK_TLM, Id: 70
+[2022-02-05 10:07:29,989] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_EVS, Msg SHORT_EVENT_MSG, Id: 71
+[2022-02-05 10:07:29,989] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_EVS, Msg LONG_EVENT_MSG, Id: 72
+[2022-02-05 10:07:29,989] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_SB, Msg HK_TLM, Id: 73
+[2022-02-05 10:07:29,989] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_SB, Msg STATS_TLM, Id: 74
+[2022-02-05 10:07:29,989] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_SB, Msg ALLSUBS_TLM, Id: 75
+[2022-02-05 10:07:29,989] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_SB, Msg ONESUB_TLM, Id: 76
+[2022-02-05 10:07:29,989] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_TBL, Msg HK_TLM, Id: 77
+[2022-02-05 10:07:29,989] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_TBL, Msg REG_TLM, Id: 78
+[2022-02-05 10:07:29,989] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CI_LAB, Msg HK_TLM, Id: 79
+[2022-02-05 10:07:29,989] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: TO_LAB, Msg HK_TLM, Id: 80
+[2022-02-05 10:07:29,989] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: TO_LAB, Msg DATA_TYPES, Id: 81
+[2022-02-05 10:07:29,989] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: SAMPLE_APP, Msg HK_TLM, Id: 82
+[2022-02-05 10:07:29,990] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: OSK_C_DEMO, Msg HK_TLM, Id: 85
+[2022-02-05 10:07:29,990] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: OSK_C_DEMO, Msg PLAYBK_TLM, Id: 86
+[2022-02-05 10:07:29,990] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_ES: HK_TLM
+[2022-02-05 10:07:29,990] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_ES: APP_TLM
+[2022-02-05 10:07:29,990] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_ES: MEMSTATS_TLM
+[2022-02-05 10:07:29,990] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_TIME: HK_TLM
+[2022-02-05 10:07:29,990] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_TIME: DIAG_TLM
+[2022-02-05 10:07:29,990] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_EVS: HK_TLM
+[2022-02-05 10:07:29,990] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_EVS: SHORT_EVENT_MSG
+[2022-02-05 10:07:29,990] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_EVS: LONG_EVENT_MSG
+[2022-02-05 10:07:29,990] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_SB: HK_TLM
+[2022-02-05 10:07:29,990] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_SB: STATS_TLM
+[2022-02-05 10:07:29,990] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_SB: ALLSUBS_TLM
+[2022-02-05 10:07:29,990] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_SB: ONESUB_TLM
+[2022-02-05 10:07:29,990] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_TBL: HK_TLM
+[2022-02-05 10:07:29,991] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_TBL: REG_TLM
+[2022-02-05 10:07:29,991] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for OSK_C_DEMO: HK_TLM
+[2022-02-05 10:07:29,991] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for OSK_C_DEMO: PLAYBK_TLM
+[2022-02-05 10:07:30,993] INFO [telemetry.py cfsinterface.telemetry _recv_tlm_handler (208)]: TelemetryServer started receive telemetry handler thread
+[2022-02-05 10:07:30,994] INFO [cfsat.py __main__ execute (729)]: Successfully created application objects
+[2022-02-05 10:08:39,976] INFO [tutorial.py tools.tutorial __init__ (168)]: self.lesson_path  = ../tutorials/demo-app/lesson
+[2022-02-05 10:08:39,976] INFO [tutorial.py tools.tutorial __init__ (171)]: self.lesson_list = [1, 2]
+[2022-02-05 10:08:39,976] INFO [tutorial.py tools.tutorial __init__ (175)]: lesson_num_path = ../tutorials/demo-app/lesson/1
+[2022-02-05 10:08:39,977] INFO [tutorial.py tools.tutorial __init__ (178)]: lesson_pngs = ['Slide1.PNG', 'Slide2.PNG', 'Slide3.PNG']
+[2022-02-05 10:08:39,977] INFO [tutorial.py tools.tutorial __init__ (175)]: lesson_num_path = ../tutorials/demo-app/lesson/2
+[2022-02-05 10:08:39,977] INFO [tutorial.py tools.tutorial __init__ (178)]: lesson_pngs = ['Slide1.PNG', 'Slide2.PNG']
+[2022-02-05 10:08:39,977] INFO [tutorial.py tools.tutorial __init__ (168)]: self.lesson_path  = ../tutorials/hello-app/lesson
+[2022-02-05 10:08:39,977] INFO [tutorial.py tools.tutorial __init__ (171)]: self.lesson_list = [1, 2]
+[2022-02-05 10:08:39,977] INFO [tutorial.py tools.tutorial __init__ (175)]: lesson_num_path = ../tutorials/hello-app/lesson/1
+[2022-02-05 10:08:39,977] INFO [tutorial.py tools.tutorial __init__ (178)]: lesson_pngs = ['Slide1.PNG', 'Slide2.PNG', 'Slide3.PNG']
+[2022-02-05 10:08:39,978] INFO [tutorial.py tools.tutorial __init__ (175)]: lesson_num_path = ../tutorials/hello-app/lesson/2
+[2022-02-05 10:08:39,978] INFO [tutorial.py tools.tutorial __init__ (178)]: lesson_pngs = ['Slide1.PNG', 'Slide2.PNG']
+[2022-02-05 10:08:39,978] INFO [tutorial.py tools.tutorial __init__ (168)]: self.lesson_path  = ../tutorials/build-run-cfs/lesson
+[2022-02-05 10:08:39,978] INFO [tutorial.py tools.tutorial __init__ (171)]: self.lesson_list = [1]
+[2022-02-05 10:08:39,978] INFO [tutorial.py tools.tutorial __init__ (175)]: lesson_num_path = ../tutorials/build-run-cfs/lesson/1
+[2022-02-05 10:08:39,978] INFO [tutorial.py tools.tutorial __init__ (178)]: lesson_pngs = ['Slide1.PNG', 'Slide2.PNG', 'Slide3.PNG', 'Slide4.PNG', 'Slide5.PNG', 'Slide6.PNG', 'Slide7.PNG']
+[2022-02-05 10:08:39,979] INFO [cfsat.py __main__ execute (712)]: cFSAT version 0.1.0 initialized with mission samplemission, target cpu1 on 02/05/2022
+[2022-02-05 10:08:39,979] INFO [cfsat.py __main__ execute (713)]: cFSAT target host 127.0.0.1, command port 1234, telemetry port 1235
+[2022-02-05 10:08:39,979] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_ES, Msg HK_TLM, Id: 64
+[2022-02-05 10:08:39,979] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_ES, Msg APP_TLM, Id: 65
+[2022-02-05 10:08:39,979] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_ES, Msg MEMSTATS_TLM, Id: 67
+[2022-02-05 10:08:39,980] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_TIME, Msg HK_TLM, Id: 68
+[2022-02-05 10:08:39,980] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_TIME, Msg DIAG_TLM, Id: 69
+[2022-02-05 10:08:39,980] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_EVS, Msg HK_TLM, Id: 70
+[2022-02-05 10:08:39,980] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_EVS, Msg SHORT_EVENT_MSG, Id: 71
+[2022-02-05 10:08:39,980] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_EVS, Msg LONG_EVENT_MSG, Id: 72
+[2022-02-05 10:08:39,980] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_SB, Msg HK_TLM, Id: 73
+[2022-02-05 10:08:39,980] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_SB, Msg STATS_TLM, Id: 74
+[2022-02-05 10:08:39,980] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_SB, Msg ALLSUBS_TLM, Id: 75
+[2022-02-05 10:08:39,981] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_SB, Msg ONESUB_TLM, Id: 76
+[2022-02-05 10:08:39,981] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_TBL, Msg HK_TLM, Id: 77
+[2022-02-05 10:08:39,981] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_TBL, Msg REG_TLM, Id: 78
+[2022-02-05 10:08:39,981] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CI_LAB, Msg HK_TLM, Id: 79
+[2022-02-05 10:08:39,981] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: TO_LAB, Msg HK_TLM, Id: 80
+[2022-02-05 10:08:39,981] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: TO_LAB, Msg DATA_TYPES, Id: 81
+[2022-02-05 10:08:39,981] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: SAMPLE_APP, Msg HK_TLM, Id: 82
+[2022-02-05 10:08:39,981] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: OSK_C_DEMO, Msg HK_TLM, Id: 85
+[2022-02-05 10:08:39,981] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: OSK_C_DEMO, Msg PLAYBK_TLM, Id: 86
+[2022-02-05 10:08:39,981] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_ES: HK_TLM
+[2022-02-05 10:08:39,981] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_ES: APP_TLM
+[2022-02-05 10:08:39,982] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_ES: MEMSTATS_TLM
+[2022-02-05 10:08:39,982] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_TIME: HK_TLM
+[2022-02-05 10:08:39,982] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_TIME: DIAG_TLM
+[2022-02-05 10:08:39,982] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_EVS: HK_TLM
+[2022-02-05 10:08:39,982] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_EVS: SHORT_EVENT_MSG
+[2022-02-05 10:08:39,982] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_EVS: LONG_EVENT_MSG
+[2022-02-05 10:08:39,982] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_SB: HK_TLM
+[2022-02-05 10:08:39,982] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_SB: STATS_TLM
+[2022-02-05 10:08:39,982] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_SB: ALLSUBS_TLM
+[2022-02-05 10:08:39,983] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_SB: ONESUB_TLM
+[2022-02-05 10:08:39,983] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_TBL: HK_TLM
+[2022-02-05 10:08:39,983] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_TBL: REG_TLM
+[2022-02-05 10:08:39,983] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for OSK_C_DEMO: HK_TLM
+[2022-02-05 10:08:39,983] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for OSK_C_DEMO: PLAYBK_TLM
+[2022-02-05 10:08:40,986] INFO [telemetry.py cfsinterface.telemetry _recv_tlm_handler (208)]: TelemetryServer started receive telemetry handler thread
+[2022-02-05 10:08:40,986] INFO [cfsat.py __main__ execute (729)]: Successfully created application objects
+[2022-02-05 10:10:32,006] INFO [cfsat.py __main__ shutdown (699)]: Starting app shutdown sequence
+[2022-02-05 10:10:32,006] INFO [telemetry.py cfsinterface.telemetry shutdown (256)]: Telemetry server shutting down
+[2022-02-05 10:10:32,235] INFO [telemetry.py cfsinterface.telemetry _recv_tlm_handler (238)]: TelemetryServer terminating receive telemetry handler thread
+[2022-02-05 10:10:34,468] INFO [tutorial.py tools.tutorial __init__ (168)]: self.lesson_path  = ../tutorials/demo-app/lesson
+[2022-02-05 10:10:34,468] INFO [tutorial.py tools.tutorial __init__ (171)]: self.lesson_list = [1, 2]
+[2022-02-05 10:10:34,468] INFO [tutorial.py tools.tutorial __init__ (175)]: lesson_num_path = ../tutorials/demo-app/lesson/1
+[2022-02-05 10:10:34,468] INFO [tutorial.py tools.tutorial __init__ (178)]: lesson_pngs = ['Slide1.PNG', 'Slide2.PNG', 'Slide3.PNG']
+[2022-02-05 10:10:34,468] INFO [tutorial.py tools.tutorial __init__ (175)]: lesson_num_path = ../tutorials/demo-app/lesson/2
+[2022-02-05 10:10:34,468] INFO [tutorial.py tools.tutorial __init__ (178)]: lesson_pngs = ['Slide1.PNG', 'Slide2.PNG']
+[2022-02-05 10:10:34,468] INFO [tutorial.py tools.tutorial __init__ (168)]: self.lesson_path  = ../tutorials/hello-app/lesson
+[2022-02-05 10:10:34,468] INFO [tutorial.py tools.tutorial __init__ (171)]: self.lesson_list = [1, 2]
+[2022-02-05 10:10:34,468] INFO [tutorial.py tools.tutorial __init__ (175)]: lesson_num_path = ../tutorials/hello-app/lesson/1
+[2022-02-05 10:10:34,468] INFO [tutorial.py tools.tutorial __init__ (178)]: lesson_pngs = ['Slide1.PNG', 'Slide2.PNG', 'Slide3.PNG']
+[2022-02-05 10:10:34,469] INFO [tutorial.py tools.tutorial __init__ (175)]: lesson_num_path = ../tutorials/hello-app/lesson/2
+[2022-02-05 10:10:34,469] INFO [tutorial.py tools.tutorial __init__ (178)]: lesson_pngs = ['Slide1.PNG', 'Slide2.PNG']
+[2022-02-05 10:10:34,469] INFO [tutorial.py tools.tutorial __init__ (168)]: self.lesson_path  = ../tutorials/build-run-cfs/lesson
+[2022-02-05 10:10:34,469] INFO [tutorial.py tools.tutorial __init__ (171)]: self.lesson_list = [1]
+[2022-02-05 10:10:34,469] INFO [tutorial.py tools.tutorial __init__ (175)]: lesson_num_path = ../tutorials/build-run-cfs/lesson/1
+[2022-02-05 10:10:34,469] INFO [tutorial.py tools.tutorial __init__ (178)]: lesson_pngs = ['Slide1.PNG', 'Slide2.PNG', 'Slide3.PNG', 'Slide4.PNG', 'Slide5.PNG', 'Slide6.PNG', 'Slide7.PNG']
+[2022-02-05 10:10:34,469] INFO [cfsat.py __main__ execute (712)]: cFSAT version 0.1.0 initialized with mission samplemission, target cpu1 on 02/05/2022
+[2022-02-05 10:10:34,469] INFO [cfsat.py __main__ execute (713)]: cFSAT target host 127.0.0.1, command port 1234, telemetry port 1235
+[2022-02-05 10:10:34,470] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_ES, Msg HK_TLM, Id: 64
+[2022-02-05 10:10:34,470] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_ES, Msg APP_TLM, Id: 65
+[2022-02-05 10:10:34,470] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_ES, Msg MEMSTATS_TLM, Id: 67
+[2022-02-05 10:10:34,470] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_TIME, Msg HK_TLM, Id: 68
+[2022-02-05 10:10:34,470] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_TIME, Msg DIAG_TLM, Id: 69
+[2022-02-05 10:10:34,470] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_EVS, Msg HK_TLM, Id: 70
+[2022-02-05 10:10:34,470] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_EVS, Msg SHORT_EVENT_MSG, Id: 71
+[2022-02-05 10:10:34,470] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_EVS, Msg LONG_EVENT_MSG, Id: 72
+[2022-02-05 10:10:34,470] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_SB, Msg HK_TLM, Id: 73
+[2022-02-05 10:10:34,470] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_SB, Msg STATS_TLM, Id: 74
+[2022-02-05 10:10:34,470] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_SB, Msg ALLSUBS_TLM, Id: 75
+[2022-02-05 10:10:34,470] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_SB, Msg ONESUB_TLM, Id: 76
+[2022-02-05 10:10:34,470] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_TBL, Msg HK_TLM, Id: 77
+[2022-02-05 10:10:34,470] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CFE_TBL, Msg REG_TLM, Id: 78
+[2022-02-05 10:10:34,470] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: CI_LAB, Msg HK_TLM, Id: 79
+[2022-02-05 10:10:34,471] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: TO_LAB, Msg HK_TLM, Id: 80
+[2022-02-05 10:10:34,471] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: TO_LAB, Msg DATA_TYPES, Id: 81
+[2022-02-05 10:10:34,471] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: SAMPLE_APP, Msg HK_TLM, Id: 82
+[2022-02-05 10:10:34,471] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: OSK_C_DEMO, Msg HK_TLM, Id: 85
+[2022-02-05 10:10:34,471] INFO [telemetry.py cfsinterface.telemetry __init__ (144)]: TelemetryServer constructor adding App: OSK_C_DEMO, Msg PLAYBK_TLM, Id: 86
+[2022-02-05 10:10:34,471] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_ES: HK_TLM
+[2022-02-05 10:10:34,471] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_ES: APP_TLM
+[2022-02-05 10:10:34,471] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_ES: MEMSTATS_TLM
+[2022-02-05 10:10:34,471] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_TIME: HK_TLM
+[2022-02-05 10:10:34,471] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_TIME: DIAG_TLM
+[2022-02-05 10:10:34,471] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_EVS: HK_TLM
+[2022-02-05 10:10:34,471] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_EVS: SHORT_EVENT_MSG
+[2022-02-05 10:10:34,471] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_EVS: LONG_EVENT_MSG
+[2022-02-05 10:10:34,471] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_SB: HK_TLM
+[2022-02-05 10:10:34,471] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_SB: STATS_TLM
+[2022-02-05 10:10:34,471] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_SB: ALLSUBS_TLM
+[2022-02-05 10:10:34,471] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_SB: ONESUB_TLM
+[2022-02-05 10:10:34,471] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_TBL: HK_TLM
+[2022-02-05 10:10:34,472] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for CFE_TBL: REG_TLM
+[2022-02-05 10:10:34,472] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for OSK_C_DEMO: HK_TLM
+[2022-02-05 10:10:34,472] INFO [cfsat.py __main__ __init__ (572)]: system telemetry adding observer for OSK_C_DEMO: PLAYBK_TLM
+[2022-02-05 10:10:35,473] INFO [telemetry.py cfsinterface.telemetry _recv_tlm_handler (208)]: TelemetryServer started receive telemetry handler thread
+[2022-02-05 10:10:35,474] INFO [cfsat.py __main__ execute (729)]: Successfully created application objects
+[2022-02-05 10:47:28,018] INFO [cfsat.py __main__ shutdown (699)]: Starting app shutdown sequence
+[2022-02-05 10:47:28,018] INFO [telemetry.py cfsinterface.telemetry shutdown (256)]: Telemetry server shutting down
+[2022-02-05 10:47:28,541] INFO [telemetry.py cfsinterface.telemetry _recv_tlm_handler (238)]: TelemetryServer terminating receive telemetry handler thread

@@ -38,8 +38,10 @@ TEMPLATE_VAR_UPPER = "@TEMPLATE@"
 TEMPLATE_VAR_MIXED = "@Template@"
 TEMPLATE_VAR_LOWER = "@template@"
 
-TEMPLATE_COMMENT_START  = "/*##"
-TEMPLATE_COMMENT_END    = "##*/"
+TEMPLATE_COMMENT_START = "/*##"
+TEMPLATE_COMMENT_END   = "##*/"
+
+CFS_APPS_RELATIVE_PATH = '../../cfs-apps'
 
 ###############################################################################
 
@@ -93,34 +95,44 @@ class AppTemplate():
         
         self.new_app_dir = os.path.join(cfs_app_dir, self.app_name['LOWER'])
         
-        try: 
-            os.mkdir(self.new_app_dir) 
-        except OSError: 
-            print("Error creating " + self.new_app_dir)  
+        make_dir = True
+        if (os.path.exists(self.new_app_dir)):
         
-        for dir in self.dirs:
-            
-            subdir_path  = self.json.subdir_path(dir)
-            subdir_files = self.json.subdir_files(dir)
-            logger.debug("path = " + subdir_path)
-            logger.debug("files = " + str(subdir_files))
-            
-            if len(subdir_path) > 0:
-                template_file_path = os.path.join(self.path, subdir_path)
-                new_app_file_path  = os.path.join(self.new_app_dir, subdir_path)
-            else:
-                template_file_path = self.path
-                new_app_file_path  = self.new_app_dir
-            
+            event, values = sg.Window('Warning',
+                  [[sg.T('Destination directory %s already exists.\nDo you want to overwrite it?' % self.new_app_dir)],
+                  [sg.B('Yes'), sg.B('No') ]]).read(close=True)
+            if event == 'No':
+                make_dir = False
+                print('Create app aborted')
+        if make_dir:
             try: 
-                os.makedirs(new_app_file_path) 
+                os.makedirs(self.new_app_dir) 
             except OSError: 
-                print("Error creating " + new_app_file_path)
+                print("Error creating new app directory " + self.new_app_dir)  
+        
+            for dir in self.dirs:
             
-            for template_file in subdir_files:
-                self.instantiate_file(template_file_path, new_app_file_path, template_file)
+                subdir_path  = self.json.subdir_path(dir)
+                subdir_files = self.json.subdir_files(dir)
+                logger.debug("path = " + subdir_path)
+                logger.debug("files = " + str(subdir_files))
+            
+                if len(subdir_path) > 0:
+                    template_file_path = os.path.join(self.path, subdir_path)
+                    new_app_file_path  = os.path.join(self.new_app_dir, subdir_path)
+                else:
+                    template_file_path = self.path
+                    new_app_file_path  = self.new_app_dir
+            
+                try: 
+                    os.makedirs(new_app_file_path) 
+                except OSError: 
+                    print("Error creating new app subdirectory" + new_app_file_path)
+            
+                for template_file in subdir_files:
+                    self.instantiate_file(template_file_path, new_app_file_path, template_file)
                           
-        app_created = True
+            app_created = True
       
         return app_created
         
@@ -241,11 +253,12 @@ class CreateApp():
                         if values['-INPUT-'] is not None:
                             app_name = values['-INPUT-']
                             if len(app_name) > 0:
-                                self.selected_app.create_app(app_name, os.path.join(os.getcwd(),'../../../cfs-apps'))
+                                self.selected_app.create_app(app_name, os.path.join(os.getcwd(),CFS_APPS_RELATIVE_PATH))
+                    window.close()
                     break
                 else:
                     sg.popup("Please select an application template", title="Create Application")
-        
+                
         self.window.close()
 
 

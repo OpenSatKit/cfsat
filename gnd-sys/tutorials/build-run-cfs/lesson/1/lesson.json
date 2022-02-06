@@ -1,8 +1,8 @@
 {
   "time-stamp": "",
-  "title": "Customize example object",
+  "title": "Build and Run cFS",
   "objective": [
-    "Customize example object's functionality"
+    "Build and run the cFS from the command line"
   ],
   "current-slide": 1,
   "complete": false
