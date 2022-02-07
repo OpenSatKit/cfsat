@@ -33,7 +33,7 @@ Package Notes:
 
 The python appplication uses [PySimpleGUI](https://pysimplegui.readthedocs.io/en/latest/) which can be installed with the following command:
 
-   pip3 install PySimpleGUI
+    pip3 install PySimpleGUI
 
 ## Clone cFSAT Repository
     git clone https://github.com/OpenSatKit/cfsat.git
