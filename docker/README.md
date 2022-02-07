@@ -1,3 +1,5 @@
+# NOTE: This is only used to containerize the build and FSW portion, and not the python ground system
+
 # Setup
 - Clone the repo
 - cd into the repo
