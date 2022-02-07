@@ -3,5 +3,5 @@
 - cd into the repo
     - cd cfsat
 - docker build -t cfs-workshop -f docker/Dockerfile .
-- docker run -ti --privileged --name cfs-workshop-container cfs-workshop /bin/bash
-- docker exec -ti cfs-workshop-container /bin/bash
+- docker run -ti --privileged --net=host --rm --name cfs-workshop-container cfs-workshop build/exe/cpu1/core-cpu1
+
