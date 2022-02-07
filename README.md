@@ -11,23 +11,29 @@ If you have any issues installing or using the above features please submit an i
 # Getting Started
 
 ## Prerequisites
-The system can be developed on any GNU/Linux development host. The following development packages must be installed on the host. Note these are names
-of Debian/Ubuntu packages that are installed with *'sudo apt-get install <package>'*; other Linux distributions should provide a similar set but, the
-package names and installation tool names may vary. 
+The system can be developed on any GNU/Linux development host. The following commands install the development packages for
+a Debian/Ubuntu environment. Other Linux distributions should provide a similar set of packages but, the package names and
+installation tool names may vary. 
 
-- 'update package respositories` *(Ubunutu command is 'sudo apt-get update -y')*
-- `build-essential` *(contains gcc, libc-dev, make, etc.)* 
-- `cmake` *(at least v2.8.12 recommended)*
-- `libexpat1-dev`
-- `liblua5.3-dev` *(older versions of Lua may work, at least v5.1 is required)*
-- `libjson-c-dev`
-- `python3-dev`
-- `python3-pip`
-- `python3-tk`
+    sudo apt-get update -y 
+    sudo apt-get install build-essential
+    sudo apt-get install cmake
+    sudo apt-get install libexpat1-dev
+    sudo apt-get install liblua5.3-dev
+    sudo apt-get install libjson-c-dev
+    sudo apt-get install python3-dev
+    sudo apt-get install python3-pip
+    sudo apt-get install python3-tk
+   
+Package Notes:
+- *sudo apt-get update* updates a platform's current package respositories
+- *build-essential* contains a C developer tool suite including gcc, libc-dev, make, etc.* 
+- *cmake* must be at least v2.8.12
+- *liblua5.3-dev* must be at least v5.1
 
 The python appplication uses [PySimpleGUI](https://pysimplegui.readthedocs.io/en/latest/) which can be installed with the following command:
 
-- `pip3 install PySimpleGUI`
+   pip3 install PySimpleGUI
 
 ## Clone cFSAT Repository
     git clone https://github.com/OpenSatKit/cfsat.git
