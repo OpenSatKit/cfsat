@@ -60,7 +60,7 @@ In a new terminal window, starting in the directory where you issued the git clo
     . ./setvars.sh
     python3 cfsat.py
 
-    From the 'cFS Config' dropdown menu select 'Enable Telemetry'
+- From the 'cFS Config' dropdown menu select 'Enable Telemetry'
 
 ## Next Steps
 In the docs folder refer to
