@@ -39,9 +39,9 @@ The python appplication uses [PySimpleGUI](https://pysimplegui.readthedocs.io/en
     git clone https://github.com/OpenSatKit/cfsat.git
 
 ## Build and Run Flight Software
-Prepare build tree, build binaries, and install executable in ./build/exe/cpu1:
+Prepare build tree, build binaries, and install executable in cfsat/cfe-eds-framework/build/exe/cpu1:
 
-    cd cfe-eds-framework
+    cd cfsat/cfe-eds-framework
     make SIMULATION=native prep
     make install
     
@@ -54,7 +54,7 @@ If the cFS fails to start and you get a message like *Aborted (core dumped)* the
     sudo ./core-cpu1
 
 ## Run Python Ground System Applcation 
-In a new terminal window run the Ground System application and establish telemetry flow:
+In a new terminal window, starting in the directory where you issued the git clone, run the Ground System application and establish telemetry flow:
 
     cd cfsat/gnd-sys/app
     . ./setvars.sh
