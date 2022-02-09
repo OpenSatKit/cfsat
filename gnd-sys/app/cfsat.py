@@ -42,6 +42,7 @@ import subprocess
 import threading
 import queue
 import json
+import signal
 from datetime import datetime
 
 import logging
@@ -492,11 +493,12 @@ class GuiTelemetry(TelemetryObserver):
 
         while not self.gui_thread.kill:  # Event Loop
             
-            #Big kludge for multi-threaded tlm windows
+            #todo: Big kludge for multi-threaded tlm windows
+            #todo: PySimpleGUI has a subprocess API, execute_command_subprocess() that I'm using for tutorials and it can be used for each telmeetry GUI
             try:
                 self.event, self.values = self.window.read(timeout=500)
             except (RuntimeError, AttributeError):
-                #print("GI read loop exception")
+                #print("GUI Telemetry read loop exception")
                 self.event = "void"
             logger.debug("GUI Window Read()\nEvent: %s\nValues: %s" % (self.event, self.values))
 
@@ -630,8 +632,8 @@ class App():
         self.gui_tlm_threads = {}
         self.window = None
         
-        self.cfs_thread     = None
         self.cfs_subprocess = None
+        self.cfs_popen = None
         
         self.manage_tutorials = ManageTutorials(self.config.get('TOOLS', 'TUTORIALS_PATH'))
         self.create_app       = CreateApp(self.config.get('TOOLS', 'APP_TEMPLATES_PATH'))
@@ -657,27 +659,6 @@ class App():
         (cmd_sent, cmd_text, cmd_status) = self.script_telecommand.send_app_cmd(app_name, cmd_name, cmd_payload)
         self.display_event(cmd_status)
 
-    def cfs_subprocess_thread(self):
-        # Good overview: https://janakiev.com/blog/python-shell-commands/
-        # This works but didn't return. Need to spawn a thread. Couldn't use '~', had to be absolute path
-        # cfs = subprocess.run(['sudo','/home/grandpa-dave/cfe-eds-framework/build/exe/cpu1/core-cpu1','osk'],stdout=subprocess.PIPE,universal_newlines=True)
-    
-        thread = threading.currentThread()
-        
-        print("Before subprocess")
-        cfs_dir = self.cfs_exe_str[0:self.cfs_exe_str.rfind("/")]
-        print("cfs_dir = " + cfs_dir)
-        self.cfs_subprocess = subprocess.Popen([self.cfs_exe_str],
-                                  cwd=cfs_dir, stdout=subprocess.PIPE,universal_newlines=True)
-        print("After subprocess")
-
-        while not thread.kill:
-            output = self.cfs_subprocess.stdout.readline()
-            #print(output.strip())
-            time.sleep(0.25)
-            
-        print("Before subprocess terminate")
-        #self.cfs_subprocess.terminate()
 
     def disable_flywheel_event(self):
         # CFE_TIME does not configure an event filter so the first time through add an event filter to CFE_TIME
@@ -702,6 +683,8 @@ class App():
             if self.gui_tlm_objects[tlm_topic] != None:
                  self.gui_tlm_objects[tlm_topic].shutdown()
         time.sleep(self.CFS_TARGET_TLM_TIMEOUT)
+        if self.cfs_popen is not None:
+            self.cfs_popen.kill()
         self.window.close()
 
     def execute(self):
@@ -796,7 +779,7 @@ class App():
         # --- Loop taking in user input --- #
         while True:
     
-            self.event, self.values = self.window.read(timeout=250)
+            self.event, self.values = self.window.read(timeout=500)
             logger.debug("App Window Read()\nEvent: %s\nValues: %s" % (self.event, self.values))
             
             try:
@@ -853,7 +836,8 @@ class App():
             ### TUTORIALS ###
                    
             if self.event in self.manage_tutorials.tutorial_titles:
-                self.manage_tutorials.run_tutorial(self.event)
+                tutorial_dir = os.path.join(self.path, "tools")
+                sg.execute_py_file("tutorial.py", cwd=tutorial_dir)
                 
             #################################
             ##### TOP ROW BUTTON EVENTS #####
@@ -869,16 +853,31 @@ class App():
                 
                 if self.cfs_exe_str != None:
                     print("self.cfs_exe_str = " + self.cfs_exe_str)
+                    cfs_dir = self.cfs_exe_str[0:self.cfs_exe_str.rfind("/")]
+                    print("cfs_dir = " + cfs_dir)
                     self.window["-CFS_IMAGE-"].update(self.GUI_IMAGE_TXT_PREFIX + self.cfs_exe_str)
-                    #threading.Thread(target=self.cfs_thread).start()
-                    self.cfs_thread = threading.Thread(target=self.cfs_subprocess_thread)
-                    self.cfs_thread.kill = False
-                    self.cfs_thread.start()
-                
+                    self.cfs_popen = sg.execute_command_subprocess(self.cfs_exe_str, cwd=cfs_dir)
+
             if self.event == '-STOP_CFS-':
-                if self.cfs_subprocess != None:
-                    self.cfs_thread.kill = True
-                self.window["-CFS_IMAGE-"].update(self.GUI_NO_IMAGE_TXT)
+                if self.cfs_popen is not None:
+                    logger.info("Killing cFS Process")
+                    self.cfs_popen.kill()
+                    #todo: When process term works, perform: self.cfs_popen = None
+                    if hasattr(signal, 'CTRL_C_EVENT'):
+                        self.cfs_popen.send_signal(signal.CTRL_C_EVENT)
+                        #os.kill(self.cfs_popen.pid, signal.CTRL_C_EVENT)
+                    else:
+                        self.cfs_popen.send_signal(signal.SIGINT)
+                        #pgid = os.getpgid(self.cfs_popen.pid)
+                        #if pgid == 1:
+                        #    os.kill(self.cfs_popen.pid, signal.SIGINT)
+                        #else:
+                        #    os.killpg(os.getpgid(self.cfs_popen.pid), signal.SIGINT) 
+                        #os.kill(self.cfs_popen.pid(), signal.SIGINT)
+                if self.cfs_popen.poll() is not None:
+                    sg.popup("cFS failed to terminate.\nUse another terminal to kill the process.", title='Warning', grab_anywhere=True, modal=False)
+                else:
+                    self.window["-CFS_IMAGE-"].update(self.GUI_NO_IMAGE_TXT)
 
             if self.event == '-CFS_CONFIG_CMD-':
                 cfs_config_cmd = self.values['-CFS_CONFIG_CMD-']

@@ -20,6 +20,7 @@ LICENSE:
 import sys
 import time
 import os
+import errno
 import json
 import configparser
 from datetime import datetime
@@ -107,9 +108,11 @@ class AppTemplate():
         if make_dir:
             try: 
                 os.makedirs(self.new_app_dir) 
-            except OSError: 
-                print("Error creating new app directory " + self.new_app_dir)  
-        
+            except OSError as e:
+                if e.errno != errno.EEXIST:
+                    print("Error creating new app directory" + self.new_app_dir)
+                    raise  # raises the error again
+              
             for dir in self.dirs:
             
                 subdir_path  = self.json.subdir_path(dir)
@@ -126,15 +129,17 @@ class AppTemplate():
             
                 try: 
                     os.makedirs(new_app_file_path) 
-                except OSError: 
-                    print("Error creating new app subdirectory" + new_app_file_path)
+                except OSError as e:
+                    if e.errno != errno.EEXIST:
+                        print("Error creating new app subdirectory" + new_app_file_path)
+                        raise  # raises the error again
             
                 for template_file in subdir_files:
                     self.instantiate_file(template_file_path, new_app_file_path, template_file)
                           
             app_created = True
       
-        return app_created
+        return (app_created, self.new_app_dir)
         
     def instantiate_file(self, template_file_path, new_app_file_path, template_file):
         """
@@ -187,7 +192,7 @@ class CreateApp():
         self.app_template_lookup = {}  # [title]  => AppTemplate
         for app_template_folder in os.listdir(self.app_templates_path):
             logger.debug("App template folder: " + app_template_folder)
-            #todo: AppTemplate constrcutor coudl raise exception if JSON doesn't exist or is malformed
+            #todo: AppTemplate constructor could raise exception if JSON doesn't exist or is malformed
             app_template_json_file = os.path.join(app_templates_path, app_template_folder, TEMPLATE_JSON_FILE)
             if os.path.exists(app_template_json_file):
                 app_template = AppTemplate(os.path.join(app_templates_path, app_template_folder))
@@ -217,7 +222,7 @@ class CreateApp():
                        [sg.Button('Description'), sg.Button('Create App'), sg.Button('Cancel')]
                       ]
         
-        self.window = sg.Window('Create Application', self.layout, finalize=True)
+        self.window = sg.Window('Create Application', self.layout, modal=False)
 
         while True: # Event Loop
             
@@ -239,7 +244,7 @@ class CreateApp():
                         description += decsription_line
                     sg.popup(description, title=self.selected_app.json.title())
                 else:
-                    sg.popup("Please select an application template", title="Create Application")
+                    sg.popup("Please select an application template", title="Create Application", modal=False)
                 
             if self.event == 'Create App':
                 if self.selected_app is not None:
@@ -247,17 +252,20 @@ class CreateApp():
                     layout = [[sg.T('Application Name')],
                               [sg.In(key='-INPUT-')],
                               [sg.OK(), sg.Button('Cancel')]]
-                    window = sg.Window('Create Application', layout)
+                    window = sg.Window('Create Application', layout, modal=False)
                     event, values = window.read()
                     if event == 'OK':
                         if values['-INPUT-'] is not None:
                             app_name = values['-INPUT-']
                             if len(app_name) > 0:
-                                self.selected_app.create_app(app_name, os.path.join(os.getcwd(),CFS_APPS_RELATIVE_PATH))
+                                app_created, new_app_dir = self.selected_app.create_app(app_name, os.path.join(os.getcwd(),CFS_APPS_RELATIVE_PATH))
+                                if app_created:
+                                    sg.popup("Successfully created %s in %s" % (app_name, new_app_dir), 
+                                             title="Create Application", modal=False) 
                     window.close()
                     break
                 else:
-                    sg.popup("Please select an application template", title="Create Application")
+                    sg.popup("Please select an application template", title="Create Application", modal=False)
                 
         self.window.close()
 

@@ -86,7 +86,7 @@ class Lesson():
         self.slides    = slides
         self.slide_max = len(slides)
         self.load_json()
-    
+
     def load_json(self):
     
         self.json = TutorialJson(os.path.join(self.path, LESSON_JSON_FILE))
@@ -100,7 +100,7 @@ class Lesson():
         self.slide_file = os.path.join(self.path, self.slides[self.cur_slide-1])
     
     
-    def execute(self):
+    def gui(self):
     
         self.update_slide_file()
         
@@ -110,13 +110,12 @@ class Lesson():
                        [sg.Button('Prev', size=(8,2)), sg.Button('Next', size=(8, 2)), sg.Button('Mark as Complete', pad=(10,0))]
                       ]
  
-        self.window = sg.Window(self.json.title(), self.layout, element_justification='c', resizable=True, finalize=True)
-        
+        self.window = sg.Window(self.json.title(), self.layout, element_justification='c', resizable=True, modal=True)
         
         while True:
-        
+
             self.event, self.values = self.window.read()
-            
+        
             if self.event in (sg.WIN_CLOSED, 'Exit') or self.event is None:
                 break
 
@@ -143,6 +142,9 @@ class Lesson():
         self.window.close()       
 
         return self.json.lesson_complete()
+
+    def execute(self):
+        self.gui()
         
     def reset(self):
         self.json.reset()
@@ -182,6 +184,7 @@ class Tutorial():
         self.display = True
         self.reset   = False
 
+
     def gui(self):
         """
         Navigating through lessons is not strictly enforced.  The goal is to keep the user
@@ -220,39 +223,39 @@ class Tutorial():
                        [sg.Button('Start'), sg.Button('Reset'), sg.Button('Exit')]
                       ]
         
-        self.window = sg.Window(self.json.title(), self.layout, finalize=True)
+        while self.display:
 
-        while True: # Event Loop
-            
-            self.event, self.values = self.window.read()
+            self.window = sg.Window(self.json.title(), self.layout, modal=True)
 
-            if self.event in (sg.WIN_CLOSED, 'Exit') or self.event is None:       
-                break
+            while True: # Event Loop
+
+                self.event, self.values = self.window.read(timeout=100)
+                   
+                if self.event in (sg.WIN_CLOSED, 'Exit') or self.event is None:       
+                    break
             
-            if self.event == 'Start':
-                for lesson in self.lesson_objs:
-                    if self.values["-LESSON%d-"%lesson] == True:
-                        if self.lesson_objs[lesson].execute():
-                            self.window['-COMPLETE%d-'%lesson].update('Yes') 
+                if self.event == 'Start':
+                    for lesson in self.lesson_objs:
+                        if self.values["-LESSON%d-"%lesson] == True:
+                            if self.lesson_objs[lesson].execute():
+                                self.window['-COMPLETE%d-'%lesson].update('Yes') 
                 
-            if self.event == 'Reset':
-                for lesson in list(self.lesson_objs.values()):
-                   lesson.reset()   
-                self.reset = True
-                break
+                if self.event == 'Reset':
+                    for lesson in list(self.lesson_objs.values()):
+                       lesson.reset()   
+                    self.reset = True
+                    break
         
-        self.json.update()
-        self.window.close()
+            self.json.update()
+            self.window.close()
         
+            if self.reset:
+                self.reset = False
+            else:
+                self.display = False
         
     def execute(self):
-    
-        while self.display:
-           self.gui()
-           if self.reset:
-              self.reset = False
-           else:
-              self.display = False
+        self.gui()
 
 
 ###############################################################################
@@ -272,7 +275,7 @@ class ManageTutorials():
         
         for tutorial_folder in os.listdir(tutorials_path):
             logger.debug("Tutorial folder: " + tutorial_folder)
-            #todo: Tutorial constrcutor coudl raise exception if JSON doesn't exist or is malformed
+            #todo: Tutorial constructor could raise exception if JSON doesn't exist or is malformed
             tutorial_json_file = os.path.join(tutorials_path, tutorial_folder, TUTORIAL_JSON_FILE)
             if os.path.exists(tutorial_json_file):
                 tutorial = Tutorial(os.path.join(tutorials_path, tutorial_folder))
