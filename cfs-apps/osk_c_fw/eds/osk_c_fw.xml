@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+    This document adheres to the Electronic Data Sheet (EDS) XML schema 
+    as prescribed in CCSDS book 876.0. 
+      
+    Purpose: 
+      This describes all interface objects for the OpenSatKit(OSK) C Demo
+      (osk_c_demo) application 
+      
+-->
+<PackageFile xmlns="http://www.ccsds.org/schema/sois/seds">
+  <Package name="OSK_C_FW" shortDescription="OpenSatKit application framework for C language">
+
+     <!-- OSK_C_FW::CmdMgr -->
+     
+    <Define name="NOOP_CC"      value="0" />
+    <Define name="RESET_CC"     value="1" />
+    <Define name="LOAD_TBL_CC"  value="2" />
+    <Define name="DUMP_TBL_CC"  value="3" />
+    <Define name="APP_BASE_CC"  value="10" />
+
+
+    <DataTypeSet>
+ 
+      <!--***********************************-->
+      <!--**** DataTypeSet:  Entry Types ****-->
+      <!--***********************************-->
+    
+      <!-- OSK_C_FW::FileUtil -->
+
+      <EnumeratedDataType name="FileState" shortDescription="Define file state possibilities" >
+        <IntegerDataEncoding sizeInBits="16" encoding="unsigned" />
+        <EnumerationList>
+          <Enumeration label="FILENAME_INVALID" value="1" shortDescription="" />
+          <Enumeration label="FILE_NONEXISTENT" value="2" shortDescription="" />
+          <Enumeration label="FILE_OPEN"        value="3" shortDescription="" />
+          <Enumeration label="FILE_CLOSED"      value="4" shortDescription="" />
+          <Enumeration label="FILE_IS_DIR"      value="5" shortDescription="" />
+        </EnumerationList>
+      </EnumeratedDataType>
+    
+      <!-- OSK_C_FW::PktUtil -->
+
+      <EnumeratedDataType name="PktFilterOptions" shortDescription="" >
+        <IntegerDataEncoding sizeInBits="16" encoding="unsigned" />
+        <EnumerationList>
+          <Enumeration label="FILTER_ALWAYS"     value="1" shortDescription="" />
+          <Enumeration label="FILTER_BY_SEQ_CNT" value="2" shortDescription="" />
+          <Enumeration label="FILTER_BY_TIME"    value="3" shortDescription="" />
+          <Enumeration label="FILTER_NEVER"      value="4" shortDescription="" />
+        </EnumerationList>
+      </EnumeratedDataType>
+
+      <!-- OSK_C_FW::StateRep -->
+
+      <EnumeratedDataType name="StateRepOptions" shortDescription="" >
+        <IntegerDataEncoding sizeInBits="16" encoding="unsigned" />
+        <EnumerationList>
+          <Enumeration label="NEW_REPORT"   value="1" shortDescription="Only report new state since last report" />
+          <Enumeration label="MERGE_REPORT" value="2" shortDescription="Boolean OR new states with previous report" />
+        </EnumerationList>
+      </EnumeratedDataType>
+
+     <!-- OSK_C_FW::TblMgr -->
+
+      <EnumeratedDataType name="TblLoadOptions" shortDescription="Defines options for a table load command" >
+        <IntegerDataEncoding sizeInBits="8" encoding="unsigned" />
+        <EnumerationList>
+          <Enumeration label="REPLACE" value="0" shortDescription="Replace the entire table" />
+          <Enumeration label="UPDATE"  value="1" shortDescription="Update only the entries provided. Sparse update functionality is app-specific" />
+        </EnumerationList>
+      </EnumeratedDataType>
+
+      <EnumeratedDataType name="TblActions" shortDescription="Defines table service actions" >
+        <IntegerDataEncoding sizeInBits="8" encoding="unsigned" />
+        <EnumerationList>
+          <Enumeration label="UNDEFINED" value="0" shortDescription="Undefined value that should never occur" />
+          <Enumeration label="REGISTER"  value="1" shortDescription="App registered the table with the OSK App Framework" />
+          <Enumeration label="LOAD"      value="2" shortDescription="Table data loaded from a file" />
+          <Enumeration label="DUMP"      value="3" shortDescription="Table data dumped to a file" />
+        </EnumerationList>
+      </EnumeratedDataType>
+
+      <EnumeratedDataType name="TblActionStatus" shortDescription="Defines table action status" >
+        <IntegerDataEncoding sizeInBits="8" encoding="unsigned" />
+        <EnumerationList>
+          <Enumeration label="UNDEFINED" value="0" shortDescription="Undefined value that should never occur" />
+          <Enumeration label="INVALID"   value="1" shortDescription="Table action was invalid and failed" />
+          <Enumeration label="VALID"     value="2" shortDescription="Table action was valid and succeeded" />
+        </EnumerationList>
+      </EnumeratedDataType>
+    
+    </DataTypeSet>    
+  </Package>
+</PackageFile>
