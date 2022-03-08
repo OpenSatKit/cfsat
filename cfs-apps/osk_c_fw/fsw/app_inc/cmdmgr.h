@@ -1,24 +1,30 @@
 /*
-** Purpose: Manage command dispatching for an application
+**  Copyright 2022 Open STEMware Foundation
+**  All Rights Reserved.
 **
-** Notes:
-**   None
+**  This program is free software; you can modify and/or redistribute it under
+**  the terms of the GNU Affero General Public License as published by the Free
+**  Software Foundation; version 3 with attribution addendums as found in the
+**  LICENSE.txt
 **
-** References:
-**   1. OpenSatKit Object-based Application Developer's Guide.
-**   2. cFS Application Developer's Guide.
+**  This program is distributed in the hope that it will be useful, but WITHOUT
+**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
+**  details.
+**  
+**  This program may also be used under the terms of a commercial or enterprise
+**  edition license of cFSAT if purchased from the copyright holder.
 **
-**   Written by David McComas, licensed under the Apache License, Version 2.0
-**   (the "License"); you may not use this file except in compliance with the
-**   License. You may obtain a copy of the License at
+**  Purpose:
+**    Manage command dispatching for an application
 **
-**      http://www.apache.org/licenses/LICENSE-2.0
+**  Notes:
+**    None
 **
-**   Unless required by applicable law or agreed to in writing, software
-**   distributed under the License is distributed on an "AS IS" BASIS,
-**   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-**   See the License for the specific language governing permissions and
-**   limitations under the License.
+**  References:
+**    1. OpenSatKit Object-based Application Developer's Guide.
+**    2. cFS Application Developer's Guide.
+**
 */
 
 #ifndef _cmdmgr_
@@ -36,6 +42,23 @@
 /***********************/
 
 /*
+** The following command definition pattern is preferred and the macros below support it.
+**
+** typedef struct
+** {
+**    uint16  MsgId;
+** } OWNER_XyzCmdMsg_Payload_t;
+** typedef struct
+** {
+**    CFE_MSG_CommandHeader_t    CmdHeader;
+**    OWNER_XyzCmdMsg_Payload_t  Payload;
+** } OWNER_XyzCmdMsg_t;
+*/
+
+#define CMDMGR_PAYLOAD_PTR(buf_ptr, cmd_type) &((const cmd_type*)buf_ptr)->Payload
+
+ 
+/*
 ** Event Message IDs
 */
 
@@ -50,7 +73,7 @@
 /** Type Definitions **/
 /**********************/
 
-typedef bool (*CMDMGR_CmdFuncPtr_t) (void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
+typedef bool (*CMDMGR_CmdFuncPtr_t) (void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
 
 /*
 ** Alternate command counters allow an individual command to have its own 
@@ -135,7 +158,7 @@ void CMDMGR_ResetStatus(CMDMGR_Class_t* CmdMgr);
 ** Function: CMDMGR_DispatchFunc
 **
 */
-bool CMDMGR_DispatchFunc(CMDMGR_Class_t* CmdMgr,  const CFE_MSG_Message_t *MsgPtr);
+bool CMDMGR_DispatchFunc(CMDMGR_Class_t* CmdMgr,  const CFE_SB_Buffer_t *SbBufPtr);
 
 
 /******************************************************************************

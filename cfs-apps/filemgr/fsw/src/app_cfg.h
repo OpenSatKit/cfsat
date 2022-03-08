@@ -1,33 +1,39 @@
 /*
-** Purpose: Define application configurations for the File Manager (FILEMGR)
-**          application
+**  Copyright 2022 Open STEMware Foundation
+**  All Rights Reserved.
 **
-** Notes:
-**   1. FILEMGR is a refactoring of NASA's FM app using OSK's app framework.
-**      It's also a prototype for using a JSON init file for application 
-**      parameters that can be specified during runtime. 
-**   2. These configurations should have an application scope and define
-**      parameters that shouldn't need to change across deployments. If
-**      a change is made to this file or any other app source file during
-**      a deployment then the definition of the FILEMGR_PLATFORM_REV
-**      macro in filemgr_platform_cfg.h should be updated.
+**  This program is free software; you can modify and/or redistribute it under
+**  the terms of the GNU Affero General Public License as published by the Free
+**  Software Foundation; version 3 with attribution addendums as found in the
+**  LICENSE.txt
 **
-** References:
-**   1. OpenSatKit Object-based Application Developer's Guide.
-**   2. cFS Application Developer's Guide.
+**  This program is distributed in the hope that it will be useful, but WITHOUT
+**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
+**  details.
+**  
+**  This program may also be used under the terms of a commercial or enterprise
+**  edition license of cFSAT if purchased from the copyright holder.
 **
-**   Written by David McComas, licensed under the Apache License, Version 2.0
-**   (the "License"); you may not use this file except in compliance with the
-**   License. You may obtain a copy of the License at
+**  Purpose:
+**    Define application configurations for the File Manager (FILEMGR) application
 **
-**      http://www.apache.org/licenses/LICENSE-2.0
+**  Notes:
+**    1. FILEMGR is a refactoring of NASA's FM app using OSK's app framework.
+**       It's also a prototype for using a JSON init file for application 
+**       parameters that can be specified during runtime. 
+**    2. These configurations should have an application scope and define
+**       parameters that shouldn't need to change across deployments. If
+**       a change is made to this file or any other app source file during
+**       a deployment then the definition of the FILEMGR_PLATFORM_REV
+**       macro in filemgr_platform_cfg.h should be updated.
 **
-**   Unless required by applicable law or agreed to in writing, software
-**   distributed under the License is distributed on an "AS IS" BASIS,
-**   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-**   See the License for the specific language governing permissions and
-**   limitations under the License.
+**  References:
+**    1. OpenSatKit Object-based Application Developer's Guide.
+**    2. cFS Application Developer's Guide.
+**
 */
+
 #ifndef _app_cfg_
 #define _app_cfg_
 

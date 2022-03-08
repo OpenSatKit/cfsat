@@ -44,6 +44,7 @@
 
 #include "sample_app_msgids.h"
 #include "osk_c_demo_msgids.h"
+#include "filemgr_msgids.h"
 
 #if 0
 #include "hs_msgids.h"
@@ -61,6 +62,12 @@ TO_LAB_Subs_t TO_LAB_Subs = {.Subs = {/* CFS App Subscriptions */
                                       {CFE_SB_MSGID_WRAP_VALUE(CFSAT_DEV_HK_TLM_MID),      {0, 0}, 4},
                                       {CFE_SB_MSGID_WRAP_VALUE(OSK_C_DEMO_HK_TLM_MID),     {0, 0}, 4},
                                       {CFE_SB_MSGID_WRAP_VALUE(OSK_C_DEMO_PLAYBK_TLM_MID), {0, 0}, 4},
+                                      {CFE_SB_MSGID_WRAP_VALUE(FILEMGR_HK_TLM_MID),           {0, 0}, 4},
+                                      {CFE_SB_MSGID_WRAP_VALUE(FILEMGR_DIR_LIST_TLM_MID),     {0, 0}, 4},
+                                      {CFE_SB_MSGID_WRAP_VALUE(FILEMGR_FILE_INFO_TLM_MID),    {0, 0}, 4},
+                                      {CFE_SB_MSGID_WRAP_VALUE(FILEMGR_OPEN_FILE_TLM_MID),    {0, 0}, 4},
+                                      {CFE_SB_MSGID_WRAP_VALUE(FILEMGR_FILE_SYS_TBL_TLM_MID), {0, 0}, 4},
+
 #if 0
         /* Add these if needed */
         {CFE_SB_MSGID_WRAP_VALUE(HS_HK_TLM_MID), {0,0}, 4},

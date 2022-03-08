@@ -1,25 +1,31 @@
-/* 
-** Purpose: Manage child task command dispatching
+/*
+**  Copyright 2022 Open STEMware Foundation
+**  All Rights Reserved.
 **
-** Notes:
-**   1. 'Command' does not necessarily mean a ground command. 
-**   2. See header file for prototype notes.  
+**  This program is free software; you can modify and/or redistribute it under
+**  the terms of the GNU Affero General Public License as published by the Free
+**  Software Foundation; version 3 with attribution addendums as found in the
+**  LICENSE.txt
 **
-** References:
-**   1. OpenSatKit Object-based Application Developer's Guide.
-**   2. cFS Application Developer's Guide.
+**  This program is distributed in the hope that it will be useful, but WITHOUT
+**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
+**  details.
+**  
+**  This program may also be used under the terms of a commercial or enterprise
+**  edition license of cFSAT if purchased from the copyright holder.
 **
-**   Written by David McComas, licensed under the Apache License, Version 2.0
-**   (the "License"); you may not use this file except in compliance with the
-**   License. You may obtain a copy of the License at
+**  Purpose:
+**    Manage child task command dispatching
 **
-**      http://www.apache.org/licenses/LICENSE-2.0
+**  Notes:
+**    1. 'Command' does not necessarily mean a ground command. 
+**    2. See header file for prototype notes.  
 **
-**   Unless required by applicable law or agreed to in writing, software
-**   distributed under the License is distributed on an "AS IS" BASIS,
-**   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-**   See the License for the specific language governing permissions and
-**   limitations under the License.
+**  References:
+**    1. OpenSatKit Object-based Application Developer's Guide.
+**    2. cFS Application Developer's Guide.
+**
 */
 
 /*
@@ -57,7 +63,7 @@ typedef struct {
 /*******************************/
 
 static void AppendIdToStr(char* NewStr, const char* BaseStr);
-static bool UnusedFuncCode(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
+static bool UnusedFuncCode(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
 static void DispatchCmdFunc(CHILDMGR_Class_t* ChildMgr);
 static bool RegChildMgrInstance(CHILDMGR_Class_t* ChildMgr);
 static CHILDMGR_Class_t* GetChildMgrInstance(void);
@@ -238,7 +244,7 @@ void CHILDMGR_ResetStatus(CHILDMGR_Class_t* ChildMgr)
 **      CHILDMGR_RegisterFunc() and the object data pointer must reference
 **      the ChildMgr instance.
 */
-bool CHILDMGR_InvokeChildCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
+bool CHILDMGR_InvokeChildCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
 
    CHILDMGR_Class_t* ChildMgr = (CHILDMGR_Class_t*)ObjDataPtr;
@@ -250,7 +256,7 @@ bool CHILDMGR_InvokeChildCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
    char EventErrStr[CFE_MISSION_EVS_MAX_MESSAGE_LENGTH] = "\0";
    
    
-   CFE_MSG_GetFcnCode(MsgPtr, &FuncCode);
+   CFE_MSG_GetFcnCode(&SbBufPtr->Msg, &FuncCode);
    
    CFE_EVS_SendEvent(CHILDMGR_DEBUG_EID, CFE_EVS_EventType_DEBUG,
       "CHILDMGR_InvokeChildCmd() Entry: fc=%d, ChildMgr->WakeUpSemaphore=%d,WriteIdx=%d,ReadIdx=%d,Count=%d\n",
@@ -284,12 +290,12 @@ bool CHILDMGR_InvokeChildCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
    else
    {
        
-      CFE_MSG_GetSize(MsgPtr, &MsgSize);
+      CFE_MSG_GetSize(&SbBufPtr->Msg, &MsgSize);
 
       if (MsgSize <= sizeof(CHILDMGR_CmdQEntry_t))
       {
          
-         memcpy(&(ChildMgr->CmdQ.Entry[ChildMgr->CmdQ.WriteIndex]), MsgPtr, (int)MsgSize+2); //todo: Resolve message size issue
+         memcpy(&(ChildMgr->CmdQ.Entry[ChildMgr->CmdQ.WriteIndex]), &SbBufPtr->Msg, (int)MsgSize+2); //todo: Resolve message size issue
 
          ++ChildMgr->CmdQ.WriteIndex;
 
@@ -372,12 +378,12 @@ bool CHILDMGR_PauseTask(uint16* TaskBlockCnt, uint16 TaskBlockLim,
 ** Function: UnusedFuncCode
 **
 */
-static bool UnusedFuncCode(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
+static bool UnusedFuncCode(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
 
    CFE_MSG_FcnCode_t FuncCode;
 
-   CFE_MSG_GetFcnCode(MsgPtr,&FuncCode);
+   CFE_MSG_GetFcnCode(&SbBufPtr->Msg,&FuncCode);
    CFE_EVS_SendEvent (CHILDMGR_DISPATCH_UNUSED_FUNC_CODE_EID, CFE_EVS_EventType_ERROR,
                       "Unused command function code %d received",FuncCode);
 
@@ -547,13 +553,13 @@ static void DispatchCmdFunc(CHILDMGR_Class_t* ChildMgr)
 {
 
    bool  ValidCmd;
-   const CFE_MSG_Message_t *MsgPtr;
+   const CFE_SB_Buffer_t *SbBufPtr;
 
-   MsgPtr = CFE_MSG_PTR(ChildMgr->CmdQ.Entry[ChildMgr->CmdQ.ReadIndex]); 
+   SbBufPtr = (const CFE_SB_Buffer_t *)&(ChildMgr->CmdQ.Entry[ChildMgr->CmdQ.ReadIndex]); 
 
-   CFE_MSG_GetFcnCode(MsgPtr,&ChildMgr->CurrCmdCode);
+   CFE_MSG_GetFcnCode(&SbBufPtr->Msg,&ChildMgr->CurrCmdCode);
 
-   ValidCmd = (ChildMgr->Cmd[ChildMgr->CurrCmdCode].FuncPtr)(ChildMgr->Cmd[ChildMgr->CurrCmdCode].DataPtr, MsgPtr);
+   ValidCmd = (ChildMgr->Cmd[ChildMgr->CurrCmdCode].FuncPtr)(ChildMgr->Cmd[ChildMgr->CurrCmdCode].DataPtr, SbBufPtr);
 
    if (ValidCmd == true)
    {

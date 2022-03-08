@@ -33,6 +33,7 @@
 #include "sample_app_msgids.h"
 
 #include "osk_c_demo_msgids.h"
+#include "filemgr_msgids.h"
 
 #if 0
 #include "sc_msgids.h"
@@ -64,6 +65,7 @@ SCH_LAB_ScheduleTable_t SCH_TBL_Structure = {.Config = {
                                                  {CFE_SB_MSGID_WRAP_VALUE(CFSAT_DEV_SEND_HK_MID), 1, 0},
                                                  {CFE_SB_MSGID_WRAP_VALUE(OSK_C_DEMO_EXE_MID), 1, 2},
                                                  {CFE_SB_MSGID_WRAP_VALUE(OSK_C_DEMO_SEND_HK_MID), 4, 3},
+                                                 {CFE_SB_MSGID_WRAP_VALUE(FILEMGR_SEND_HK_MID), 4, 3},
 #if 0
                 {CFE_SB_MSGID_WRAP_VALUE(SC_SEND_HK_MID),       4, 0},
                 {CFE_SB_MSGID_WRAP_VALUE(SC_1HZ_WAKEUP_MID),    1, 0},  /* Example of a 1hz packet */

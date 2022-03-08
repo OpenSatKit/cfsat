@@ -1,48 +1,54 @@
 /*
-** Purpose:  Define a class that provides a mechanism for objects to report 
-**           boolean states represented by a single bit that are aggregated
-**           into an app state report packet.
+**  Copyright 2022 Open STEMware Foundation
+**  All Rights Reserved.
 **
-** Notes:
-**   1. This code was originally acquired from the NASA cFS External Code
-**      Interface (ECI) NOSA release and that was named FaultRep because it
-**      was exicitly used to report faults using one bit for each fault
-**      which made it very easy to configure Limit Checker to logically
-**      combine faults. For OSK it was generalized to be a boolean state
-**      reporter and it remains functionally very similar.
-**   2. This code must be reentrant and no global data can be used. 
-**   3. STATEREP_Constructor() must be called prior to any other STATEREP_ 
-**      functions
-**   4. The telemetry generation requires that an even number of state
-**      16-bit state words be defined.
-**   5. This object does not associate any meaning to the state bit IDs.
-**   6. Typically multiple state definition points are "ORed" together to
-**      an meta-state especially when states represents faults. For example,
-**      if fault A or fault B occur then take corrective action X. This
-**      utility assumes the combining of state definition points is 
-**      performed by the received of this utility's telemetry packet.
-**   7. The ReportMode flag has the following definitions
-**      - STATEREP_NEW_REPORT - The ID notifications for an app's current
-**        execution cycle are copied into the message.
-**      - STATEREP_MERGE_REPORT - The ID notifications for an app's current
-**        execution cycle are merged(logically ORed) with the message
-**   8. STATEREP_BIT_ID_MAX must be defined prior to including this header.
+**  This program is free software; you can modify and/or redistribute it under
+**  the terms of the GNU Affero General Public License as published by the Free
+**  Software Foundation; version 3 with attribution addendums as found in the
+**  LICENSE.txt
 **
-** References:
-**   1. OpenSatKit Object-based Application Developer's Guide.
-**   2. cFS Application Developer's Guide.
+**  This program is distributed in the hope that it will be useful, but WITHOUT
+**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
+**  details.
+**  
+**  This program may also be used under the terms of a commercial or enterprise
+**  edition license of cFSAT if purchased from the copyright holder.
 **
-**   Written by David McComas, licensed under the Apache License, Version 2.0
-**   (the "License"); you may not use this file except in compliance with the
-**   License. You may obtain a copy of the License at
+**  Purpose:
+**    Define a class that provides a mechanism for objects to report boolean
+**    states represented by a single bit that are aggregated into an app state
+**    report packet.
 **
-**      http://www.apache.org/licenses/LICENSE-2.0
+**  Notes:
+**    1. This code was originally acquired from the NASA cFS External Code
+**       Interface (ECI) NOSA release and that was named FaultRep because it
+**       was exicitly used to report faults using one bit for each fault
+**       which made it very easy to configure Limit Checker to logically
+**       combine faults. For OSK it was generalized to be a boolean state
+**       reporter and it remains functionally very similar.
+**    2. This code must be reentrant and no global data can be used. 
+**    3. STATEREP_Constructor() must be called prior to any other STATEREP_ 
+**       functions
+**    4. The telemetry generation requires that an even number of state
+**       16-bit state words be defined.
+**    5. This object does not associate any meaning to the state bit IDs.
+**    6. Typically multiple state definition points are "ORed" together to
+**       an meta-state especially when states represents faults. For example,
+**       if fault A or fault B occur then take corrective action X. This
+**       utility assumes the combining of state definition points is 
+**       performed by the received of this utility's telemetry packet.
+**    7. The ReportMode flag has the following definitions
+**       - STATEREP_NEW_REPORT - The ID notifications for an app's current
+**         execution cycle are copied into the message.
+**       - STATEREP_MERGE_REPORT - The ID notifications for an app's current
+**         execution cycle are merged(logically ORed) with the message
+**    8. STATEREP_BIT_ID_MAX must be defined prior to including this header.
 **
-**   Unless required by applicable law or agreed to in writing, software
-**   distributed under the License is distributed on an "AS IS" BASIS,
-**   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-**   See the License for the specific language governing permissions and
-**   limitations under the License.
+**  References:
+**    1. OpenSatKit Object-based Application Developer's Guide.
+**    2. cFS Application Developer's Guide.
+**
 */
 
 #ifndef  _staterep_

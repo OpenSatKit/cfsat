@@ -1,37 +1,43 @@
 /*
-** Purpose: Manage an application's child task
+**  Copyright 2022 Open STEMware Foundation
+**  All Rights Reserved.
 **
-** Notes:
-**   1. Provides a common structure for managing a child task. This design
-**      attempts to strike a balance between adding value by supporting app
-**      design patterns that alleviate duplicate "plumbing" code and provide
-**      tested solutions for developers versus over complicating the situation
-**      with obscure interfaces and forcing developers to use solutions that
-**      don't optimize the solution to their particular problem.
-**   2. Design rationale:
-**      - Main apps own all app objects and should manage calls to them
-**      - App objects may be aware of their execution environment so the they
-**        may need to suspend execution but they shouldn't be tightly coupled
-**        to the childmgr.
-**      - Provide a few childmgr callback functions that can be used but don't
-**        try to solve every conceivable scenario. These callbacks can serve
-**        as starting points for developers to create their own functions.
+**  This program is free software; you can modify and/or redistribute it under
+**  the terms of the GNU Affero General Public License as published by the Free
+**  Software Foundation; version 3 with attribution addendums as found in the
+**  LICENSE.txt
 **
-** References:
-**   1. OpenSatKit Object-based Application Developer's Guide.
-**   2. cFS Application Developer's Guide.
+**  This program is distributed in the hope that it will be useful, but WITHOUT
+**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
+**  details.
+**  
+**  This program may also be used under the terms of a commercial or enterprise
+**  edition license of cFSAT if purchased from the copyright holder.
 **
-**   Written by David McComas, licensed under the Apache License, Version 2.0
-**   (the "License"); you may not use this file except in compliance with the
-**   License. You may obtain a copy of the License at
+**  Purpose:
+**    Manage an application's child task
 **
-**      http://www.apache.org/licenses/LICENSE-2.0
+**  Notes:
+**    1. Provides a common structure for managing a child task. This design
+**       attempts to strike a balance between adding value by supporting app
+**       design patterns that alleviate duplicate "plumbing" code and provide
+**       tested solutions for developers versus over complicating the situation
+**       with obscure interfaces and forcing developers to use solutions that
+**       don't optimize the solution to their particular problem.
+**    2. Design rationale:
+**       - Main apps own all app objects and should manage calls to them
+**       - App objects may be aware of their execution environment so the they
+**         may need to suspend execution but they shouldn't be tightly coupled
+**         to the childmgr.
+**       - Provide a few childmgr callback functions that can be used but don't
+**         try to solve every conceivable scenario. These callbacks can serve
+**         as starting points for developers to create their own functions.
 **
-**   Unless required by applicable law or agreed to in writing, software
-**   distributed under the License is distributed on an "AS IS" BASIS,
-**   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-**   See the License for the specific language governing permissions and
-**   limitations under the License.
+**  References:
+**    1. OpenSatKit Object-based Application Developer's Guide.
+**    2. cFS Application Developer's Guide.
+**
 */
 
 #ifndef _childmgr_
@@ -115,7 +121,7 @@ typedef struct
 } CHILDMGR_CmdQ_t;
 
 
-typedef bool (*CHILDMGR_CmdFuncPtr_t) (void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
+typedef bool (*CHILDMGR_CmdFuncPtr_t) (void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
 
 /*
 ** Objects register their command functions so each command structure
@@ -225,7 +231,7 @@ void CHILDMGR_ResetStatus(CHILDMGR_Class_t* ChildMgr);
 **   1. This command function is registered with the app's cmdmgr with all of
 **      the function codes that use the child task to process the command.
 */
-bool CHILDMGR_InvokeChildCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
+bool CHILDMGR_InvokeChildCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
 
 
 /******************************************************************************

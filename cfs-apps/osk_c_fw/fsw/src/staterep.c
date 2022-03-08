@@ -1,30 +1,37 @@
-/* 
-** Purpose: Implement the state reporter class.
+/*
+**  Copyright 2022 Open STEMware Foundation
+**  All Rights Reserved.
 **
-** Note:
-**   1. This code was originally acquired from the NASA cFS External Code
-**      Interface (ECI) NOSA release. Several cosmetic changes have been made
-**      but it remains functionally very similar.
-**   2. This code must be reentrant and no global data can be used. 
-**   3. There are several (uint16) casts that are required to prevent compiler
-**      warnings most are due to the compiler assuming a signed integer result
-**      for integer-based math operations.
+**  This program is free software; you can modify and/or redistribute it under
+**  the terms of the GNU Affero General Public License as published by the Free
+**  Software Foundation; version 3 with attribution addendums as found in the
+**  LICENSE.txt
 **
-** References:
-**   1. OpenSatKit Object-based Application Developer's Guide.
-**   2. cFS Application Developer's Guide.
+**  This program is distributed in the hope that it will be useful, but WITHOUT
+**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
+**  details.
+**  
+**  This program may also be used under the terms of a commercial or enterprise
+**  edition license of cFSAT if purchased from the copyright holder.
 **
-**   Written by David McComas, licensed under the Apache License, Version 2.0
-**   (the "License"); you may not use this file except in compliance with the
-**   License. You may obtain a copy of the License at
+**  Purpose:
+**    Define a class that provides a mechanism for objects to report boolean
+**    states represented by a single bit that are aggregated into an app state
+**    report packet.
 **
-**      http://www.apache.org/licenses/LICENSE-2.0
+**  Notes:
+**    1. This code was originally acquired from the NASA cFS External Code
+**       Interface (ECI) NOSA release. Several cosmetic changes have been made
+**       but it remains functionally very similar.
+**    2. This code must be reentrant and no global data can be used. 
+**    3. There are several (uint16) casts that are required to prevent compiler
+**       warnings most are due to the compiler assuming a signed integer result
+**       for integer-based math operations.
+**  References:
+**    1. OpenSatKit Object-based Application Developer's Guide.
+**    2. cFS Application Developer's Guide.
 **
-**   Unless required by applicable law or agreed to in writing, software
-**   distributed under the License is distributed on an "AS IS" BASIS,
-**   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-**   See the License for the specific language governing permissions and
-**   limitations under the License.
 */
 
 /*

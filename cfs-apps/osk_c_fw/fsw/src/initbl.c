@@ -1,34 +1,39 @@
 /*
-** Purpose: Application Initialization Configuration Table
+**  Copyright 2022 Open STEMware Foundation
+**  All Rights Reserved.
 **
-** Notes:
-**   1. Apps interface with IniTbl using the 'CFG_' definitions in
-**      their app_cfg.h file. There are some details hidden from the API
-**      that maintainers of this file should know. 'CFG_' definitions use
-**      an IniLib enumtype that defines the first enumeration as 'start'
-**      with a value of 0. The 'CFG_' parameter enum definitions follow
-**      'start' so their values begin at 1. The 'CFG_' parameters are used
-**      as an index into the config data stroage array IniTbl->CfgData[]
-**      and ('CFG_' - 1) is used to index into IniTbl->JsonParams[] because
-**      CJSON assumes [0] is a valid entry.
+**  This program is free software; you can modify and/or redistribute it under
+**  the terms of the GNU Affero General Public License as published by the Free
+**  Software Foundation; version 3 with attribution addendums as found in the
+**  LICENSE.txt
 **
-** References:
-**   1. OpenSatKit Object-based Application Developer's Guide.
-**   2. cFS Application Developer's Guide.
+**  This program is distributed in the hope that it will be useful, but WITHOUT
+**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
+**  details.
+**  
+**  This program may also be used under the terms of a commercial or enterprise
+**  edition license of cFSAT if purchased from the copyright holder.
 **
-**   Written by David McComas, licensed under the Apache License, Version 2.0
-**   (the "License"); you may not use this file except in compliance with the
-**   License. You may obtain a copy of the License at
+**  Purpose:
+**    Define JSON Initialization table API
 **
-**      http://www.apache.org/licenses/LICENSE-2.0
+**  Notes:
+**    1. Apps interface with IniTbl using the 'CFG_' definitions in
+**       their app_cfg.h file. There are some details hidden from the API
+**       that maintainers of this file should know. 'CFG_' definitions use
+**       an IniLib enumtype that defines the first enumeration as 'start'
+**       with a value of 0. The 'CFG_' parameter enum definitions follow
+**       'start' so their values begin at 1. The 'CFG_' parameters are used
+**       as an index into the config data stroage array IniTbl->CfgData[]
+**       and ('CFG_' - 1) is used to index into IniTbl->JsonParams[] because
+**       CJSON assumes [0] is a valid entry.
 **
-**   Unless required by applicable law or agreed to in writing, software
-**   distributed under the License is distributed on an "AS IS" BASIS,
-**   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-**   See the License for the specific language governing permissions and
-**   limitations under the License.
+**  References:
+**    1. OpenSatKit Object-based Application Developer's Guide.
+**    2. cFS Application Developer's Guide.
+**
 */
-
 
 /*
 ** Include Files:

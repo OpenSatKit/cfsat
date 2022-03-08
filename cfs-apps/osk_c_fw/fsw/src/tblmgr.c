@@ -1,24 +1,32 @@
-/* 
-** Purpose: Manage an application's tables
+/*
+**  Copyright 2022 Open STEMware Foundation
+**  All Rights Reserved.
 **
-** Notes:
-**   1. This code must be reentrant and no global data can be used. 
+**  This program is free software; you can modify and/or redistribute it under
+**  the terms of the GNU Affero General Public License as published by the Free
+**  Software Foundation; version 3 with attribution addendums as found in the
+**  LICENSE.txt
 **
-** References:
-**   1. OpenSatKit Object-based Application Developer's Guide.
-**   2. cFS Application Developer's Guide.
+**  This program is distributed in the hope that it will be useful, but WITHOUT
+**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
+**  details.
+**  
+**  This program may also be used under the terms of a commercial or enterprise
+**  edition license of cFSAT if purchased from the copyright holder.
 **
-**   Written by David McComas, licensed under the Apache License, Version 2.0
-**   (the "License"); you may not use this file except in compliance with the
-**   License. You may obtain a copy of the License at
+**  Purpose:
+**    Manage tables for an application
 **
-**      http://www.apache.org/licenses/LICENSE-2.0
+**  Notes:
+**    1. This utility does not dictate a specific table format. It 
+**       only specifies an API for managing an application's table.
+**    2. This code must be reentrant and no global data can be used. 
 **
-**   Unless required by applicable law or agreed to in writing, software
-**   distributed under the License is distributed on an "AS IS" BASIS,
-**   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-**   See the License for the specific language governing permissions and
-**   limitations under the License.
+**  References:
+**    1. OpenSatKit Object-based Application Developer's Guide.
+**    2. cFS Application Developer's Guide.
+**
 */
 
 /*
@@ -29,8 +37,8 @@
 #include "cfe.h"
 #include "fileutil.h"
 #include "tblmgr.h"
+#include "cmdmgr.h"
 
-///#define DBG_TBLMGR
 
 /*******************************/
 /** Local Function Prototypes **/
@@ -128,10 +136,10 @@ uint8 TBLMGR_RegisterTblWithDef(TBLMGR_Class_t* TblMgr, TBLMGR_LoadTblFuncPtr_t 
       TblMgr->Tbl[TblId].Filename[OS_MAX_PATH_LEN-1] = '\0';
       
       /* Use load table command function */
-      LoadTblCmd.Id = TblId;
-      LoadTblCmd.LoadType = TBLMGR_LOAD_TBL_REPLACE;
-      strncpy (LoadTblCmd.Filename,TblFilename,OS_MAX_PATH_LEN);
-      TBLMGR_LoadTblCmd(TblMgr, (void *)&LoadTblCmd);  //TODO - cfe7.0 (CFE_SB_Buffer_t*)
+      LoadTblCmd.Payload.Id = TblId;
+      LoadTblCmd.Payload.Type = TBLMGR_LOAD_TBL_REPLACE;
+      strncpy (LoadTblCmd.Payload.Filename,TblFilename,OS_MAX_PATH_LEN);
+      TBLMGR_LoadTblCmd(TblMgr, (CFE_SB_Buffer_t*)&LoadTblCmd);
       
    } /* End if TblId valid */
    
@@ -202,13 +210,13 @@ const TBLMGR_Tbl_t* TBLMGR_GetTblStatus(TBLMGR_Class_t* TblMgr, uint8 TblId)
 **     during registration
 ** 
 */
-bool TBLMGR_LoadTblCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
+bool TBLMGR_LoadTblCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
 
    bool RetStatus = false;
    TBLMGR_Tbl_t*   Tbl;
    TBLMGR_Class_t* TblMgr = (TBLMGR_Class_t *) ObjDataPtr;
-   const  TBLMGR_LoadTblCmdMsg_t* LoadTblCmd = (const TBLMGR_LoadTblCmdMsg_t *) MsgPtr;
+   const  TBLMGR_TblCmdMsg_Payload_t* LoadTblCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, TBLMGR_LoadTblCmdMsg_t);
 
    if (DBG_TBLMGR) OS_printf("TBLMGR_LoadTblCmd() Entry\n");
 
@@ -224,13 +232,13 @@ bool TBLMGR_LoadTblCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 
          if (DBG_TBLMGR) OS_printf("TBLMGR_LoadTblCmd() Before Tbl->LoadFuncPtr call\n");
          Tbl = &(TblMgr->Tbl[LoadTblCmd->Id]);
-         RetStatus = (Tbl->LoadFuncPtr) (Tbl, LoadTblCmd->LoadType, LoadTblCmd->Filename);
+         RetStatus = (Tbl->LoadFuncPtr) (Tbl, LoadTblCmd->Type, LoadTblCmd->Filename);
          if (RetStatus)
          {
             TblMgr->Tbl[LoadTblCmd->Id].LastActionStatus = TBLMGR_STATUS_VALID;
             CFE_EVS_SendEvent(TBLMGR_LOAD_SUCCESS_EID, CFE_EVS_EventType_INFORMATION, 
                               "Successfully %sd table %d using file %s",
-                              TBLMGR_LoadTypeStr(LoadTblCmd->LoadType),
+                              TBLMGR_LoadTypeStr(LoadTblCmd->Type),
                               LoadTblCmd->Id, LoadTblCmd->Filename);
          }
       }
@@ -285,13 +293,13 @@ const char* TBLMGR_LoadTypeStr(int8 LoadType)
 **     during registration 
 ** 
 */
-bool TBLMGR_DumpTblCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
+bool TBLMGR_DumpTblCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
 
    bool RetStatus = false;
    TBLMGR_Tbl_t*   Tbl;
    TBLMGR_Class_t* TblMgr = (TBLMGR_Class_t *) ObjDataPtr;
-   const  TBLMGR_DumpTblCmdMsg_t *DumpTblCmd = (const TBLMGR_DumpTblCmdMsg_t *) MsgPtr;
+   const  TBLMGR_TblCmdMsg_Payload_t *DumpTblCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, TBLMGR_DumpTblCmdMsg_t);
       
    if (DumpTblCmd->Id < TblMgr->NextAvailableId)
    {
@@ -301,7 +309,7 @@ bool TBLMGR_DumpTblCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
       if (FileUtil_VerifyDirForWrite(DumpTblCmd->Filename))
       {
          Tbl = &TblMgr->Tbl[DumpTblCmd->Id];
-         RetStatus = (Tbl->DumpFuncPtr) (Tbl, DumpTblCmd->DumpType, DumpTblCmd->Filename);
+         RetStatus = (Tbl->DumpFuncPtr) (Tbl, DumpTblCmd->Type, DumpTblCmd->Filename);
          if (RetStatus)
          {
             TblMgr->Tbl[DumpTblCmd->Id].LastActionStatus = TBLMGR_STATUS_VALID;
@@ -320,7 +328,7 @@ bool TBLMGR_DumpTblCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 
    return RetStatus;
   
-} /* End TBLMGR_DumpTblCmd() */
+} /* End TBLMGR_DumpTbl() */
 
 
 /******************************************************************************

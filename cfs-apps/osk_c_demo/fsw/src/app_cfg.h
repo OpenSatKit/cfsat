@@ -1,30 +1,36 @@
 /*
-** Purpose: Define application configurations for the OSK C Demo
-**          application
+**  Copyright 2022 Open STEMware Foundation
+**  All Rights Reserved.
 **
-** Notes:
-**   1. These configurations should have an application scope and define
-**      parameters that shouldn't need to change across deployments. If
-**      a change is made to this file or any other app source file during
-**      a deployment then the definition of the OSK_C_DEMO_PLATFORM_REV
-**      macro in osk_c_demo_platform_cfg.h should be updated.
+**  This program is free software; you can modify and/or redistribute it under
+**  the terms of the GNU Affero General Public License as published by the Free
+**  Software Foundation; version 3 with attribution addendums as found in the
+**  LICENSE.txt
 **
-** References:
-**   1. OpenSatKit Object-based Application Developer's Guide.
-**   2. cFS Application Developer's Guide.
+**  This program is distributed in the hope that it will be useful, but WITHOUT
+**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
+**  details.
+**  
+**  This program may also be used under the terms of a commercial or enterprise
+**  edition license of cFSAT if purchased from the copyright holder.
 **
-**   Written by David McComas, licensed under the Apache License, Version 2.0
-**   (the "License"); you may not use this file except in compliance with the
-**   License. You may obtain a copy of the License at
+**  Purpose:
+**    Define application configurations for the OSK C Demo application
 **
-**      http://www.apache.org/licenses/LICENSE-2.0
+**  Notes:
+**    1. These configurations should have an application scope and define
+**       parameters that shouldn't need to change across deployments. If
+**       a change is made to this file or any other app source file during
+**       a deployment then the definition of the OSK_C_DEMO_PLATFORM_REV
+**       macro in osk_c_demo_platform_cfg.h should be updated.
 **
-**   Unless required by applicable law or agreed to in writing, software
-**   distributed under the License is distributed on an "AS IS" BASIS,
-**   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-**   See the License for the specific language governing permissions and
-**   limitations under the License.
+**  References:
+**    1. OpenSatKit Object-based Application Developer's Guide.
+**    2. cFS Application Developer's Guide.
+**
 */
+
 #ifndef _app_cfg_
 #define _app_cfg_
 
@@ -147,15 +153,12 @@ DECLARE_ENUM(Config,APP_CONFIG)
 ** - Commands implemented by child task are annotated with a comment
 */
 
-#define OSK_C_DEMO_TBL_LOAD_CMD_FC  (CMDMGR_APP_START_FC + 0)
-#define OSK_C_DEMO_TBL_DUMP_CMD_FC  (CMDMGR_APP_START_FC + 1)
+#define MSGLOG_START_LOG_CMD_FC     (CMDMGR_APP_START_FC + 0) /* Child */
+#define MSGLOG_STOP_LOG_CMD_FC      (CMDMGR_APP_START_FC + 1) /* Child */
+#define MSGLOG_START_PLAYBK_CMD_FC  (CMDMGR_APP_START_FC + 2) /* Child */
+#define MSGLOG_STOP_PLAYBK_CMD_FC   (CMDMGR_APP_START_FC + 3) /* Child */
 
-#define MSGLOG_START_LOG_CMD_FC     (CMDMGR_APP_START_FC + 2) /* Child */
-#define MSGLOG_STOP_LOG_CMD_FC      (CMDMGR_APP_START_FC + 3) /* Child */
-#define MSGLOG_START_PLAYBK_CMD_FC  (CMDMGR_APP_START_FC + 4) /* Child */
-#define MSGLOG_STOP_PLAYBK_CMD_FC   (CMDMGR_APP_START_FC + 5) /* Child */
-
-#define MSGLOG_RUN_CHILD_ALT_CMD_FC (CMDMGR_APP_START_FC + 6) /* Child */
+#define MSGLOG_RUN_CHILD_ALT_CMD_FC (CMDMGR_APP_START_FC + 4) /* Child */
 
 
 /******************************************************************************

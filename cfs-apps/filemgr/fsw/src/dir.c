@@ -1,28 +1,33 @@
 /*
-** Purpose: Implement the DIR_Class methods
+**  Copyright 2022 Open STEMware Foundation
+**  All Rights Reserved.
 **
-** Notes:
-**   1. TODO: Complete EDS integration. EDS is used for cmd & tlm but not files
-**      so the LoadFileEntry(), used during telemetry and file generation, uses
-**      a dir.h typedef and not an EDS generated typedef  
+**  This program is free software; you can modify and/or redistribute it under
+**  the terms of the GNU Affero General Public License as published by the Free
+**  Software Foundation; version 3 with attribution addendums as found in the
+**  LICENSE.txt
 **
-** References:
-**   1. OpenSatKit Object-based Application Developer's Guide.
-**   2. cFS Application Developer's Guide.
+**  This program is distributed in the hope that it will be useful, but WITHOUT
+**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
+**  details.
+**  
+**  This program may also be used under the terms of a commercial or enterprise
+**  edition license of cFSAT if purchased from the copyright holder.
 **
-**   Written by David McComas, licensed under the Apache License, Version 2.0
-**   (the "License"); you may not use this file except in compliance with the
-**   License. You may obtain a copy of the License at
+**  Purpose:
+**    Implement the DIR_Class methods
 **
-**      http://www.apache.org/licenses/LICENSE-2.0
+**  Notes:
+**    1. TODO: Complete EDS integration. EDS is used for cmd & tlm but not files
+**       so the LoadFileEntry(), used during telemetry and file generation, uses
+**       a dir.h typedef and not an EDS generated typedef  
 **
-**   Unless required by applicable law or agreed to in writing, software
-**   distributed under the License is distributed on an "AS IS" BASIS,
-**   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-**   See the License for the specific language governing permissions and
-**   limitations under the License.
+**  References:
+**    1. OpenSatKit Object-based Application Developer's Guide.
+**    2. cFS Application Developer's Guide.
+**
 */
-
 
 /*
 ** Include Files:
@@ -34,10 +39,24 @@
 #include "dir.h"
 
 
+/**********************/
+/** Type Definitions **/
+/**********************/
+
+typedef enum
+{
+
+   SEND_ONE_DIR_TLM_PKT,
+   SEND_ALL_DIR_TLM_PKT
+
+} SendDirListOpt_t;
+
+
 /*******************************/
 /** Local Function Prototypes **/
 /*******************************/
 
+static bool SendDirListTlm(const char *DirName, uint16 DirListOffset, bool IncludeSizeTime, SendDirListOpt_t SendDirListOpt);
 static void LoadFileEntry(const char* PathFilename, DIR_FileEntry_t* FileEntry, uint16* TaskBlockCount, bool IncludeSizeTime);
 static bool WriteDirListToFile(const char* DirNameWithSep, osal_id_t DirId, int32 FileHandle, bool IncludeSizeTime);
 
@@ -81,10 +100,10 @@ void DIR_ResetStatus()
 ** Function: DIR_CreateCmd
 **
 */
-bool DIR_CreateCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool DIR_CreateCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
-   const FILEMGR_CreateDir_Payload_t *CreateCmd = (FILEMGR_CreateDir_Payload_t *) MsgPtr;
+   const FILEMGR_CreateDir_Payload_t *CreateCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILEMGR_CreateDir_t);
    bool                RetStatus = false;
    int32               SysStatus;
    os_err_name_t       OsErrStr;   
@@ -128,10 +147,10 @@ bool DIR_CreateCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 ** Function: DIR_DeleteCmd
 **
 */
-bool DIR_DeleteCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool DIR_DeleteCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
-   const FILEMGR_DeleteDir_Payload_t *DeleteCmd = (FILEMGR_DeleteDir_Payload_t *) MsgPtr;
+   const FILEMGR_DeleteDir_Payload_t *DeleteCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILEMGR_DeleteDir_t);
    bool                RetStatus = false;
    int32               SysStatus;
    bool                RemoveDir = true;
@@ -222,10 +241,10 @@ bool DIR_DeleteCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 ** Function: DIR_DeleteAllCmd
 **
 */
-bool DIR_DeleteAllCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool DIR_DeleteAllCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
-   const FILEMGR_DeleteAllDir_Payload_t *DeleteAllCmd = (FILEMGR_DeleteAllDir_Payload_t *) MsgPtr;
+   const FILEMGR_DeleteAllDir_Payload_t *DeleteAllCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILEMGR_DeleteAllDir_t);
    bool                RetStatus = false;
    int32               SysStatus;
    os_err_name_t       OsErrStr;   
@@ -378,164 +397,42 @@ bool DIR_DeleteAllCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 /******************************************************************************
 ** Function: DIR_SendDirListTlmCmd
 **
-** Notes:
-**   1. TaskBlockCnt is the count of "task blocks" performed. A task block is 
-**      is group of instructions that is CPU intensive and may need to be 
-**      periodically suspended to prevent CPU hogging.
-** 
 */
-bool DIR_SendDirListTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool DIR_SendDirListTlmCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
-   
-   const FILEMGR_SendDirListTlm_Payload_t *SendDirListTlmCmd = (FILEMGR_SendDirListTlm_Payload_t *) MsgPtr;      
-   bool                RetStatus = false;
-   int32               SysStatus;
-   os_err_name_t       OsErrStr;   
-   osal_id_t           DirId;
-   os_dirent_t         DirEntry;
-   FileUtil_FileInfo_t FileInfo;
-   DIR_FileEntry_t     DirFileEntry;
-   
-   bool   CreatingPkt;
-   uint16 TaskBlockCnt = 0;    /* See prologue */
-   uint16 FilenameLen;
-   uint16 DirWithSepLen;
-   char   DirWithSep[OS_MAX_PATH_LEN] = "\0";
-   char   PathFilename[OS_MAX_PATH_LEN] = "\0";
 
-   FileInfo = FileUtil_GetFileInfo(SendDirListTlmCmd->DirName, OS_MAX_PATH_LEN, false);
+   const FILEMGR_SendDirListTlm_Payload_t *SendDirListTlmCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILEMGR_SendDirListTlm_t);      
+   bool  RetStatus;
 
-   if (FileInfo.State == FILEUTIL_FILE_IS_DIR)
-   {
-      
-      /* Clears counters and nulls strings */
-      CFE_MSG_Init(CFE_MSG_PTR(Dir->ListTlm.TelemetryHeader), 
-                   CFE_SB_ValueToMsgId(INITBL_GetIntConfig(Dir->IniTbl,CFG_DIR_LIST_TLM_MID)),
-                   sizeof(FILEMGR_DirListTlm_t));
-      
-      strcpy(DirWithSep, SendDirListTlmCmd->DirName);
-      if (FileUtil_AppendPathSep(DirWithSep, OS_MAX_PATH_LEN))
-      {
-      
-         DirWithSepLen = strlen(DirWithSep);
-         
-         SysStatus = OS_DirectoryOpen(&DirId, SendDirListTlmCmd->DirName);
-         if (SysStatus == OS_SUCCESS) {
-            
-            strncpy(Dir->ListTlm.Payload.DirName, SendDirListTlmCmd->DirName, OS_MAX_PATH_LEN);
-            Dir->ListTlm.Payload.DirListOffset = SendDirListTlmCmd->DirListOffset;
+   RetStatus = SendDirListTlm(SendDirListTlmCmd->DirName, SendDirListTlmCmd->DirListOffset, 
+                              SendDirListTlmCmd->IncludeSizeTime, SEND_ONE_DIR_TLM_PKT);
 
-            CreatingPkt = true;
-            while (CreatingPkt)
-            {
-        
-               SysStatus = OS_DirectoryRead(DirId, &DirEntry);
-               if (SysStatus != OS_SUCCESS)
-               {
-                  CreatingPkt = false;
-               }
-               else if ((strcmp(OS_DIRENTRY_NAME(DirEntry), FILEUTIL_CURRENT_DIR) != 0) &&
-                        (strcmp(OS_DIRENTRY_NAME(DirEntry), FILEUTIL_PARENT_DIR)  != 0))
-               {
-            
-                  /* 
-                  ** General logic 
-                  ** - Do not count the "." and ".." directory entries 
-                  ** - Start packet listing at command-specified offset
-                  ** - Stop when telemetry packet is full
-                  */      
-                  ++Dir->ListTlm.Payload.DirFileCnt;
-
-                  if (Dir->ListTlm.Payload.DirFileCnt > Dir->ListTlm.Payload.DirListOffset)
-                  {
-                
-                     FILEMGR_DirListFileEntry_t* TlmFileEntry = &Dir->ListTlm.Payload.FileList[Dir->ListTlm.Payload.PktFileCnt];
-
-                     FilenameLen = strlen(OS_DIRENTRY_NAME(DirEntry));
-
-                     /* Verify combined directory plus filename length */
-                     if ((FilenameLen < sizeof(DirFileEntry.Name)) &&
-                        ((DirWithSepLen + FilenameLen) < OS_MAX_PATH_LEN))
-                     {
-
-                        strcpy(DirFileEntry.Name, OS_DIRENTRY_NAME(DirEntry));
-
-                        strcpy(PathFilename, DirWithSep);
-                        strcat(PathFilename, OS_DIRENTRY_NAME(DirEntry));
-
-                        LoadFileEntry(PathFilename, &DirFileEntry, &TaskBlockCnt, SendDirListTlmCmd->IncludeSizeTime);
-
-                        strncpy(TlmFileEntry->Name, DirFileEntry.Name, OS_MAX_PATH_LEN);
-                        TlmFileEntry->Size = DirFileEntry.Size;
-                        TlmFileEntry->Time = DirFileEntry.Time;
-                        TlmFileEntry->Mode = DirFileEntry.Mode;
-                        
-                        ++Dir->ListTlm.Payload.PktFileCnt;
-                        
-                     }
-                     else
-                     {
-                        
-                        Dir->CmdWarningCnt++;
-
-                        CFE_EVS_SendEvent(DIR_SEND_LIST_PKT_WARN_EID, CFE_EVS_EventType_INFORMATION,
-                                          "Send dir list path/file len too long: Dir %s, File %s",
-                                          DirWithSep, OS_DIRENTRY_NAME(DirEntry));
-                     }
-                     
-                  } /* End if in range to fill packet */
-                  if (Dir->ListTlm.Payload.PktFileCnt >= FILEMGR_DIR_LIST_PKT_ENTRIES)
-                  {
-                     CreatingPkt = false;
-                  }         
-               } /* End if not current or parent directory */
-            
-            } /* End while creating packet */
-
-            OS_DirectoryClose(DirId);
-
-            CFE_SB_TimeStampMsg(CFE_MSG_PTR(Dir->ListTlm.TelemetryHeader));
-            CFE_SB_TransmitMsg(CFE_MSG_PTR(Dir->ListTlm.TelemetryHeader), true);
-
-            CFE_EVS_SendEvent(DIR_SEND_LIST_PKT_EID, CFE_EVS_EventType_DEBUG,
-                              "Send dir list pkt cmd complete: offset = %d, dir = %s",
-                              (int)Dir->ListTlm.Payload.DirListOffset, Dir->ListTlm.Payload.DirName);
-            
-            RetStatus = true;
-            
-         } /* DirPtr != NULL */
-         else
-         {
-            OS_GetErrorName(SysStatus,&OsErrStr);   
-            CFE_EVS_SendEvent(DIR_SEND_LIST_PKT_ERR_EID, CFE_EVS_EventType_ERROR,
-                              "Send dir list pkt cmd failed for %s: OS_opendir status %s",
-                              SendDirListTlmCmd->DirName, OsErrStr);
-
-         } /* DirPtr == NULL */
-      
-      } /* DirWithSep length okay */
-      else
-      {
-         
-         CFE_EVS_SendEvent(DIR_SEND_LIST_PKT_ERR_EID, CFE_EVS_EventType_ERROR,
-                           "Send dir list pkt cmd failed: %s with path separator is too long",
-                           SendDirListTlmCmd->DirName);
-
-         
-      } /* DirWithSep length too long */
-   } /* End if file is a directory */
-   else
-   {
-      
-      CFE_EVS_SendEvent(DIR_SEND_LIST_PKT_ERR_EID, CFE_EVS_EventType_ERROR,
-                        "Send dir list pkt cmd failed: %s is not a directory. It's state is %s",
-                        SendDirListTlmCmd->DirName, FileUtil_FileStateStr(FileInfo.State));
-      
-   } /* End if file is not a directory */
-   
    return RetStatus;
       
 } /* End DIR_SendDirListTlmCmd() */
+
+
+/******************************************************************************
+** Function: DIR_SendDirTlmCmd
+**
+** Notes:
+**   1. Sends an entire directry listing in mutliple telemetry messages using
+**      DIR_SendDirListTlmCmd() for each sublisting. 
+** 
+*/
+bool DIR_SendDirTlmCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
+{
+   
+   const FILEMGR_SendDirTlm_Payload_t *SendDirTlmCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILEMGR_SendDirTlm_t);
+   
+   bool  RetStatus;
+
+   RetStatus = SendDirListTlm(SendDirTlmCmd->DirName, 0, 
+                              SendDirTlmCmd->IncludeSizeTime, SEND_ALL_DIR_TLM_PKT);
+
+   return RetStatus;
+
+} /* End DIR_SendDirTlmCmd() */
 
 
 /******************************************************************************
@@ -545,10 +442,10 @@ bool DIR_SendDirListTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 **   1. Target file will be overwritten if it exists and is closed.
 ** 
 */
-bool DIR_WriteListFileCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool DIR_WriteListFileCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
-   const FILEMGR_WriteDirListFile_Payload_t *WriteDirListFileCmd = (FILEMGR_WriteDirListFile_Payload_t *) MsgPtr;
+   const FILEMGR_WriteDirListFile_Payload_t *WriteDirListFileCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILEMGR_WriteDirListFile_t);
    bool RetStatus = false;
       
    int32         SysStatus;
@@ -651,7 +548,7 @@ bool DIR_WriteListFileCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
    {
       
       CFE_EVS_SendEvent(DIR_WRITE_LIST_FILE_ERR_EID, CFE_EVS_EventType_ERROR,
-                        "Write dir list file cmd failed: %s is not a directory. It's state is %s",
+                        "Write dir list file cmd failed: %s is not a directory. Identified as %s",
                         WriteDirListFileCmd->DirName, FileUtil_FileStateStr(FileInfo.State));
       
    } /* End if file is not a directory */
@@ -659,6 +556,274 @@ bool DIR_WriteListFileCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
    return RetStatus;
       
 } /* End DIR_WriteListFileCmd() */
+
+
+/******************************************************************************
+** Function: LoadFileEntry
+**
+** Notes:
+**   1. TaskBlockCnt is the count of "task blocks" performed. A task block is 
+**      is group of instructions that is CPU intensive and may need to be 
+**      periodically suspended to prevent CPU hogging.
+** 
+*/
+static void LoadFileEntry(const char* PathFilename, DIR_FileEntry_t* FileEntry, uint16* TaskBlockCount, bool IncludeSizeTime)
+{
+   
+   int32       SysStatus; 
+   os_fstat_t  FileStatus;
+   
+   
+   if (IncludeSizeTime)
+   {
+      
+      CHILDMGR_PauseTask(TaskBlockCount, INITBL_GetIntConfig(Dir->IniTbl, CFG_TASK_FILE_STAT_CNT), 
+                         INITBL_GetIntConfig(Dir->IniTbl, CFG_TASK_FILE_STAT_DELAY), 
+                         INITBL_GetIntConfig(Dir->IniTbl, CFG_CHILD_TASK_PERF_ID));
+      
+      CFE_PSP_MemSet(&FileStatus, 0, sizeof(os_fstat_t));
+      SysStatus = OS_stat(PathFilename, &FileStatus);
+      
+      if (SysStatus == OS_SUCCESS)
+      {
+         
+         FileEntry->Size = FileStatus.FileSize;
+         FileEntry->Mode = FileStatus.FileModeBits;
+         FileEntry->Time = OS_GetLocalTime(&FileStatus.FileTime);
+        
+      }
+      else
+      {
+         
+         FileEntry->Size = 0;
+         FileEntry->Time = 0;
+         FileEntry->Mode = 0;
+      
+      }
+      
+   } /* End if include Size & Time */
+   else
+   {
+         
+      FileEntry->Size = 0;
+      FileEntry->Time = 0;
+      FileEntry->Mode = 0;
+      
+   } /* End if don't include Size & Time */
+
+
+} /* End LoadFileEntry() */
+
+
+/******************************************************************************
+** Function: SendDirListTlm
+**
+** Notes:
+**   1. This function is called by multiple commands to the wording of the
+**      event messages is intentionally generic.
+**   2. TaskBlockCnt is the count of "task blocks" performed. A task block is 
+**      is group of instructions that is CPU intensive and may need to be 
+**      periodically suspended to prevent CPU hogging.
+*/
+bool SendDirListTlm(const char *DirName, uint16 DirListOffset, bool IncludeSizeTime, SendDirListOpt_t SendOpt)
+{
+   
+   bool                RetStatus = false;
+   int32               SysStatus;
+   os_err_name_t       OsErrStr;   
+   osal_id_t           DirId;
+   os_dirent_t         DirEntry;
+   FileUtil_FileInfo_t FileInfo;
+   DIR_FileEntry_t     DirFileEntry;
+   
+   bool   ReadingDir     = true;
+   bool   CreatingTlmPkt = true;
+   uint16 TaskBlockCnt = 0;    /* See prologue */
+   uint16 FilenameLen;
+   uint16 DirWithSepLen;
+   char   DirWithSep[OS_MAX_PATH_LEN] = "\0";
+   char   PathFilename[OS_MAX_PATH_LEN] = "\0";
+
+
+   OS_printf("sizeof(Dir->ListTlm.Payload.FileList) = %ld\n", sizeof(Dir->ListTlm.Payload.FileList));
+
+   FileInfo = FileUtil_GetFileInfo(DirName, OS_MAX_PATH_LEN, false);
+                          
+   if (FileInfo.State == FILEUTIL_FILE_IS_DIR)
+   {
+      
+      /* Clears counters and nulls strings */
+      CFE_MSG_Init(CFE_MSG_PTR(Dir->ListTlm.TelemetryHeader), 
+                   CFE_SB_ValueToMsgId(INITBL_GetIntConfig(Dir->IniTbl,CFG_DIR_LIST_TLM_MID)),
+                   sizeof(FILEMGR_DirListTlm_t));
+      
+      strcpy(DirWithSep, DirName);
+      if (FileUtil_AppendPathSep(DirWithSep, OS_MAX_PATH_LEN))
+      {
+      
+         DirWithSepLen = strlen(DirWithSep);
+         
+         SysStatus = OS_DirectoryOpen(&DirId, DirName);
+         if (SysStatus == OS_SUCCESS) 
+         {
+            
+            strncpy(Dir->ListTlm.Payload.DirName, DirName, OS_MAX_PATH_LEN);
+            Dir->ListTlm.Payload.DirListOffset = DirListOffset;
+            
+            while (ReadingDir)
+            {
+            
+               SysStatus = OS_DirectoryRead(DirId, &DirEntry);
+               if (SysStatus != OS_SUCCESS)
+               {
+                  ReadingDir = false;
+               }
+               else if ((strcmp(OS_DIRENTRY_NAME(DirEntry), FILEUTIL_CURRENT_DIR) != 0) &&
+                        (strcmp(OS_DIRENTRY_NAME(DirEntry), FILEUTIL_PARENT_DIR)  != 0))
+               {
+            
+                  /* 
+                  ** General logic 
+                  ** - Do not count the "." and ".." directory entries 
+                  ** - Start packet listing at command-specified offset
+                  ** - Stop when telemetry packet is full
+                  */      
+                  ++Dir->ListTlm.Payload.DirFileCnt;
+               
+                  if (CreatingTlmPkt)
+                  {
+                     if (Dir->ListTlm.Payload.DirFileCnt > Dir->ListTlm.Payload.DirListOffset)
+                     {
+                
+                        FILEMGR_DirListFileEntry_t* TlmFileEntry = &Dir->ListTlm.Payload.FileList[Dir->ListTlm.Payload.PktFileCnt];
+
+                        FilenameLen = strlen(OS_DIRENTRY_NAME(DirEntry));
+
+                        /* Verify combined directory plus filename length */
+                        if ((FilenameLen < sizeof(DirFileEntry.Name)) &&
+                           ((DirWithSepLen + FilenameLen) < OS_MAX_PATH_LEN))
+                        {
+
+                           strcpy(DirFileEntry.Name, OS_DIRENTRY_NAME(DirEntry));
+
+                           strcpy(PathFilename, DirWithSep);
+                           strcat(PathFilename, OS_DIRENTRY_NAME(DirEntry));
+
+                           LoadFileEntry(PathFilename, &DirFileEntry, &TaskBlockCnt, IncludeSizeTime);
+
+                           strncpy(TlmFileEntry->Name, DirFileEntry.Name, OS_MAX_PATH_LEN);
+                           TlmFileEntry->Size = DirFileEntry.Size;
+                           TlmFileEntry->Time = DirFileEntry.Time;
+                           TlmFileEntry->Mode = DirFileEntry.Mode;
+                        
+                           ++Dir->ListTlm.Payload.PktFileCnt;
+                        
+                        }
+                        else
+                        {
+                           Dir->CmdWarningCnt++;
+
+                           CFE_EVS_SendEvent(DIR_SEND_LIST_PKT_WARN_EID, CFE_EVS_EventType_INFORMATION,
+                                             "Send dir list path/file len too long: Dir %s, File %s",
+                                             DirWithSep, OS_DIRENTRY_NAME(DirEntry));
+                        
+                        } /* End if valid pah/filename length */
+                     
+                     } /* End if in range to fill packet */
+                     if (Dir->ListTlm.Payload.PktFileCnt >= FILEMGR_DIR_LIST_PKT_ENTRIES)
+                     {
+                        /* If sending one pkt, continue counting directory entries and send pkt when done */
+                        if (SendOpt == SEND_ONE_DIR_TLM_PKT)
+                        {
+                           CreatingTlmPkt = false;
+                        }
+                        else
+                        {
+                           CFE_SB_TimeStampMsg(CFE_MSG_PTR(Dir->ListTlm.TelemetryHeader));
+                           CFE_SB_TransmitMsg(CFE_MSG_PTR(Dir->ListTlm.TelemetryHeader), true);
+
+                           CFE_EVS_SendEvent(DIR_SEND_LIST_PKT_EID, CFE_EVS_EventType_INFORMATION,
+                                             "Send all files for dir %s: offset=%d, pktcnt=%d",
+                                             Dir->ListTlm.Payload.DirName,
+                                             (int)Dir->ListTlm.Payload.DirListOffset, 
+                                             (int)Dir->ListTlm.Payload.PktFileCnt);
+                        
+                           Dir->ListTlm.Payload.PktFileCnt = 0;
+                           Dir->ListTlm.Payload.DirListOffset += FILEMGR_DIR_LIST_PKT_ENTRIES;
+                           memset(Dir->ListTlm.Payload.FileList, 0, sizeof(Dir->ListTlm.Payload.FileList));                              
+                        }
+                     } /* End if filled tlm packet */         
+                  } /* End while creating telemetry message */
+               } /* End if not current or parent directory */ 
+            
+            } /* End while reading the directory */
+            
+            OS_DirectoryClose(DirId);
+
+            /*
+            ** Always send packet if commanded to send one. If sending teh entire directory, only sen
+            ** the last packet if it has entires==ies
+            */
+            if ((SendOpt == SEND_ONE_DIR_TLM_PKT) ||
+                ((SendOpt == SEND_ALL_DIR_TLM_PKT) && (Dir->ListTlm.Payload.PktFileCnt != 0)))
+            {
+            
+               CFE_SB_TimeStampMsg(CFE_MSG_PTR(Dir->ListTlm.TelemetryHeader));
+               CFE_SB_TransmitMsg(CFE_MSG_PTR(Dir->ListTlm.TelemetryHeader), true);
+
+               if (SendOpt == SEND_ONE_DIR_TLM_PKT)
+               {
+                  CFE_EVS_SendEvent(DIR_SEND_LIST_PKT_EID, CFE_EVS_EventType_INFORMATION,
+                                    "Send one pkt for dir %s: offset=%d",
+                                    Dir->ListTlm.Payload.DirName,
+                                    (int)Dir->ListTlm.Payload.DirListOffset);
+               }
+               else
+               {
+                  CFE_EVS_SendEvent(DIR_SEND_LIST_PKT_EID, CFE_EVS_EventType_INFORMATION,
+                                    "Send all files for dir %s: offset=%d, pktcnt=%d",
+                                     Dir->ListTlm.Payload.DirName,
+                                     (int)Dir->ListTlm.Payload.DirListOffset, 
+                                     (int)Dir->ListTlm.Payload.PktFileCnt);
+               }
+               
+            } /* End if send packet */
+
+            RetStatus = true;
+            
+         } /* DirPtr != NULL */
+         else
+         {
+            OS_GetErrorName(SysStatus,&OsErrStr);   
+            CFE_EVS_SendEvent(DIR_SEND_LIST_PKT_ERR_EID, CFE_EVS_EventType_ERROR,
+                              "Send dir list pkt cmd failed for %s: OS_opendir status %s",
+                              DirName, OsErrStr);
+
+         } /* DirPtr == NULL */
+      
+      } /* DirWithSep length okay */
+      else
+      {
+         
+         CFE_EVS_SendEvent(DIR_SEND_LIST_PKT_ERR_EID, CFE_EVS_EventType_ERROR,
+                           "Send dir list pkt cmd failed: %s with path separator is too long",
+                           DirName);
+
+         
+      } /* DirWithSep length too long */
+   } /* End if file is a directory */
+   else
+   {
+      
+      CFE_EVS_SendEvent(DIR_SEND_LIST_PKT_ERR_EID, CFE_EVS_EventType_ERROR,
+                        "Send dir list pkt cmd failed: %s is not a directory. Identified as %s",
+                        DirName, FileUtil_FileStateStr(FileInfo.State));
+      
+   } /* End if file is not a directory */
+   
+   return RetStatus;
+      
+} /* End SendDirListTlm() */
 
 
 /******************************************************************************
@@ -859,59 +1024,4 @@ static bool WriteDirListToFile(const char* DirNameWithSep, osal_id_t DirId, int3
 } /* End WriteDirListToFile() */
 
 
-/******************************************************************************
-** Function: LoadFileEntry
-**
-** Notes:
-**   1. TaskBlockCnt is the count of "task blocks" performed. A task block is 
-**      is group of instructions that is CPU intensive and may need to be 
-**      periodically suspended to prevent CPU hogging.
-** 
-*/
-static void LoadFileEntry(const char* PathFilename, DIR_FileEntry_t* FileEntry, uint16* TaskBlockCount, bool IncludeSizeTime)
-{
-   
-   int32       SysStatus; 
-   os_fstat_t  FileStatus;
-   
-   
-   if (IncludeSizeTime)
-   {
-      
-      CHILDMGR_PauseTask(TaskBlockCount, INITBL_GetIntConfig(Dir->IniTbl, CFG_TASK_FILE_STAT_CNT), 
-                         INITBL_GetIntConfig(Dir->IniTbl, CFG_TASK_FILE_STAT_DELAY), 
-                         INITBL_GetIntConfig(Dir->IniTbl, CFG_CHILD_TASK_PERF_ID));
-      
-      CFE_PSP_MemSet(&FileStatus, 0, sizeof(os_fstat_t));
-      SysStatus = OS_stat(PathFilename, &FileStatus);
-      
-      if (SysStatus == OS_SUCCESS)
-      {
-         
-         FileEntry->Size = FileStatus.FileSize;
-         FileEntry->Mode = FileStatus.FileModeBits;
-         FileEntry->Time = OS_GetLocalTime(&FileStatus.FileTime);
-        
-      }
-      else
-      {
-         
-         FileEntry->Size = 0;
-         FileEntry->Time = 0;
-         FileEntry->Mode = 0;
-      
-      }
-      
-   } /* End if include Size & Time */
-   else
-   {
-         
-      FileEntry->Size = 0;
-      FileEntry->Time = 0;
-      FileEntry->Mode = 0;
-      
-   } /* End if don't include Size & Time */
-      
-      
-} /* End LoadFileEntry() */
 

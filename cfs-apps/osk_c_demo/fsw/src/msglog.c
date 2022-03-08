@@ -1,33 +1,38 @@
 /*
-** Purpose: Implement the MSGLOG_Class methods
+**  Copyright 2022 Open STEMware Foundation
+**  All Rights Reserved.
 **
-** Notes:
-**   1. The log/playback functionality is for demonstration purposes and 
-**      the logic is kept simple so users can focus on learning developing 
-**      apps using the OSK C Framework.
-**   2. Logging and playback can't be enabled at the same time. If a command
-**      to start a playback is received when logging is in progress, the
-**      logging will be stopped and a playback will be started. The same
-**      occurs in reverse when a playback is in progress and a command to 
-**      start a message log is received. Neither case is considered an error.
+**  This program is free software; you can modify and/or redistribute it under
+**  the terms of the GNU Affero General Public License as published by the Free
+**  Software Foundation; version 3 with attribution addendums as found in the
+**  LICENSE.txt
 **
-** References:
-**   1. OpenSatKit Object-based Application Developer's Guide.
-**   2. cFS Application Developer's Guide.
+**  This program is distributed in the hope that it will be useful, but WITHOUT
+**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
+**  details.
+**  
+**  This program may also be used under the terms of a commercial or enterprise
+**  edition license of cFSAT if purchased from the copyright holder.
 **
-**   Written by David McComas, licensed under the Apache License, Version 2.0
-**   (the "License"); you may not use this file except in compliance with the
-**   License. You may obtain a copy of the License at
+**  Purpose:
+**    Implement the MSGLOG_Class methods
 **
-**      http://www.apache.org/licenses/LICENSE-2.0
+**  Notes:
+**    1. The log/playback functionality is for demonstration purposes and 
+**       the logic is kept simple so users can focus on learning developing 
+**       apps using the OSK C Framework.
+**    2. Logging and playback can't be enabled at the same time. If a command
+**       to start a playback is received when logging is in progress, the
+**       logging will be stopped and a playback will be started. The same
+**       occurs in reverse when a playback is in progress and a command to 
+**       start a message log is received. Neither case is considered an error.
 **
-**   Unless required by applicable law or agreed to in writing, software
-**   distributed under the License is distributed on an "AS IS" BASIS,
-**   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-**   See the License for the specific language governing permissions and
-**   limitations under the License.
+**  References:
+**    1. OpenSatKit Object-based Application Developer's Guide.
+**    2. cFS Application Developer's Guide.
+**
 */
-
 
 /*
 ** Include Files:
@@ -109,7 +114,7 @@ void MSGLOG_ResetStatus()
 **      mechanism for the parent app to periodically call a child task function.
 **
 */
-bool MSGLOG_RunChildFuncCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool MSGLOG_RunChildFuncCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
    
@@ -148,13 +153,13 @@ bool MSGLOG_RunChildFuncCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 ** Notes:
 **   1. See file prologue for logging/playback logic.
 */
-bool MSGLOG_StartLogCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool MSGLOG_StartLogCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
    bool   RetStatus = false;
    int32  SysStatus;
    os_err_name_t OsErrStr;
-   MSGLOG_StartLogCmdMsg_t* StartLog = (MSGLOG_StartLogCmdMsg_t*)MsgPtr;
+   const MSGLOG_StartLogCmdMsg_Payload_t* StartLog = CMDMGR_PAYLOAD_PTR(SbBufPtr, MSGLOG_StartLogCmdMsg_t);
       
    if (MsgLog->LogEna)
    {
@@ -219,7 +224,7 @@ bool MSGLOG_StartLogCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 ** Function: MSGLOG_StopLogCmd
 **
 */
-bool MSGLOG_StopLogCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool MSGLOG_StopLogCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
    if (MsgLog->LogEna)
@@ -243,7 +248,7 @@ bool MSGLOG_StopLogCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 ** Notes:
 **   1. See file prologue for logging/playback logic.
 */
-bool MSGLOG_StartPlaybkCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool MSGLOG_StartPlaybkCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
    bool   RetStatus = false;
@@ -263,9 +268,8 @@ bool MSGLOG_StartPlaybkCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
       
       if (MsgLog->LogCnt > 0)
       {
-OS_printf("Before FileUtil_GetFileInfo()\n");
+
          FileInfo = FileUtil_GetFileInfo(MsgLog->Filename, OS_MAX_PATH_LEN, false);
-OS_printf("After FileUtil_GetFileInfo()\n");
 
          if (FILEUTIL_FILE_EXISTS(FileInfo.State))
          {
@@ -323,7 +327,7 @@ OS_printf("After FileUtil_GetFileInfo()\n");
 ** Function: MSGLOG_StopPlaybkCmd
 **
 */
-bool MSGLOG_StopPlaybkCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool MSGLOG_StopPlaybkCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
    if (MsgLog->PlaybkEna)

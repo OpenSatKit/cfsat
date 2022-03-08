@@ -27,7 +27,7 @@
       "CMD_PIPE_DEPTH": 10,
       "CMD_PIPE_NAME":  "FILEMGR_CMD_PIPE",
       
-      "TBL_CFE_NAME": "FileSys",
+      "TBL_CFE_NAME": "FileSysTbl",
       "TBL_DEF_FILENAME": "/cf/filesys_tbl.tbl",
       "TBL_ERR_CODE": 3472883840,
       

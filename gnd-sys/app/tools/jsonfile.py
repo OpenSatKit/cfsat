@@ -1,24 +1,25 @@
 #!/usr/bin/env python
 """
-Provide a base class to manage cfsat JSON files.
+    Copyright 2022 Open STEMware Foundation
+    All Rights Reserved.
 
-JSON key constants should all be used within the Json classes to
-localize impacts due to JSON key changes
+    This program is free software; you can modify and/or redistribute it under
+    the terms of the GNU Affero General Public License as published by the Free
+    Software Foundation; version 3 with attribution addendums as found in the
+    LICENSE.txt
 
-LICENSE:
+    This program is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
+    details.
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+    This program may also be used under the terms of a commercial or enterprise
+    edition license of cFSAT if purchased from the copyright holder.
 
-        http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+    Purpose:
+        Provide JSON base class.
 """
+
 from abc import ABC, abstractmethod
 import sys
 import time
@@ -34,6 +35,8 @@ class JsonFile():
     Abstract base class for managing JSON files in a consistent manner. This
     is designed for cfsat as opposed to general utility so it's up to the user
     to protect against errors.
+    JSON key constants should all be used within the Json classes to
+    localize impacts due to JSON key changes.
     """
     def __init__(self, json_file):
 

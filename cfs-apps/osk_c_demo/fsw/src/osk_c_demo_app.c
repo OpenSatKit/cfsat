@@ -1,24 +1,30 @@
 /*
-** Purpose: Implement the OSK C Demo application
+**  Copyright 2022 Open STEMware Foundation
+**  All Rights Reserved.
 **
-** Notes:
-**   1. See header notes. 
+**  This program is free software; you can modify and/or redistribute it under
+**  the terms of the GNU Affero General Public License as published by the Free
+**  Software Foundation; version 3 with attribution addendums as found in the
+**  LICENSE.txt
 **
-** References:
-**   1. OpenSatKit Object-based Application Developer's Guide.
-**   2. cFS Application Developer's Guide.
+**  This program is distributed in the hope that it will be useful, but WITHOUT
+**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
+**  details.
+**  
+**  This program may also be used under the terms of a commercial or enterprise
+**  edition license of cFSAT if purchased from the copyright holder.
 **
-**   Written by David McComas, licensed under the Apache License, Version 2.0
-**   (the "License"); you may not use this file except in compliance with the
-**   License. You may obtain a copy of the License at
+**  Purpose:
+**    Implement the OSK C Demo application
 **
-**      http://www.apache.org/licenses/LICENSE-2.0
+**  Notes:
+**    1. See header notes
 **
-**   Unless required by applicable law or agreed to in writing, software
-**   distributed under the License is distributed on an "AS IS" BASIS,
-**   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-**   See the License for the specific language governing permissions and
-**   limitations under the License.
+**  References:
+**    1. OpenSatKit Object-based Application Developer's Guide.
+**    2. cFS Application Developer's Guide.
+**
 */
 
 /*
@@ -107,7 +113,7 @@ void OSK_C_DEMO_AppMain(void)
 ** Function: OSK_C_DEMO_NoOpCmd
 **
 */
-bool OSK_C_DEMO_NoOpCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
+bool OSK_C_DEMO_NoOpCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
 
    CFE_EVS_SendEvent (OSK_C_DEMO_NOOP_EID, CFE_EVS_EventType_INFORMATION,
@@ -128,7 +134,7 @@ bool OSK_C_DEMO_NoOpCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 **      reentrant. Applications use the singleton pattern and store a
 **      reference pointer to the object data during construction.
 */
-bool OSK_C_DEMO_ResetAppCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
+bool OSK_C_DEMO_ResetAppCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
 
    CMDMGR_ResetStatus(CMDMGR_OBJ);
@@ -247,8 +253,8 @@ static int32 InitApp(void)
       CMDMGR_RegisterFunc(CMDMGR_OBJ, CMDMGR_NOOP_CMD_FC,   NULL, OSK_C_DEMO_NoOpCmd,     0);
       CMDMGR_RegisterFunc(CMDMGR_OBJ, CMDMGR_RESET_CMD_FC,  NULL, OSK_C_DEMO_ResetAppCmd, 0);
       
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, OSK_C_DEMO_TBL_LOAD_CMD_FC, TBLMGR_OBJ, TBLMGR_LoadTblCmd, TBLMGR_LOAD_TBL_CMD_DATA_LEN);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, OSK_C_DEMO_TBL_DUMP_CMD_FC, TBLMGR_OBJ, TBLMGR_DumpTblCmd, TBLMGR_DUMP_TBL_CMD_DATA_LEN);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, CMDMGR_LOAD_TBL_CMD_FC, TBLMGR_OBJ, TBLMGR_LoadTblCmd, TBLMGR_LOAD_TBL_CMD_DATA_LEN);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, CMDMGR_DUMP_TBL_CMD_FC, TBLMGR_OBJ, TBLMGR_DumpTblCmd, TBLMGR_DUMP_TBL_CMD_DATA_LEN);
 
       /*
       ** The following commands are executed within the context of a chld task. See the OSK App Dev Guide for details.
@@ -291,11 +297,6 @@ static int32 InitApp(void)
                         "OSK_C_DEMO App Initialized. Version %d.%d.%d",
                         OSK_C_DEMO_MAJOR_VER, OSK_C_DEMO_MINOR_VER, OSK_C_DEMO_PLATFORM_REV);
 
-FileUtil_FileInfo_t FileInfo;
-OS_printf("Before FileUtil_GetFileInfo()\n");
-FileInfo = FileUtil_GetFileInfo("/cf/msg_0854.txt", OS_MAX_PATH_LEN, false);
-OS_printf("After FileUtil_GetFileInfo() File exists = %d\n",FILEUTIL_FILE_EXISTS(FileInfo.State));
-
    } /* End if CHILDMGR constructed */
    
    return(Status);
@@ -331,11 +332,11 @@ static int32 ProcessCommands(void)
 
          if (CFE_SB_MsgId_Equal(MsgId, OskCDemo.CmdMid))
          {
-            CMDMGR_DispatchFunc(CMDMGR_OBJ, &SbBufPtr->Msg);
+            CMDMGR_DispatchFunc(CMDMGR_OBJ, SbBufPtr);
          } 
          else if (CFE_SB_MsgId_Equal(MsgId, OskCDemo.ExecuteMid))
          {
-            CMDMGR_DispatchFunc(CMDMGR_OBJ, (CFE_MSG_Message_t *)&OskCDemo.MsgLogRunChildFuncCmd.CmdHeader);
+            CMDMGR_DispatchFunc(CMDMGR_OBJ, (CFE_SB_Buffer_t *)&OskCDemo.MsgLogRunChildFuncCmd.CmdHeader);
          }
          else if (CFE_SB_MsgId_Equal(MsgId, OskCDemo.SendHkMid))
          {   

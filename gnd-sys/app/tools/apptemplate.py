@@ -1,20 +1,23 @@
 #!/usr/bin/env python
 """
-Provide classes to manage the creation of apps from templates.
+    Copyright 2022 Open STEMware Foundation
+    All Rights Reserved.
 
-LICENSE:
+    This program is free software; you can modify and/or redistribute it under
+    the terms of the GNU Affero General Public License as published by the Free
+    Software Foundation; version 3 with attribution addendums as found in the
+    LICENSE.txt
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+    This program is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
+    details.
 
-        http://www.apache.org/licenses/LICENSE-2.0
+    This program may also be used under the terms of a commercial or enterprise
+    edition license of cFSAT if purchased from the copyright holder.
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+    Purpose:
+        Provide classes that manage the creation of apps from templates.
 """
 
 import sys
@@ -33,6 +36,7 @@ else:
     from .jsonfile import JsonFile
 
 import PySimpleGUI as sg
+
 
 TEMPLATE_JSON_FILE = 'app_template.json'
 TEMPLATE_VAR_UPPER = "@TEMPLATE@"

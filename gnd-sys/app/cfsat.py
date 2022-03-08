@@ -1,20 +1,24 @@
 #!/usr/bin/env python
 """
+    Copyright 2022 Open STEMware Foundation
+    All Rights Reserved.
 
+    This program is free software; you can modify and/or redistribute it under
+    the terms of the GNU Affero General Public License as published by the Free
+    Software Foundation; version 3 with attribution addendums as found in the
+    LICENSE.txt
 
-LICENSE:
+    This program is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
+    details.
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+    This program may also be used under the terms of a commercial or enterprise
+    edition license of cFSAT if purchased from the copyright holder.
 
-        http://www.apache.org/licenses/LICENSE-2.0
+    Purpose:
+        Provide the main application for the cFS Application Toolkit (cFSAT)
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
 """
 import os
 import sys
@@ -23,9 +27,9 @@ if 'LD_LIBRARY_PATH' not in os.environ:
     print("LD_LIBRARY_PATH not defined. Run setvars.sh to corrrect the problem")
     sys.exit(1)
     """
-    This code fails due to permission errors. It's also dangerous becuase it attempts to restart
-    the python interpreter with a ne environment. That' why it's attempted immediately after the
-    os and sys imports which define teh minimal context to attempt the restart 
+    This code fails due to permission errors. It's also dangerous because it attempts to restart
+    the python interpreter with a new environment. That's why it's attempted immediately after the
+    os and sys imports which define the minimal context to attempt the restart 
     os.environ['LD_LIBRARY_PATH'] = '../../cfe-eds-framework/build/exe/lib'
     try:
         os.execv(sys.argv[0], sys.argv)
@@ -61,20 +65,22 @@ from tools import CreateApp, ManageTutorials
 ###############################################################################
 
 class GuiTelecommand(Telecommand):
-    '''
+    """
     GUI to manage a user selecting and sending a single telecommand 
-    '''
-
+    """
+    
     def __init__(self, mission, target, host_addr, cmd_port):
         super().__init__(mission, target, host_addr, cmd_port)
 
-        '''
+        """
         eds_mission -
         eds_target  - String containing the identical target name used in the EDS  
         host        - String containing the socket address, e.g. '127.0.0.1:1234'
         port        - Integer containing socket port
-        '''
-        self.UNDEFINED_LIST = [self.eds_mission.NULL_STR]
+        """
+        self.NULL_STR = self.eds_mission.NULL_STR
+       
+        self.UNDEFINED_LIST = [self.NULL_STR]
 
         self.PAYLOAD_ROWS, self.PAYLOAD_COLS, self.PAYLOAD_HEADINGS = 8, 3, ('Parameter Name','Type','Value',)
         self.PAYLOAD_INPUT_START = 2 # First row of input payloads (see SendCmd() payload_layout comment)
@@ -86,27 +92,61 @@ class GuiTelecommand(Telecommand):
         self.PAYLOAD_VALUE_IDX = 2
         self.PAYLOAD_INPUT_IDX = 3
 
-        self.payload_struct = None        # Payload structure for the current command. Null if no command selected
-        self.payload_gui_entries = {}     # Payload entry information required to display and retrieve payload data from the GUI
-
+        self.payload_struct = None        # Payload structure for the current command. None if no command selected
+        self.payload_gui_entries = {}    
+        """
+        payload_gui_entries manages displaying and retrieving data from the GUI. The following methods
+        methods manage the dictionary 
+           1. create_payload_gui_entries()  - Creates initial dictionary from EDS information. gui_value & gui_value_key are null
+           2. display_payload_gui_entries() - Sets gui_value_key as it builds the command's payload screen
+           3. load_payload_entry_value()    - Called when a command is being built and sent. Uses gui_value_key to retrieve user input
+        
+        Example payload_gui_entries for FILEMGR/SendDirListTlm_Payload:
+        'DirName': 
+        {
+            'eds_entry': EdsLib.DatabaseEntry('samplemission','BASE_TYPES/PathName'),
+            'eds_name': 'Payload.DirName', 'gui_type': 'BASE_TYPES/PathName',
+            'gui_value': ['--null--'],
+            'gui_input': 'text',
+            'gui_value_key': '--null--'
+         },
+         'DirListOffset':
+         {
+            'eds_entry': EdsLib.DatabaseEntry('samplemission','BASE_TYPES/uint16'),
+            'eds_name': 'Payload.DirListOffset',
+            'gui_type': 'BASE_TYPES/uint16',
+            'gui_value': ['--null--'],
+            'gui_input': 'text',
+            'gui_value_key': '--null--'
+         },
+         'IncludeSizeTime':
+         {
+            'eds_entry': EdsLib.DatabaseEntry('samplemission','FILEMGR/BooleanUint16'),
+            'eds_name': 'Payload.IncludeSizeTime',
+            'gui_type': 'FILEMGR/BooleanUint16',
+            'gui_value': ['FALSE', 'TRUE'],
+            'gui_input': 'combo',
+            'gui_value_key': '--null--'}}
+        """
+        
         self.sg_values = None
         
-    def get_payload_gui_entries(self, payload_struct):
-        '''
+    def create_payload_gui_entries(self, payload_struct):
+        """
         Create a list of a command's payload entries from the EDS
 
         Inputs:
         payload_struct - The payload structure output from mission_db.GetPayload()
-        '''
+        """
         return_str = ""
         if isinstance(payload_struct, dict):
             return_str = "Recursively extracting dictionary"
             for item in list(payload_struct.keys()):
-                return_str = self.get_payload_gui_entries(payload_struct[item])
+                return_str = self.create_payload_gui_entries(payload_struct[item])
         elif isinstance(payload_struct, list):
             return_str = "Recursively extracting list"
             for item in payload_struct:
-                return_str = get_payload_gui_entries(item)
+                return_str = create_payload_gui_entries(item)
         elif isinstance(payload_struct, tuple):
             logger.debug("TUPLEDATA: "+str(payload_struct))
             return_str = "Extracting tuple entry: " + str(payload_struct)
@@ -124,7 +164,7 @@ class GuiTelecommand(Telecommand):
             gui_type  = eds_obj_list[1].replace("'","").replace(")","")
             gui_input = self.PAYLOAD_TEXT_INPUT
             if payload_struct[2] == 'entry':
-                gui_value = ["--input value--"]
+                gui_value = [self.NULL_STR]
             elif payload_struct[2] == 'enum':
                 gui_input = self.PAYLOAD_COMBO_INPUT
                 gui_value = []
@@ -133,12 +173,9 @@ class GuiTelecommand(Telecommand):
             else:
                 return_str = "Error extracting entries from payload structure tuple: " + str(payload_struct)
             logger.debug(gui_type)
-            # The first two list entries for each list below must have same semantic meaning.
-            # The eds_entry contains the full EDS type while entry_type has been parsed for display
-            #todo: self.payload_entries.append([gui_name, ])
             self.payload_gui_entries[gui_name] = {'eds_entry': eds_entry, 'eds_name': eds_name,       
-                                                  'gui_type': gui_type, 'gui_value': gui_value, 'gui_input': gui_input, 
-                                                  'gui_value_key': self.eds_mission.NULL_STR}
+                                                  'gui_type': gui_type,   'gui_value': gui_value, 
+                                                  'gui_input': gui_input, 'gui_value_key': self.NULL_STR}
             
         else:
             return_str = "Error extracting entries from unkown payload structure instance type: " + str(payload_struct)
@@ -147,11 +184,11 @@ class GuiTelecommand(Telecommand):
         return return_str
 
 
-    def display_payload_entries(self, payload_gui_entries):
-        '''
+    def display_payload_gui_entries(self):
+        """
         See SendCmd() payload_layout definition comment for initial payload display
-        When there are no payload paramaters (zero length) hide all of the except for the first parameter.
-        '''
+        When there are no payload paramaters (zero length) hide all rows except the first parameter.
+        """
         
         for row in range(self.PAYLOAD_ROWS):
             self.window["-PAYLOAD_%d_NAME-"%row].update(visible=False)
@@ -162,68 +199,43 @@ class GuiTelecommand(Telecommand):
         entry_row = self.PAYLOAD_INPUT_START
         row = 0
 
-        if len(payload_gui_entries) > 0:
-            for payload_gui_name in payload_gui_entries.keys():
+        if len(self.payload_gui_entries) > 0:
+            for payload_gui_name in self.payload_gui_entries.keys():
                 logger.debug("payload_gui_name = " + str(payload_gui_name))
-                if payload_gui_entries[payload_gui_name]['gui_input'] == self.PAYLOAD_TEXT_INPUT:
+                if self.payload_gui_entries[payload_gui_name]['gui_input'] == self.PAYLOAD_TEXT_INPUT:
                     row = entry_row
                     entry_row += 1                
-                    self.window["-PAYLOAD_%d_VALUE-"%row].update(visible=True, value=payload_gui_entries[payload_gui_name]['gui_value'][0])
+                    self.window["-PAYLOAD_%d_VALUE-"%row].update(visible=True, value=self.payload_gui_entries[payload_gui_name]['gui_value'][0])
                     
                 else:
                     row = enum_row
                     enum_row += 1                
-                    payload_enum_list = payload_gui_entries[payload_gui_name]['gui_value']
+                    payload_enum_list = self.payload_gui_entries[payload_gui_name]['gui_value']
                     self.window["-PAYLOAD_%d_VALUE-"%row].update(visible=True,value=payload_enum_list[0], values=payload_enum_list)
                 
-                payload_gui_entries[payload_gui_name]['gui_value_key'] = "-PAYLOAD_%d_VALUE-"%row
+                self.payload_gui_entries[payload_gui_name]['gui_value_key'] = "-PAYLOAD_%d_VALUE-"%row
                 self.window["-PAYLOAD_%d_NAME-"%row].update(visible=True,value=payload_gui_name)
-                self.window["-PAYLOAD_%d_TYPE-"%row].update(visible=True,value=payload_gui_entries[payload_gui_name]['gui_type'])
+                self.window["-PAYLOAD_%d_TYPE-"%row].update(visible=True,value=self.payload_gui_entries[payload_gui_name]['gui_type'])
 
         else:
             self.window["-PAYLOAD_0_NAME-"].update(visible=True, value='No Parameters')
 
 
     def load_payload_entry_value(self, payload_name, payload_eds_entry, payload_type, payload_list):
+        """
+        Virtual function used by based Telesommand class set_payload_values() to retrieve values
+        from a derived class source: GUI or command line
+        """
         logger.debug("load_payload_entry_value() - Entry")
         logger.debug("payload_name=%s, payload_eds_entry=%s, payload_type=%s, payload_list=%s"%(payload_name, payload_eds_entry, payload_type, payload_list))
         logger.debug("self.payload_gui_entries = " + str(self.payload_gui_entries))
         logger.debug("self.sg_values = " + str(self.sg_values))
         #todo: Add type check error reporting
         value_key = self.payload_gui_entries[self.remove_eds_payload_name_prefix(payload_name)]['gui_value_key']
+        logger.debug("@@@@value_key = " + value_key)
         value = self.sg_values[value_key]
         return value
-                    
-                    
-    def get_gui_payload_values(self, payload_gui_entries, values):
-        '''
-        Retrieve payload values from the command screen and returns a dictionary of values if
-        the payload values are valid.
-
-        Inputs:
-        payload_entries - The payload structure output from mission_db.GetPayload()
-        values - sg list of GUI values 
-        TODO - Add error checking for GUI-payload_entries mismatch which should never happen but want to avoid an exception
-        '''
         
-        payload_valid  = True
-        payload_values = {}
-        logger.debug("payload_gui_entries = " + str(payload_gui_entries))
-        for payload_gui_entry in payload_gui_entries:
-            payload_gui_name = payload_gui_entry[self.PAYLOAD_NAME_IDX]
-            payload_eds_name = payload_gui_entry[2]
-            value_key = self.payload_gui_value_keys[payload_gui_name]
-            value = values[value_key]
-            logger.debug("Key %s value=%s type=%s"%(value_key,value,type(value)))
-            if MissionDb.ValidPayload(payload_gui_entry[self.PAYLOAD_TYPE_IDX],value):
-                payload_values[payload_eds_name] = value
-            else:
-                payload_valid = False
-                payload_values['error'] = "Invalid value input for '{}'".format(payload_eds_name)
-                
-        return payload_valid, payload_values
-
-
     def execute(self, topic_name):
     
         cmd_sent = True
@@ -298,6 +310,7 @@ class GuiTelecommand(Telecommand):
                         self.payload_struct = None 
                         self.payload_gui_entries = None
                         
+                        self.payload_gui_entries = []
                         if cmd_has_payload:
             
                             payload_entry = self.eds_mission.get_database_named_entry(cmd_payload_item[2])
@@ -306,15 +319,15 @@ class GuiTelecommand(Telecommand):
                             logger.debug("payload_entry = " + str(payload_entry))
                             logger.debug("payload = " + str(payload))
                             self.payload_gui_entries = {}
-                            status_str = self.get_payload_gui_entries(self.payload_struct)
+                            status_str = self.create_payload_gui_entries(self.payload_struct)
                             logger.debug("status_str = " + status_str)
-                            logger.debug("pself.payload_gui_entries: " + str(self.payload_gui_entries))
+                            logger.debug("self.payload_gui_entries: " + str(self.payload_gui_entries))
                             if len(self.payload_gui_entries) > 0:
-                                self.display_payload_entries(self.payload_gui_entries)
+                                self.display_payload_gui_entries()
                             else:
                                 cmd_text = "Error extracting payload parameters from %s" % str(self.payload_struct)
                         else:
-                            self.display_payload_entries([])
+                            self.display_payload_gui_entries()
                 
             if self.event == '-SEND_CMD-':
 
@@ -353,6 +366,7 @@ class GuiTelecommand(Telecommand):
                         logger.debug("payload_entry = " + str(payload_entry))
                         logger.debug("payload = " + str(payload))
 
+                        #payload = EdsLib.DatabaseEntry('samplemission','FILEMGR/SendDirListTlm_Payload')({'DirName': '', 'DirListOffset': 0, 'IncludeSizeTime': 'FALSE'})
                         #todo: Check if None? payload_struct = self.get_payload_struct(payload_entry, payload, 'Payload')
                         eds_payload = self.set_payload_values(self.payload_struct)
                         payload = payload_entry(eds_payload)
@@ -380,12 +394,14 @@ class GuiTelecommand(Telecommand):
 ###############################################################################
 
 class GuiTelemetry(TelemetryObserver):
-    '''
+    """
     Create a screen that displays a single telemetry message
-    '''
+    """
 
     def __init__(self, tlm_server: TelemetryServer, topic_name):
         super().__init__(tlm_server)
+
+        self.NULL_STR = self.tlm_server.eds_mission.NULL_STR
 
         self.topic_name = topic_name
         self.tlm_msg = tlm_server.get_tlm_msg_from_topic(topic_name)
@@ -408,11 +424,11 @@ class GuiTelemetry(TelemetryObserver):
         self.gui_thread.kill = False
  
     def update(self, tlm_msg: TelemetryMessage) -> None:
-        '''
+        """
         Receive telemetry updates
         self.payload_str_max_len is set as opposed to the construtor because an initial
         tlm_msg object does not have its eds_obj and eds_entry attributes set
-        '''
+        """
         self.lock.acquire()
         if self.payload_str_max_len == 0:
             self.payload_str_max(self.tlm_msg.eds_obj, self.tlm_msg.eds_entry.Name)
@@ -435,9 +451,9 @@ class GuiTelemetry(TelemetryObserver):
 
 
     def format_payload_text(self, base_object, base_name):
-        '''
+        """
         Recursive function that iterates over an EDS object and creates a string that can be displayed.
-        '''
+        """
         # Array display string
         if (self.tlm_server.eds_mission.lib_db.IsArray(base_object)):
             for i in range(len(base_object)):
@@ -452,10 +468,10 @@ class GuiTelemetry(TelemetryObserver):
                 self.payload_text += self.payload_fmt_str.format(base_name, base_object)
 
     def payload_str_max(self, base_object, base_name):
-        '''
+        """
         Recursive function that determines the longest payload string. This
         is helpful for formatting displayes .
-        '''
+        """
         # Array display string
         if (self.tlm_server.eds_mission.lib_db.IsArray(base_object)):
             for i in range(len(base_object)):
@@ -479,10 +495,10 @@ class GuiTelemetry(TelemetryObserver):
         hdr_label_font = ('Arial bold',12)
         hdr_value_font = ('Arial',12)
                 
-        self.layout = [[sg.Text('App ID: ', font=hdr_label_font),  sg.Text('--Undefined--', font=hdr_value_font, size=(12,1), key='-APP_ID-'), 
-                        sg.Text('Length: ', font=hdr_label_font),  sg.Text('--Undefined--', font=hdr_value_font, size=(12,1), key='-LENGTH-'),
-                        sg.Text('Seq Cnt: ', font=hdr_label_font), sg.Text('--Undefined--', font=hdr_value_font, size=(12,1), key='-SEQ_CNT-'),
-                        sg.Text('Time: ', font=hdr_label_font),    sg.Text('--Undefined--', font=hdr_value_font, size=(12,1), key='-TIME-')],
+        self.layout = [[sg.Text('App ID: ', font=hdr_label_font),  sg.Text(self.NULL_STR, font=hdr_value_font, size=(12,1), key='-APP_ID-'), 
+                        sg.Text('Length: ', font=hdr_label_font),  sg.Text(self.NULL_STR, font=hdr_value_font, size=(12,1), key='-LENGTH-'),
+                        sg.Text('Seq Cnt: ', font=hdr_label_font), sg.Text(self.NULL_STR, font=hdr_value_font, size=(12,1), key='-SEQ_CNT-'),
+                        sg.Text('Time: ', font=hdr_label_font),    sg.Text(self.NULL_STR, font=hdr_value_font, size=(12,1), key='-TIME-')],
                        [sg.Text('')], 
                        [sg.Text('Payload', font = ('Arial bold',14)), sg.Text('', font=hdr_value_font, key='-PAUSED-', pad=(10,0))],
                        [sg.MLine(default_text='-- No Messages Received --', font = ('Courier',12), enable_events=True, size=(65, 30), key='-PAYLOAD_TEXT-')],
@@ -521,7 +537,7 @@ class GuiTelemetry(TelemetryObserver):
             if self.event == '-TLM_UPDATE-':
                 #Keep hook becuase may need event loop context for updates
                 #print("telemetry update click")
-                '''
+                """
                 if not self.paused:
                     logger.debug("%s %s received at %s" % (tlm_msg.app_name, tlm_msg.msg_name, str(tlm_msg.sec_hdr().Seconds)))
                     self.window['-APP_ID-'].update(tlm_msg.pri_hdr().AppId)
@@ -533,7 +549,7 @@ class GuiTelemetry(TelemetryObserver):
                     self.window['-PAYLOAD_TEXT-'].update(self.payload_text)
                 
                 pass
-                '''
+                """
         self.tlm_server.remove_msg_observer(self.tlm_msg, self)
         self.window.close()
         #thread.join()
@@ -552,11 +568,11 @@ class GuiTelemetry(TelemetryObserver):
 ###############################################################################
 
 class SystemTelemetry(TelemetryObserver):
-    '''
+    """
     callback_functions
        [app_name] : {packet: [item list]} 
     
-    '''
+    """
 
     def __init__(self, tlm_server: TelemetryServer, tlm_monitors, tlm_callback, event_queue):
         super().__init__(tlm_server)
@@ -565,7 +581,7 @@ class SystemTelemetry(TelemetryObserver):
         self.tlm_callback = tlm_callback
         self.event_queue  = event_queue
         
-        self.sys_apps = ['CFE_ES', 'CFE_EVS', 'CFE_SB', 'CFE_TBL', 'CFE_TIME', 'OSK_C_DEMO']
+        self.sys_apps = ['CFE_ES', 'CFE_EVS', 'CFE_SB', 'CFE_TBL', 'CFE_TIME', 'OSK_C_DEMO' 'FILEMGR']
         
         for msg in self.tlm_server.tlm_messages:
             tlm_msg = self.tlm_server.tlm_messages[msg]
@@ -575,10 +591,10 @@ class SystemTelemetry(TelemetryObserver):
         
 
     def update(self, tlm_msg: TelemetryMessage) -> None:
-        '''
+        """
         Receive telemetry updates
-        '''
-        #todo: Deteminer best tlm identification method: if int(tlm_msg.app_id) == int(self.cfe_es_hk.app_id):
+        """
+        #todo: Determine best tlm identification method: if int(tlm_msg.app_id) == int(self.cfe_es_hk.app_id):
         
         if tlm_msg.app_name in self.tlm_monitors:
             self.tlm_callback(tlm_msg.app_name, tlm_msg.msg_name, "Seconds", str(tlm_msg.sec_hdr().Seconds))
@@ -590,14 +606,14 @@ class SystemTelemetry(TelemetryObserver):
                 event_text = "FSW Event at %s: %s, %d - %s" % \
                              (str(tlm_msg.sec_hdr().Seconds), pkt_id.AppName, pkt_id.EventType, payload.Message)
                 self.event_queue.put_nowait(event_text)
-                '''        
+                """        
                 LongEventTlm.Payload.PacketID.AppName                        = CFE_TIME
                 LongEventTlm.Payload.PacketID.EventID                        = 20
                 LongEventTlm.Payload.PacketID.EventType                      = 2
                 LongEventTlm.Payload.PacketID.SpacecraftID                   = 66
                 LongEventTlm.Payload.PacketID.ProcessorID                    = 1
                 LongEventTlm.Payload.Message  
-                '''
+                """
 
 ###############################################################################
 
@@ -695,7 +711,7 @@ class App():
         logger.info(sys_target_str)
         logger.info(sys_comm_str)
         
-        self.tlm_monitors = {'CFE_ES': {'HK_TLM': ['Seconds']}}
+        self.tlm_monitors = {'CFE_ES': {'HK_TLM': ['Seconds']}, 'FILEMGR': {'DIR_LIST_TLM': ['Seconds']}}
         
         try:
     
@@ -961,11 +977,11 @@ class App():
                 tlm_topic = self.values['-TLM_TOPICS-']
                 print("tlm_topic = " + tlm_topic)
                 if tlm_topic != EdsMission.TOPIC_TLM_TITLE_KEY:
-                    '''
+                    """
                     The thread start() nevers returns and I don't know why. Guessing underlying GUI control issue.
-                    The GuiTelemetry object contains thread management but this causing execeptions. For now I"m
+                    The GuiTelemetry object contains thread management but this is causing execeptions. For now I"m
                     catching the exceptions because eveything else hangs together, but it's a kludge!!
-                    '''
+                    """
                     self.gui_tlm_objects[tlm_topic] = GuiTelemetry(self.tlm_server, tlm_topic)
                     if self.gui_tlm_objects[tlm_topic] != None:
                         self.gui_tlm_objects[tlm_topic].execute()
