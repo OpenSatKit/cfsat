@@ -1,3 +1,35 @@
+The Open STEMware OpenSatKit software products are licensed under the
+GNU Affero General Public License, version 3 with the Addendums listed below.
+
+Please note that the verbiage of the AGPL below are copyrighted
+by the Free Software Foundation, but the instance of code to which the
+licenses refer (the Open STEMware OpenSatKit software) is copyrighted by
+the Open STEMware Foundation.
+
+Also please note that the only valid versions of the AGPL
+that pertain to Open STEMware OpenSatKit product are the versions of
+the license reproduced below (i.e., versions 3, rather than any other
+versions of the AGPL), unless explicitly otherwise stated.
+
+                Open STEMware AGPL, version 3 LICENSE ADDENDUMS
+            Open STEMware OpenSatKit Product Suite, 1 March 2022
+
+The following addendums are made under section 7 of the GNU Affero General
+Public License, version 3.
+
+1.	The Open STEMware Foundation copyright and legal notices
+    on all user interfaces and source files must be preserved or
+    duplicated on any derivative works.
+2.	Modified applications and source files must be clearly marked as
+    "modified" with the modification author and company indicated
+    immediately following the copyright and legal notices.
+3.	Open STEMware OpenSatKit and Open STEMware are trademarks of
+    The Open STEMware Foundation and may be used for publicity purposes only in a
+    manner that constitutes "fair use" under applicable trademark law,
+    except with the express, written permission of the Open STEMware Foundation.
+
+The AGPL license text follows:
+
                     GNU AFFERO GENERAL PUBLIC LICENSE
                        Version 3, 19 November 2007
 
