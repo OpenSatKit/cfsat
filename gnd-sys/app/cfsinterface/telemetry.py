@@ -16,13 +16,27 @@
     edition license of cFSAT if purchased from the copyright holder.
 
     Purpose:
-        Define a Telemetry interface with the main function serving as a 
-        command line utility.
+      Define a Telemetry interface with the main function serving as a 
+      command line utility.
     
+    Notes:
+      1. The class designs are based on the Observer Design Pattern and they
+         also correlate with netwroking roles. 
+         
+         -----------------------------------------------------------
+         | Class             | Design Patttern Role | Network Role |
+         --------------------|----------------------|---------------
+         | TelemetryMessage  | Subject              | None         |
+         --------------------|----------------------|---------------
+         | TelemetryServer   | Supply Subject data  | Server       |
+         --------------------|----------------------|---------------
+         | TelemetryObserver | Observer             | Client       |
+         -----------------------------------------------------------
 """
 
 from __future__ import annotations
 from abc import ABC, abstractmethod
+import os
 import sys
 import configparser
 import socket
@@ -32,15 +46,18 @@ import traceback
 from typing import List
 from datetime import datetime
 
+
 import logging
 logger = logging.getLogger(__name__)
-if __name__ == '__main__':
+if __name__ == '__main__' or 'cfsinterface' in os.getcwd():
+    sys.path.append('..')
     from edsmission import EdsMission
     from edsmission import CfeEdsTarget
 else:
     from .edsmission import EdsMission
     from .edsmission import CfeEdsTarget
-
+from tools import hex_string
+    
 ###############################################################################
 
 class TelemetryMessage:
@@ -126,20 +143,20 @@ class TelemetryObserver(ABC):
 
 class TelemetryServer(CfeEdsTarget):
     """
-    Manage an EDS-defined telemetry interface. It uses the EdsMission database for telemetry
-    message definitions.
+    Abstract class that defines an EDS-defined telemetry server interface. It
+    uses the EdsMission database for telemetry message definitions. 
+    
+    Concrete child classes provide the mechanism for receiving telemetry:
+    - _recv_tlm_handler() runs in a thread that ingests tlm messages
+    - server_observer is a user supplied function that processes messages
+      within the context of the child class's environment
     """
     
-    def __init__(self, mission, target, host_addr, recv_tlm_port, recv_tlm_timeout):
-        super().__init__(mission, target, EdsMission.TELEMETRY_IF, host_addr)
+    def __init__(self, mission, target):
+        super().__init__(mission, target, EdsMission.TELEMETRY_IF)
 
-        self.recv_tlm_port    = recv_tlm_port
-        self.recv_tlm_timeout = recv_tlm_timeout
-        
-        self.socket.settimeout(recv_tlm_timeout)
-        
         self._recv_tlm_thread = None
-        self.port_observer    = None
+        self.server_observer = None
 
         self.tlm_messages = {}
 
@@ -192,10 +209,6 @@ class TelemetryServer(CfeEdsTarget):
             print("Failed to detach telemetry observer. App ID %d is not in the telemetry server database" % tlm_msg.app_id)
 
 
-    def add_port_observer(self, port_observer):
-        self.port_observer = port_observer
-
-
     def get_app_id(self, app_name, tlm_msg_name):
         """
         #todo: Define a  global invalid app ID value 
@@ -208,20 +221,71 @@ class TelemetryServer(CfeEdsTarget):
                  
         return app_id
         
-            
+        
+    def add_server_observer(self, server_observer):
+        """
+        """
+        self.server_observer = server_observer
+        
+        
+    @abstractmethod
+    def _recv_tlm_handler(self):
+        raise NotImplementedError
+        
+
+    def execute(self):
+
+        self._recv_tlm_thread = threading.Thread(target=self._recv_tlm_handler)
+        self._recv_tlm_thread.kill = False
+
+        time.sleep(1.0) #todo: Wait for GUI to init. If cFS running an event message occurs before GUI is up it will crash the system
+        
+        self._recv_tlm_thread.start()
+
+
+    def shutdown(self):
+        self._recv_tlm_thread.kill = True
+        logger.info("Telemetry Server shutting down")
+
+    
+###############################################################################
+
+class TelemetrySocketServer(TelemetryServer):
+    """
+    Manage a socket-based telemetry server.
+    """
+    
+    def __init__(self, mission, target, host_addr, recv_tlm_port, recv_tlm_timeout):
+        super().__init__(mission, target)
+
+        self.host_addr = host_addr
+        self.recv_tlm_port = recv_tlm_port
+        self.recv_tlm_socket_addr = (self.host_addr, self.recv_tlm_port)
+        self.recv_tlm_timeout = recv_tlm_timeout
+        
+        self.recv_tlm_socket = None
+        try:
+            self.recv_tlm_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        except:
+            print("Error creating TelemetrySocketServer socket")
+            logger.error("Error creating TelemetrySocketServer socket")
+        
+        self._recv_tlm_thread = None
+
+
     def _recv_tlm_handler(self):
         
-        logger.info("TelemetryServer started receive telemetry handler thread")
+        print("TelemetrySocketServer started receive telemetry handler thread")
 
         # Constructor sets a timeout so the thread will terminate if no packets
         while not self._recv_tlm_thread.kill:
             try:
-                datagram, host = self.socket.recvfrom(4096) #todo: Allow configurable buffer size
-                
+                datagram, host = self.recv_tlm_socket.recvfrom(4096) #TODO: Allow configurable buffer size
+
                 # Only accept datagrams with mimimum length of a telemetry header
                 if len(datagram) > 6:
-                    if self.port_observer != None:
-                        self.port_observer(datagram, host)
+                    if self.server_observer != None:
+                        self.server_observer(datagram, host)
                     
                     try:
                         eds_entry, eds_obj = self.eds_mission.decode_message(datagram)
@@ -236,17 +300,85 @@ class TelemetryServer(CfeEdsTarget):
                         logger.error("EDS datagram decode exception. Datagram  = \n %s\n", str(datagram))
                         logger.error(traceback.print_exc())
                         
-            except socket.error:
+            except socket.timeout:
                 pass
                 #print('Ignored socket error...')
                 #time.sleep(0.5)
             
-        logger.info("TelemetryServer terminating receive telemetry handler thread")
+        logger.info("TelemetrySocketServer terminating receive telemetry handler thread")
     
     
     def execute(self):
 
-        self.socket.bind((self.host_addr, self.recv_tlm_port))
+        print("Starting telemetry server for " + str(self.recv_tlm_socket_addr))
+        self.recv_tlm_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.recv_tlm_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.recv_tlm_socket.bind(self.recv_tlm_socket_addr)
+        self.recv_tlm_socket.setblocking(False)
+        self.recv_tlm_socket.settimeout(self.recv_tlm_timeout)
+        
+        self._recv_tlm_thread = threading.Thread(target=self._recv_tlm_handler)
+        
+        self._recv_tlm_thread.kill = False
+
+        time.sleep(1.0) #todo: Wait for GUI to init. If cFS running an event message occurs before GUI is up it will crash the system
+        
+        self._recv_tlm_thread.start()
+
+
+    def shutdown(self):
+        self._recv_tlm_thread.kill = True
+        logger.info("TelemetrySocketServer shutting down")
+
+    
+###############################################################################
+
+class TelemetryQueueServer(TelemetryServer):
+    """
+    Manage a socket-based telemetry server.
+    """
+    
+    def __init__(self, mission, target, tlm_router_queue):
+        super().__init__(mission, target)
+
+        self.tlm_router_queue = tlm_router_queue
+        self._recv_tlm_thread = None
+
+
+    def _recv_tlm_handler(self):
+        
+        logger.info("TelemetryQueueServer started receive telemetry handler thread")
+
+        while not self._recv_tlm_thread.kill:
+
+            while not self.tlm_router_queue.empty():
+            
+                datagram, host = self.tlm_router_queue.get()
+                
+                # Only accept datagrams with mimimum length of a telemetry header
+                if len(datagram) > 6:
+                    if self.server_observer != None:
+                        self.server_observer(datagram, host)
+                    
+                    try:
+                        eds_entry, eds_obj = self.eds_mission.decode_message(datagram)
+                    
+                        app_id = int(eds_obj.CCSDS.AppId)
+                        logger.debug("Msg name: %s, Msg Id: %d " % (eds_entry.Name,app_id))
+                        if app_id in self.tlm_messages:
+                            logger.debug("Calling tlm message update()...")
+                            self.tlm_messages[app_id].update(eds_entry, eds_obj)
+                    
+                    except RuntimeError:
+                        logger.error("EDS datagram decode exception. Datagram  = \n %s\n", str(datagram))
+                        logger.error(traceback.print_exc())
+            
+            time.sleep(0.5)            
+        
+        logger.info("TelemetryQueueServer terminating receive telemetry handler thread")
+    
+    
+    def execute(self):
 
         self._recv_tlm_thread = threading.Thread(target=self._recv_tlm_handler)
         
@@ -259,22 +391,22 @@ class TelemetryServer(CfeEdsTarget):
 
     def shutdown(self):
         self._recv_tlm_thread.kill = True
-        logger.info("Telemetry server shutting down")
+        logger.info("TelemetryQueueServer shutting down")
 
-    
+
 ###############################################################################
 
-class CmdLineTelemetry(TelemetryObserver):
+class TelemetryCmdLineClient(TelemetryObserver):
     """
-    Command line tool to interact with a user to manually send commands to a cFS target. Helpful
+    Command line tool to  Helpful
     for informal verification of a system configuration.
     """
 
-    def __init__(self, tlm_server: TelemetryServer, monitor_port = False):
+    def __init__(self, tlm_server: TelemetryServer, monitor_server = False):
         super().__init__(tlm_server)
 
-        if monitor_port:
-            self.tlm_server.add_port_observer(self.process_datagram)
+        if monitor_server:
+            self.tlm_server.add_server_observer(self.process_datagram)
         
 
         for msg in self.tlm_server.tlm_messages:
@@ -311,7 +443,7 @@ class CmdLineTelemetry(TelemetryObserver):
     def process_datagram(self, datagram, host):
 
         print(f"Telemetry Packet From: {host[0]}:UDP {host[1]}, {8*len(datagram)} bits :")
-        print(self.tlm_server.hex_string(datagram.hex(), 16))
+        print(hex_string(datagram.hex(), 16))
         eds_entry, eds_object = self.tlm_server.eds_mission.decode_message(datagram)
         self.display_entries(eds_object, eds_entry.Name)
         print("\n")
@@ -372,15 +504,15 @@ def main():
     
     system_string = "Mission: %s, Target: %s, Host: %s, Telemetry Port %d" % (MISSION, CFS_TARGET, HOST_ADDR, TLM_PORT)
     try:
-        telemetry_server = TelemetryServer(MISSION, CFS_TARGET, HOST_ADDR, TLM_PORT, CFS_TARGET_TLM_TIMEOUT)
-        cmd_line_telemetry = CmdLineTelemetry(telemetry_server, True)
-        print ("Telemetry object created for " + system_string)
+        telemetry_server = TelemetrySocketServer(MISSION, CFS_TARGET, HOST_ADDR, TLM_PORT, CFS_TARGET_TLM_TIMEOUT)
+        telemetry_cmd_line_client = TelemetryCmdLineClient(telemetry_server, True)
+        print ("Telemetry objects created for " + system_string)
         
     except RuntimeError:
         print("Error creating telemetry object for " + system_string)
         sys.exit(2)
 
-    #cmd_line_telemetry.reverse_eng()
+    #telemetry_cmd_line_client.reverse_eng()
     telemetry_server.execute()
     
 

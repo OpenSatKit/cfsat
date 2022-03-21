@@ -120,13 +120,20 @@ typedef enum
 typedef struct
 {
 
-   CFE_MSG_CommandHeader_t  CmdHeader;
    uint32  DataSegLen;
    uint16  DataSegOffset;
    char    SrcFilename[FOTP_FILENAME_LEN];
 
-}  OS_PACK FOTP_StartTransferCmdMsg_t;
-#define FOTP_START_TRANSFER_CMD_DATA_LEN  (sizeof(FOTP_StartTransferCmdMsg_t) - CFE_SB_CMD_HDR_SIZE)
+} FOTP_StartTransferCmdPayload_t;
+
+typedef struct
+{
+
+   CFE_MSG_CommandHeader_t        CmdHeader;
+   FOTP_StartTransferCmdPayload_t Payload;
+   
+} FOTP_StartTransferCmdMsg_t;
+#define FOTP_START_TRANSFER_CMD_DATA_LEN  (sizeof(FOTP_StartTransferCmdMsg_t) - sizeof(CFE_MSG_CommandHeader_t))
 
 #define FOTP_PAUSE_TRANSFER_CMD_DATA_LEN   PKTUTIL_NO_PARAM_CMD_DATA_LEN
 #define FOTP_RESUME_TRANSFER_CMD_DATA_LEN  PKTUTIL_NO_PARAM_CMD_DATA_LEN
@@ -144,7 +151,7 @@ typedef struct
    uint32  DataLen;                          /* Either file length or file length minus commanded segment offset */
    char    SrcFilename[FOTP_FILENAME_LEN];
 
-} OS_PACK FOTP_StartTransferPkt_t;
+} FOTP_StartTransferPkt_t;
 #define FOTP_START_TRANSFER_TLM_LEN sizeof (FOTP_StartTransferPkt_t)
 
 typedef struct
@@ -155,7 +162,7 @@ typedef struct
    uint16  Len;
    uint8   Data[FOTP_DATA_SEG_MAX_LEN];   /* Data must be defined last because it is variable length */
 
-} OS_PACK FOTP_DataSegmentPkt_t;
+} FOTP_DataSegmentPkt_t;
 #define FOTP_DATA_SEGMENT_TLM_LEN sizeof (FOTP_DataSegmentPkt_t)
 #define FOTP_DATA_SEGMENT_NON_DATA_TLM_LEN (FOTP_DATA_SEGMENT_TLM_LEN-FOTP_DATA_SEG_MAX_LEN)
 
@@ -167,7 +174,7 @@ typedef struct
    uint32  FileCrc;
    uint16  LastDataSegmentId;
 
-} OS_PACK FOTP_FinishTransferPkt_t;
+} FOTP_FinishTransferPkt_t;
 #define FOTP_FINISH_TRANSFER_TLM_LEN sizeof (FOTP_FinishTransferPkt_t)
 
 
@@ -185,7 +192,7 @@ typedef struct
    ** Framework Objects
    */
 
-   INITBL_Class* IniTbl;
+   INITBL_Class_t* IniTbl;
 
    /*
    ** Telemetry Packets
@@ -199,20 +206,20 @@ typedef struct
    ** FOTP State Data
    */
 
-   char     SrcFilename[FOTP_FILENAME_LEN];
-   int32    FileHandle;
+   char      SrcFilename[FOTP_FILENAME_LEN];
+   osal_id_t FileHandle;
 
-   uint32   FileTransferByteCnt;
-   uint32   DataTransferLen;
-   uint16   DataSegmentLen;
-   uint16   DataSegmentOffset;
-   uint32   FileLen;
-   uint32   FileByteOffset;
-   uint32   FileRunningCrc;
-   uint16   NextDataSegmentId;
-   uint16   FileTransferCnt;
-   bool     PrevSendDataSegmentFailed;
-   bool     LastDataSegment;             /* In error scenarios this needs to be preserved across executions so it can't be local */
+   uint32    FileTransferByteCnt;
+   uint32    DataTransferLen;
+   uint16    DataSegmentLen;
+   uint16    DataSegmentOffset;
+   uint32    FileLen;
+   uint32    FileByteOffset;
+   uint32    FileRunningCrc;
+   uint16    NextDataSegmentId;
+   uint16    FileTransferCnt;
+   bool      PrevSendDataSegmentFailed;
+   bool      LastDataSegment;             /* In error scenarios this needs to be preserved across executions so it can't be local */
 
    FOTP_FileTransferState_t FileTransferState;
    FOTP_FileTransferState_t PausedFileTransferState;  /* Identifies which state was paused */
@@ -233,7 +240,7 @@ typedef struct
 **   1. This must be called prior to any other function.
 **
 */
-void FOTP_Constructor(FOTP_Class_t*  FotpPtr, INITBL_Class* IniTbl);
+void FOTP_Constructor(FOTP_Class_t*  FotpPtr, INITBL_Class_t* IniTbl);
 
 
 /******************************************************************************
@@ -260,7 +267,7 @@ void FOTP_Execute(void);
 ** Notes:
 **   1. Must match CMDMGR_CmdFuncPtr_t function signature
 */
-bool FOTP_StartTransferCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
+bool FOTP_StartTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
 
 
 /******************************************************************************
@@ -269,7 +276,7 @@ bool FOTP_StartTransferCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
 ** Notes:
 **   1. Must match CMDMGR_CmdFuncPtr_t function signature
 */
-bool FOTP_CancelTransferCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
+bool FOTP_CancelTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
 
 /******************************************************************************
 ** Function: FOTP_PauseTransferCmd
@@ -277,7 +284,7 @@ bool FOTP_CancelTransferCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
 ** Notes:
 **   1. Must match CMDMGR_CmdFuncPtr_t function signature
 */
-bool FOTP_PauseTransferCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
+bool FOTP_PauseTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
 
 
 /******************************************************************************
@@ -286,7 +293,7 @@ bool FOTP_PauseTransferCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
 ** Notes:
 **   1. Must match CMDMGR_CmdFuncPtr_t function signature
 */
-bool FOTP_ResumeTransferCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
+bool FOTP_ResumeTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
 
 
 

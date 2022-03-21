@@ -59,6 +59,13 @@ enum EXOBJ_CounterModeType
 };
 typedef uint16 EXOBJ_CounterModeType_t;
 
+typedef struct
+{
+   
+   EXOBJ_CounterModeType_t  CounterMode;
+   
+} EXOBJ_CounterModeCmd_Payload_t;
+
 /******************************************************************************
 ** Command Packets
 ** 
@@ -67,8 +74,8 @@ typedef uint16 EXOBJ_CounterModeType_t;
 typedef struct
 {
 
-   CFE_MSG_CommandHeader_t  CmdHeader;
-   EXOBJ_CounterModeType_t  CounterMode;
+   CFE_MSG_CommandHeader_t         CmdHeader;
+   EXOBJ_CounterModeCmd_Payload_t  Payload;
 
 } EXOBJ_SetModeCmdMsg_t;
 #define EXOBJ_SET_MODE_CMD_DATA_LEN  (sizeof(EXOBJ_SetModeCmdMsg_t) - sizeof(CFE_MSG_CommandHeader_t))
@@ -133,7 +140,7 @@ void EXOBJ_ResetStatus(void);
 ** Function: EXOBJ_SetModeCmd
 **
 */
-bool EXOBJ_SetModeCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
+bool EXOBJ_SetModeCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
 
 
 /******************************************************************************

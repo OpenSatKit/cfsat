@@ -24,19 +24,26 @@
 import configparser
 import socket
 import time
+import sys
+import os
 
 import logging
 logger = logging.getLogger(__name__)
-if __name__ == '__main__':
-    from edsmission import EdsMission
-    from edsmission import CfeEdsTarget
-else:
-    from .edsmission import EdsMission
-    from .edsmission import CfeEdsTarget
 
+if __name__ == '__main__' or 'cfsinterface' in os.getcwd():
+    sys.path.append('..')
+    from edsmission   import EdsMission
+    from edsmission   import CfeEdsTarget
+    from cmdtlmrouter import CmdTlmRouter
+else:
+    from .edsmission   import EdsMission
+    from .edsmission   import CfeEdsTarget
+    from .cmdtlmrouter import CmdTlmRouter
+from tools import hex_string
+ 
 ###############################################################################
 
-class Telecommand(CfeEdsTarget):
+class TelecommandInterface(CfeEdsTarget):
     """
     Manage an EDS-defined telecommand interface. It uses the EdsMission database for Telecommand
     message definitions and provides methods for loadng payload values and sending messages on 
@@ -64,11 +71,10 @@ class Telecommand(CfeEdsTarget):
         except TypeError:
             return False
 
-    def __init__(self, mission, target, host_addr, cmd_port):
-        super().__init__(mission, target, EdsMission.TELECOMMAND_IF, host_addr)
+    def __init__(self, mission, target, cmd_router_queue):
+        super().__init__(mission, target, EdsMission.TELECOMMAND_IF)
 
-        self.cmd_port = cmd_port
-        self.cmd_ip_address = (self.host_addr, cmd_port+self.id-1)  #todo: Resolve why I need to subtract
+        self.cmd_router_queue = cmd_router_queue
 
         # command_topic contains the toic name used to generate the current command_dict
         self.command_topic = EdsMission.TOPIC_CMD_TITLE_KEY
@@ -191,7 +197,7 @@ class Telecommand(CfeEdsTarget):
             array_type_split = str(type(base_object[0])).split("'")
             logger.debug("array_type_split[1] = " + str(array_type_split[1]))
             logger.debug("array_type_split[3] = " + str(array_type_split[3]))
-            array__entry = self.eds_mission.get_database_named_entry(array_type_split[3])
+            array_entry = self.eds_mission.get_database_named_entry(array_type_split[3])
             #todo: array_entry = self.eds_mission.lib_db.DatabaseEntry(array_type_split[1], array_type_split[3])
             array_object = array_entry()
 
@@ -282,33 +288,37 @@ class Telecommand(CfeEdsTarget):
     
     def send_command(self, cmd_obj):
         """
+         
         """
         cmd_packed = self.eds_mission.get_packed_obj(cmd_obj)
 
         cmd_sent   = True
-        cmd_text   = ""
-        cmd_status = ""
+        cmd_text   = cmd_packed.hex()
+        cmd_status = "Sent command " + self.cmd_entry.Name
         
+        self.cmd_router_queue.put(bytes(cmd_packed))
+
+        return (cmd_sent, cmd_text, cmd_status)
+        """
         try:
+            self.cmd_router_queue.put(bytes(cmd_packed))
             self.socket.sendto(bytes(cmd_packed), self.cmd_ip_address)
-            cmd_text = cmd_packed.hex()
-            cmd_status = "Sent command " + self.cmd_entry.Name
         except:
             cmd_sent = False
             cmd_status = "Failed to send command on socket to %s:%d" % self.cmd_ip_address
 
         return (cmd_sent, cmd_text, cmd_status)
-
+        """
 
 ###############################################################################
 
-class ScriptTelecommand(Telecommand):
+class TelecommandScript(TelecommandInterface):
     """
     Target designed to support scripts.
     """
 
-    def __init__(self, mission, target, host_addr, cmd_port):
-        super().__init__(mission, target, host_addr, cmd_port)
+    def __init__(self, mission, target, cmd_router_queue):
+        super().__init__(mission, target, cmd_router_queue)
 
         self.cmd_payload = {}
 
@@ -356,7 +366,7 @@ class ScriptTelecommand(Telecommand):
         
         if cmd_sent == True:
             cmd_status = "%s %s command sent" % (app_name, cmd_name)
-            logger.debug(self.hex_string(cmd_text, 8))        
+            logger.debug(hex_string(cmd_text, 8))        
         else:
             logger.info(cmd_status)
         
@@ -366,14 +376,14 @@ class ScriptTelecommand(Telecommand):
 
 ###############################################################################
 
-class CmdLineTelecommand(Telecommand):
+class TelecommandCmdLine(TelecommandInterface):
     """
     Command line tool to interact with a user to manually send commands to a cFS target. Helpful
     for informal verification of a system configuration.
     """
 
-    def __init__(self, mission, target, host_addr, cmd_port):
-        super().__init__(mission, target, host_addr, cmd_port)
+    def __init__(self, mission, target, cmd_router_queue):
+        super().__init__(mission, target, cmd_router_queue)
 
 
     def load_payload_entry_value(self, payload_eds_name, payload_eds_entry, payload_type, payload_list):
@@ -397,7 +407,7 @@ class CmdLineTelecommand(Telecommand):
         return result
 
 
-    def execute(self):
+    def send_user_command(self):
     
         topic_dict = self.get_topics()
         logger.debug("topics = " + str(topic_dict))
@@ -473,7 +483,7 @@ class CmdLineTelecommand(Telecommand):
             (cmd_sent, cmd_text, cmd_status) = self.send_command(cmd_obj)
     
             if cmd_sent == True:
-                print(self.hex_string(cmd_text, 8))
+                print(hex_string(cmd_text, 8))
             else:
                 print(cmd_text)
 
@@ -482,33 +492,45 @@ class CmdLineTelecommand(Telecommand):
             print("Error retrieving command %s using topic ID %d" % (command_name, topic_id)) 
     
 
+    def execute(self):
+
+        while True:
+            self.send_user_command()
+            input_str = input("\nPress <Enter> to send another command. Enter any character to exit> ")
+            if len(input_str) > 0:
+                break
+
 ###############################################################################
 
 def main():
     
     config = configparser.ConfigParser()
     config.read('../cfsat.ini')
-    MISSION    = config.get('MISSION','EDS_NAME')
-    CFS_TARGET = config.get('CFS_TARGET','EDS_NAME')
-    HOST_ADDR  = config.get('CFS_TARGET','HOST_ADDR')
-    CMD_PORT   = config.getint('CFS_TARGET','SEND_CMD_PORT')
+    MISSION     = config.get('MISSION','EDS_NAME')
+    CFS_TARGET  = config.get('CFS_TARGET','EDS_NAME')
+    HOST_ADDR   = config.get('CFS_TARGET','HOST_ADDR')
+    CMD_PORT    = config.getint('CFS_TARGET','SEND_CMD_PORT')
+    TLM_PORT    = config.getint('CFS_TARGET','RECV_TLM_PORT')
+    TLM_TIMEOUT = float(config.getint('CFS_TARGET','RECV_TLM_TIMEOUT'))/1000.0
+
 
     system_string = "Mission: %s, Target: %s, Host: %s, Command Port %d" % (MISSION, CFS_TARGET, HOST_ADDR, CMD_PORT)
+    print("Creating telecommand objects for " + system_string)
 
     try:
-        script_telecommand   = ScriptTelecommand(MISSION, CFS_TARGET, HOST_ADDR, CMD_PORT)      
-        cmd_line_telecommand = CmdLineTelecommand(MISSION, CFS_TARGET, HOST_ADDR, CMD_PORT)
+        cmd_tlm_router       = CmdTlmRouter(HOST_ADDR, CMD_PORT, HOST_ADDR, TLM_PORT, TLM_TIMEOUT)
+        telecommand_script   = TelecommandScript(MISSION, CFS_TARGET, cmd_tlm_router.get_cfs_cmd_queue())      
+        telecommand_cmd_line = TelecommandCmdLine(MISSION, CFS_TARGET, cmd_tlm_router.get_cfs_cmd_queue())
         logger.info("Telecommand object created for " + system_string)
         
     except RuntimeError:
         print("Error creating telecommand object for " + system_string)
         sys.exit(2)
 
-
-    #script_telecommand.send_app_cmd('TO_LAB','EnableOutputCmd',{'dest_IP':'127.0.0.1'})
-  
-    cmd_line_telecommand.execute()
-
+    cmd_tlm_router.start()
+    telecommand_script.send_app_cmd('TO_LAB','EnableOutputCmd',{'dest_IP':'127.0.0.1'})
+    telecommand_cmd_line.execute()    
+    cmd_tlm_router.shutdown()
 
 if __name__ == "__main__":
     main()

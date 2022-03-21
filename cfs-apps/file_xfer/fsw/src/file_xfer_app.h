@@ -49,11 +49,11 @@
 /** Macro Definitions **/
 /***********************/
 
-#define FILE_XFER_APP_INIT_EID        (FILE_XFER_APP_BASE_EID + 0)
-#define FILE_XFER_APP_INIT_ERR_EID    (FILE_XFER_APP_BASE_EID + 1)
-#define FILE_XFER_APP_NOOP_EID        (FILE_XFER_APP_BASE_EID + 2)
-#define FILE_XFER_APP_EXIT_EID        (FILE_XFER_APP_BASE_EID + 3)
-#define FILE_XFER_APP_INVALID_MID_EID (FILE_XFER_APP_BASE_EID + 4)
+#define FILE_XFER_INIT_EID        (FILE_XFER_APP_BASE_EID + 0)
+#define FILE_XFER_INIT_ERR_EID    (FILE_XFER_APP_BASE_EID + 1)
+#define FILE_XFER_NOOP_EID        (FILE_XFER_APP_BASE_EID + 2)
+#define FILE_XFER_EXIT_EID        (FILE_XFER_APP_BASE_EID + 3)
+#define FILE_XFER_INVALID_MID_EID (FILE_XFER_APP_BASE_EID + 4)
 
 
 /**********************/
@@ -148,10 +148,12 @@ typedef struct
    /*
    ** FILE_XFER State & Contained Objects
    */
+
+   uint32  PerfId;
   
-   uint32  CmdMidValue;
-   uint32  SendHkMidValue;
-   uint32  ExecuteMidValue;
+   CFE_SB_MsgId_t   CmdMid;
+   CFE_SB_MsgId_t   SendHkMid;
+   CFE_SB_MsgId_t   ExecuteMid;
    
    FITP_Class_t Fitp;
    FOTP_Class_t Fotp;
@@ -179,17 +181,17 @@ void FILE_XFER_AppMain(void);
 
 
 /******************************************************************************
-** Function: FILE_XFER_APP_NoOpCmd
+** Function: FILE_XFER_NoOpCmd
 **
 */
-bool FILE_XFER_APP_NoOpCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
+bool FILE_XFER_NoOpCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
 
 
 /******************************************************************************
-** Function: FILE_XFER_APP_ResetAppCmd
+** Function: FILE_XFER_ResetAppCmd
 **
 */
-bool FILE_XFER_APP_ResetAppCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
+bool FILE_XFER_ResetAppCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
 
 
 #endif /* _file_xfer_app_ */

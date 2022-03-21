@@ -105,7 +105,7 @@ void @TEMPLATE@_AppMain(void)
 ** Function: @TEMPLATE@_NoOpCmd
 **
 */
-bool @TEMPLATE@_NoOpCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
+bool @TEMPLATE@_NoOpCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
 
    CFE_EVS_SendEvent (@TEMPLATE@_NOOP_EID, CFE_EVS_EventType_INFORMATION,
@@ -126,7 +126,7 @@ bool @TEMPLATE@_NoOpCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 **      reentrant. Applications use the singleton pattern and store a
 **      reference pointer to the object data during construction.
 */
-bool @TEMPLATE@_ResetAppCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
+bool @TEMPLATE@_ResetAppCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
 
    CMDMGR_ResetStatus(CMDMGR_OBJ);
@@ -287,7 +287,7 @@ static int32 ProcessCommands(void)
 
          if (CFE_SB_MsgId_Equal(MsgId, @Template@.CmdMid))
          {
-            CMDMGR_DispatchFunc(CMDMGR_OBJ, &SbBufPtr->Msg);
+            CMDMGR_DispatchFunc(CMDMGR_OBJ, SbBufPtr);
          } 
          else if (CFE_SB_MsgId_Equal(MsgId, @Template@.ExecuteMid))
          {

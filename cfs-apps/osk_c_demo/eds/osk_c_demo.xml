@@ -189,23 +189,25 @@
         <!--***********************************-->
       
         <RequiredInterfaceSet>
+        
           <Interface name="CMD" shortDescription="Software bus telecommand interface" type="CFE_SB/Telecommand">
             <GenericTypeMapSet>
               <GenericTypeMap name="TelecommandDataType" type="CommandBase" />
             </GenericTypeMapSet>
           </Interface>
-          <Interface name="EXECUTE_APP" shortDescription="Signal app to execute command interface" type="CFE_SB/Telecommand">
+          <Interface name="EXE_APP" shortDescription="Signal app to execute command interface" type="CFE_SB/Telecommand">
              <!-- This uses a bare spacepacket with no payload -->
              <GenericTypeMapSet>
                 <GenericTypeMap name="TelecommandDataType" type="CFE_HDR/CommandHeader" />
              </GenericTypeMapSet>
           </Interface>
-          <Interface name="SEND_HK" shortDescription="Send telemetry command interface" type="CFE_SB/Telecommand">
+          <Interface name="SEND_HK" shortDescription="Signal app to send its housekeeping telemetry command interface" type="CFE_SB/Telecommand">
             <!-- This uses a bare spacepacket with no payload -->
             <GenericTypeMapSet>
               <GenericTypeMap name="TelecommandDataType" type="CFE_HDR/CommandHeader" />
             </GenericTypeMapSet>
           </Interface>
+          
           <Interface name="HK_TLM" shortDescription="Software bus housekeeping telemetry interface" type="CFE_SB/Telemetry">
             <GenericTypeMapSet>
               <GenericTypeMap name="TelemetryDataType" type="HkTlm" />
@@ -224,18 +226,18 @@
 
         <Implementation>
           <VariableSet>
-            <Variable type="BASE_TYPES/uint16" readOnly="true" name="CmdTopicId" initialValue="${CFE_MISSION/OSK_C_DEMO_CMD_TOPICID}" />
-            <Variable type="BASE_TYPES/uint16" readOnly="true" name="ExecuteAppTopicId" initialValue="${CFE_MISSION/OSK_C_DEMO_EXE_TOPICID}" />
-            <Variable type="BASE_TYPES/uint16" readOnly="true" name="SendHkTopicId" initialValue="${CFE_MISSION/OSK_C_DEMO_SEND_HK_TOPICID}" />
-            <Variable type="BASE_TYPES/uint16" readOnly="true" name="HkTlmTopicId" initialValue="${CFE_MISSION/OSK_C_DEMO_HK_TLM_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="CmdTopicId"       initialValue="${CFE_MISSION/OSK_C_DEMO_CMD_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="ExeAppTopicId"    initialValue="${CFE_MISSION/OSK_C_DEMO_EXE_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="SendHkTopicId"    initialValue="${CFE_MISSION/OSK_C_DEMO_SEND_HK_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="HkTlmTopicId"     initialValue="${CFE_MISSION/OSK_C_DEMO_HK_TLM_TOPICID}" />
             <Variable type="BASE_TYPES/uint16" readOnly="true" name="PlaybkTlmTopicId" initialValue="${CFE_MISSION/OSK_C_DEMO_PLAYBK_TLM_TOPICID}" />
           </VariableSet>
           <!-- Assign fixed numbers to the "TopicId" parameter of each interface -->
           <ParameterMapSet>          
-            <ParameterMap interface="CMD" parameter="TopicId" variableRef="CmdTopicId" />
-            <ParameterMap interface="EXECUTE_APP" parameter="TopicId" variableRef="ExecuteAppTopicId" />
-            <ParameterMap interface="SEND_HK" parameter="TopicId" variableRef="SendHkTopicId" />
-            <ParameterMap interface="HK_TLM" parameter="TopicId" variableRef="HkTlmTopicId" />
+            <ParameterMap interface="CMD"        parameter="TopicId" variableRef="CmdTopicId" />
+            <ParameterMap interface="EXE_APP"    parameter="TopicId" variableRef="ExeAppTopicId" />
+            <ParameterMap interface="SEND_HK"    parameter="TopicId" variableRef="SendHkTopicId" />
+            <ParameterMap interface="HK_TLM"     parameter="TopicId" variableRef="HkTlmTopicId" />
             <ParameterMap interface="PLAYBK_TLM" parameter="TopicId" variableRef="PlaybkTlmTopicId" />
           </ParameterMapSet>
         </Implementation>

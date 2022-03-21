@@ -61,7 +61,7 @@
 /*******************************/
 
 static int32 InitApp(void);
-static void ProcessCommands(void);
+static int32 ProcessCommands(void);
 static void SendHousekeepingPkt(void);
 
 /* 
@@ -77,9 +77,9 @@ DEFINE_ENUM(Config,APP_CONFIG)
 static CFE_EVS_BinFilter_t  EventFilters[] =
 {
 
-   /* Event ID                   , Mask                 */
-   {FITP_DATA_SEGMENT_CMD_ERR_EID, CFE_EVS_FIRST_TWO_STOP},
-   {FOTP_DATA_SEGMENT_CMD_ERR_EID, CFE_EVS_FIRST_TWO_STOP}
+   /* Event ID                       Mask                 */
+   {FITP_DATA_SEGMENT_CMD_ERR_EID,   CFE_EVS_FIRST_TWO_STOP},
+   {FOTP_SEND_FILE_TRANSFER_ERR_EID, CFE_EVS_FIRST_TWO_STOP}
 
 };
 
@@ -97,33 +97,30 @@ FILE_XFER_Class_t  FileXfer;
 void FILE_XFER_AppMain(void)
 {
 
-   int32  Status    = CFE_SEVERITY_ERROR;
-   uint32 RunStatus = CFE_ES_APP_ERROR;
+   uint32 RunStatus = CFE_ES_RunStatus_APP_ERROR;
 
-   Status = CFE_ES_RegisterApp();
 
-   if (Status == CFE_SUCCESS)
-   {  
-      Status = InitApp();
+   if (InitApp() == CFE_SUCCESS) /* Performs initial CFE_ES_PerfLogEntry() call */
+   {
+      RunStatus = CFE_ES_RunStatus_APP_RUN;
    }
-
-   if (Status == CFE_SUCCESS) RunStatus = CFE_ES_APP_RUN;
 
    /*
    ** Main process loop
    */
-   while (CFE_ES_RunLoop(&RunStatus)) {
+   while (CFE_ES_RunLoop(&RunStatus))
+   {
       
-      ProcessCommands();
+      RunStatus = ProcessCommands();
       
    } /* End CFE_ES_RunLoop */
 
 
    /* Write to system log in case events not working */
 
-   CFE_ES_WriteToSysLog("FILE_XFER App terminating, err = 0x%08X\n", Status);
+   CFE_ES_WriteToSysLog("FILE_XFER App terminating, err = 0x%08X\n", RunStatus);
 
-   CFE_EVS_SendEvent(FILE_XFER_APP_EXIT_EID, CFE_EVS_EventType_CRITICAL, "FILE_XFER App terminating, err = 0x%08X", Status);
+   CFE_EVS_SendEvent(FILE_XFER_EXIT_EID, CFE_EVS_EventType_CRITICAL, "FILE_XFER App terminating, err = 0x%08X", RunStatus);
 
    CFE_ES_ExitApp(RunStatus);  /* Let cFE kill the task (and any child tasks) */
 
@@ -131,33 +128,33 @@ void FILE_XFER_AppMain(void)
 
 
 /******************************************************************************
-** Function: FILE_XFER_APP_NoOpCmd
+** Function: FILE_XFER_NoOpCmd
 **
 */
 
-bool FILE_XFER_APP_NoOpCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr)
+bool FILE_XFER_NoOpCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
 
-   CFE_EVS_SendEvent (FILE_XFER_APP_NOOP_EID, CFE_EVS_EventType_INFORMATION,
+   CFE_EVS_SendEvent (FILE_XFER_NOOP_EID, CFE_EVS_EventType_INFORMATION,
                       "No operation command received for FILE_XFER App version %d.%d.%d",
                       FILE_XFER_MAJOR_VER, FILE_XFER_MINOR_VER, FILE_XFER_PLATFORM_REV);
 
    return true;
 
 
-} /* End FILE_XFER_APP_NoOpCmd() */
+} /* End FILE_XFER_NoOpCmd() */
 
 
 /******************************************************************************
-** Function: FILE_XFER_APP_ResetAppCmd
+** Function: FILE_XFER_ResetAppCmd
 **
 */
 
-bool FILE_XFER_APP_ResetAppCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr)
+bool FILE_XFER_ResetAppCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
 
    CFE_EVS_ResetFilter (FITP_DATA_SEGMENT_CMD_ERR_EID);
-   CFE_EVS_ResetFilter (FOTP_DATA_SEGMENT_CMD_ERR_EID);
+   CFE_EVS_ResetFilter (FOTP_SEND_FILE_TRANSFER_ERR_EID);
    
    FITP_ResetStatus();
    FOTP_ResetStatus();
@@ -166,7 +163,7 @@ bool FILE_XFER_APP_ResetAppCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr)
 
    return true;
 
-} /* End FILE_XFER_APP_ResetAppCmd() */
+} /* End FILE_XFER_ResetAppCmd() */
 
 
 /******************************************************************************
@@ -220,8 +217,8 @@ static void SendHousekeepingPkt(void)
 
    strncpy(FileXfer.HkPkt.Fotp.SrcFilename, FileXfer.Fotp.SrcFilename, FOTP_FILENAME_LEN);
 
-   CFE_SB_TimeStampMsg(CFE_MSG_PTR(FileXfer.HkPkt.TlmHeader.Msg));
-   Status = CFE_SB_TransmitMsg(CFE_MSG_PTR(FileXfer.HkPkt.TlmHeader.Msg), true);
+   CFE_SB_TimeStampMsg(CFE_MSG_PTR(FileXfer.HkPkt.TlmHeader));
+   CFE_SB_TransmitMsg(CFE_MSG_PTR(FileXfer.HkPkt.TlmHeader), true);
 
 } /* End SendHousekeepingPkt() */
 
@@ -238,7 +235,7 @@ static int32 InitApp(void)
    CFE_PSP_MemSet((void*)&FileXfer, 0, sizeof(FILE_XFER_Class_t));
 
    Status = CFE_EVS_Register(EventFilters,sizeof(EventFilters)/sizeof(CFE_EVS_BinFilter_t),
-                             CFE_EVS_BINARY_FILTER);
+                             CFE_EVS_EventFilter_BINARY);
 
    if (Status != CFE_SUCCESS)
    {
@@ -252,12 +249,13 @@ static int32 InitApp(void)
    if (INITBL_Constructor(INITBL_OBJ, FILE_XFER_INI_FILENAME, &IniCfgEnum))
    {
       
-      FileXfer.CmdMidValue     = INITBL_GetIntConfig(INITBL_OBJ, CFG_APP_CMD_MID);
-      FileXfer.SendHkMidValue  = INITBL_GetIntConfig(INITBL_OBJ, CFG_APP_SEND_HK_MID);
-      FileOut.ExecuteMidValue = INITBL_GetIntConfig(INITBL_OBJ, CFG_APP_EXECUTE_MID);
+      FileXfer.PerfId     = INITBL_GetIntConfig(INITBL_OBJ, CFG_APP_PERF_ID);
+      FileXfer.CmdMid     = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_APP_CMD_MID));
+      FileXfer.SendHkMid  = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_APP_SEND_HK_MID));
+      FileXfer.ExecuteMid = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_APP_EXECUTE_MID));
 
       FITP_Constructor(FITP_OBJ);
-      FOTP_Constructor(FOTP_OBJ);
+      FOTP_Constructor(FOTP_OBJ, INITBL_OBJ);
       
       Status = CFE_SUCCESS;
       
@@ -273,23 +271,23 @@ static int32 InitApp(void)
       if (Status == CFE_SUCCESS) 
       {
 
-         Status = CFE_SB_Subscribe(CFE_SB_ValueToMsgId(FileXfer.CmdMidValue), FileXfer.CmdPipe);
+         Status = CFE_SB_Subscribe(FileXfer.CmdMid, FileXfer.CmdPipe);
          if (Status == CFE_SUCCESS) 
          {
-            Status = CFE_SB_Subscribe(CFE_SB_ValueToMsgId(FileXfer.SendHkMidValue), FileXfer.CmdPipe);
+            Status = CFE_SB_Subscribe(FileXfer.SendHkMid, FileXfer.CmdPipe);
             if (Status != CFE_SUCCESS) 
             {
-               CFE_EVS_SendEvent(FILE_XFER_APP_INIT_ERR_EID, CFE_EVS_EventType_ERROR,
+               CFE_EVS_SendEvent(FILE_XFER_INIT_ERR_EID, CFE_EVS_EventType_ERROR,
                                  "Error subscribing to Send HK MID value %d on command pipe %s failed. SB Status = 0x%08X",
-                                 CFE_SB_ValueToMsgId(FileXfer.SendHkMidValue),
+                                 CFE_SB_MsgIdToValue(FileXfer.SendHkMid),
                                  INITBL_GetStrConfig(INITBL_OBJ, CFG_APP_CMD_PIPE_NAME), Status);
             }
          }
          else
          {
-            CFE_EVS_SendEvent(FILE_XFER_APP_INIT_ERR_EID, CFE_EVS_EventType_ERROR,
+            CFE_EVS_SendEvent(FILE_XFER_INIT_ERR_EID, CFE_EVS_EventType_ERROR,
                               "Error subscribing to Command MID value %d on command pipe %s failed. SB Status = 0x%08X",
-                              CFE_SB_ValueToMsgId(FileXfer.CmdMidValue),
+                              CFE_SB_MsgIdToValue(FileXfer.CmdMid),
                               INITBL_GetStrConfig(INITBL_OBJ, CFG_APP_CMD_PIPE_NAME), Status);
          }
          
@@ -297,7 +295,7 @@ static int32 InitApp(void)
       else
       {
 
-         CFE_EVS_SendEvent(FILE_XFER_APP_INIT_ERR_EID, CFE_EVS_EventType_ERROR,
+         CFE_EVS_SendEvent(FILE_XFER_INIT_ERR_EID, CFE_EVS_EventType_ERROR,
                            "Error creating SB Command Pipe %s with depth %d. SB Status = 0x%08X",
                            INITBL_GetStrConfig(INITBL_OBJ, CFG_APP_CMD_PIPE_NAME), 
                            INITBL_GetIntConfig(INITBL_OBJ, CFG_APP_CMD_PIPE_DEPTH), Status);
@@ -307,8 +305,8 @@ static int32 InitApp(void)
       if (Status == CFE_SUCCESS)
       {         
          CMDMGR_Constructor(CMDMGR_OBJ);
-         CMDMGR_RegisterFunc(CMDMGR_OBJ, CMDMGR_NOOP_CMD_FC,   NULL, FILE_XFER_APP_NoOpCmd,     0);
-         CMDMGR_RegisterFunc(CMDMGR_OBJ, CMDMGR_RESET_CMD_FC,  NULL, FILE_XFER_APP_ResetAppCmd, 0);
+         CMDMGR_RegisterFunc(CMDMGR_OBJ, CMDMGR_NOOP_CMD_FC,   NULL, FILE_XFER_NoOpCmd,     0);
+         CMDMGR_RegisterFunc(CMDMGR_OBJ, CMDMGR_RESET_CMD_FC,  NULL, FILE_XFER_ResetAppCmd, 0);
          
          CMDMGR_RegisterFunc(CMDMGR_OBJ, FITP_START_TRANSFER_CMD_FC,  FITP_OBJ, FITP_StartTransferCmd,  FITP_START_TRANSFER_CMD_DATA_LEN);
          CMDMGR_RegisterFunc(CMDMGR_OBJ, FITP_DATA_SEGMENT_CMD_FC,    FITP_OBJ, FITP_DataSegmentCmd,    FITP_DATA_SEGMENT_CMD_DATA_LEN);
@@ -320,12 +318,12 @@ static int32 InitApp(void)
          CMDMGR_RegisterFunc(CMDMGR_OBJ, FOTP_PAUSE_TRANSFER_CMD_FC,  FOTP_OBJ, FOTP_PauseTransferCmd,  FOTP_PAUSE_TRANSFER_CMD_DATA_LEN);
          CMDMGR_RegisterFunc(CMDMGR_OBJ, FOTP_RESUME_TRANSFER_CMD_FC, FOTP_OBJ, FOTP_ResumeTransferCmd, FOTP_RESUME_TRANSFER_CMD_DATA_LEN);
 
-         CFE_MSG_Init(CFE_MG_PTR(FileXfer.HkPkt.TlmHeader), CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_APP_HK_TLM_MID)), FILE_XFER_TLM_HK_LEN);
+         CFE_MSG_Init(CFE_MSG_PTR(FileXfer.HkPkt.TlmHeader), CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_APP_HK_TLM_MID)), sizeof(FILE_XFER_HkPkt_t));
 
          /*
          ** Application startup event message
          */
-         Status = CFE_EVS_SendEvent(FILE_XFER_APP_INIT_EID, CFE_EVS_EventType_INFORMATION,
+         Status = CFE_EVS_SendEvent(FILE_XFER_INIT_EID, CFE_EVS_EventType_INFORMATION,
                                     "FILE_XFER App Initialized. Version %d.%d.%d",
                                     FILE_XFER_MAJOR_VER, FILE_XFER_MINOR_VER, FILE_XFER_PLATFORM_REV);
       } /* End if CFE_SUCCESS */
@@ -341,39 +339,67 @@ static int32 InitApp(void)
 ** Function: ProcessCommands
 **
 */
-static void ProcessCommands(void)
+static int32 ProcessCommands(void)
 {
 
-   int32           Status = CFE_SEVERITY_ERROR;
-   CFE_SB_Msg_t*   CmdMsgPtr;
-   int             MsgId;
+   int32  RetStatus = CFE_ES_RunStatus_APP_RUN;
+   int32  SysStatus;
+
+   CFE_SB_Buffer_t* SbBufPtr;
+   CFE_SB_MsgId_t   MsgId = CFE_SB_INVALID_MSG_ID;
    
-   Status = CFE_SB_RcvMsg(&CmdMsgPtr, FileXfer.CmdPipe, CFE_SB_PEND_FOREVER);
-        
-   if (Status == CFE_SUCCESS)
+
+   CFE_ES_PerfLogExit(FileXfer.PerfId);
+   SysStatus = CFE_SB_ReceiveBuffer(&SbBufPtr, FileXfer.CmdPipe, CFE_SB_PEND_FOREVER);
+   CFE_ES_PerfLogEntry(FileXfer.PerfId);
+
+   if (SysStatus == CFE_SUCCESS)
    {
-
-      MsgId = CFE_SB_MsgIdToValue(CFE_SB_GetMsgId(CmdMsgPtr));
-
-      if (MsgId == FileXfer.CmdMidValue) 
+      
+      SysStatus = CFE_MSG_GetMsgId(&SbBufPtr->Msg, &MsgId);
+   
+      if (SysStatus == CFE_SUCCESS)
       {
-         CMDMGR_DispatchFunc(CMDMGR_OBJ, CmdMsgPtr);
-      }
-      else if (MsgId == FileXfer.ExecuteMidValue)
-      {
-         FOTP_Execute();
-      }
+  
+         if (CFE_SB_MsgId_Equal(MsgId, FileXfer.CmdMid)) 
+         {
+            
+            CMDMGR_DispatchFunc(CMDMGR_OBJ, SbBufPtr);
+         
+         } 
+         else if (CFE_SB_MsgId_Equal(MsgId, FileXfer.ExecuteMid))
+         {
 
-      else if (MsgId == FileXfer.SendHkMidValue)
-      {
-         SendHousekeepingPkt();
-      }
-      else
-      {
-         CFE_EVS_SendEvent(FILE_XFER_APP_INVALID_MID_EID, CFE_EVS_EventType_ERROR,
-                           "Received invalid command packet,MID = 0x%4X",MsgId);
-      }
+            FOTP_Execute();
 
-   } /* End if SB received a packet */
+         }
+         else if (CFE_SB_MsgId_Equal(MsgId, FileXfer.SendHkMid))
+         {
+
+            SendHousekeepingPkt();
+            
+         }
+         else {
+            
+            CFE_EVS_SendEvent(FILE_XFER_INVALID_MID_EID, CFE_EVS_EventType_ERROR,
+                              "Received invalid command packet, MID = 0x%08X",
+                              CFE_SB_MsgIdToValue(MsgId));
+         } 
+
+      }
+      else {
+         
+         CFE_EVS_SendEvent(FILE_XFER_INVALID_MID_EID, CFE_EVS_EventType_ERROR,
+                           "CFE couldn't retrieve message ID from the message, Status = %d", SysStatus);
+      }
+      
+   } /* Valid SB receive */ 
+   else {
+   
+         CFE_ES_WriteToSysLog("FILE_XFER software bus error. Status = 0x%08X\n", SysStatus);   /* Use SysLog, events may not be working */
+         RetStatus = CFE_ES_RunStatus_APP_ERROR;
+   }  
+      
+   return RetStatus;
 
 } /* End ProcessCommands() */

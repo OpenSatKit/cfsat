@@ -47,7 +47,6 @@
 
 from abc import ABC, abstractmethod
 import configparser
-import socket
 import time
 import logging
 logger = logging.getLogger(__name__)
@@ -194,31 +193,12 @@ class EdsMission:
 
 class CfeEdsTarget:
     """
-    Abstract base class for managing a cFE '.Target'. See file prologue for
+    Abstract base class for managing a cFE 'Target'. See file prologue for
     'Target' vs 'Instance'.
     """
-    @staticmethod
-    def hex_string(string, hex_per_line):
-        """
-        Generates a human readable hex dump of a hex string. This is a general
-        purpose utility and was placed here because the project doesn't have any
-        other general utilities and this feature is used by CfeTarget owners that
-        want to display hex representations of commmand and telemetry messages
-        """
-        hex_string = ''
-        count = 0
-        for i in range(0, len(string), 2):
-            hex_string += "0x{}{} ".format(string[i].upper(), string[i+1].upper())
-            count += 1
-            if count % hex_per_line == 0:
-                hex_string += '\n'
-        return hex_string
 
-
-    def __init__(self, mission_name, target_name, interface, host_addr):
-    
-        self.host_addr = host_addr
-        
+    def __init__(self, mission_name, target_name, interface):
+            
         self.mission_name = mission_name
         self.eds_mission  = EdsMission(mission_name, interface)
         
@@ -232,11 +212,6 @@ class CfeEdsTarget:
 
             self.topic_dict = self.eds_mission.get_topic_dict()
 
-            try:
-                self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            except:
-                print("Error creating CfeEdsTarget socket")
-                logger.error("Error creating CfeEdsTarget socket")
         else:
             #todo: Invalid target error case. Can python constructor return a value?
             raise RuntimeError

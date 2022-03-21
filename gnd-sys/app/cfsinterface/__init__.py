@@ -19,6 +19,8 @@
         Module initialization file
 
 """
+import sys
+sys.path.append("..")
 
 import logging
 logger = logging.getLogger(__name__)
@@ -26,5 +28,7 @@ logger.addHandler(logging.NullHandler())
 
 from .cfeconstants import Cfe
 from .edsmission import EdsMission, CfeEdsTarget
-from .telecommand import Telecommand, ScriptTelecommand
-from .telemetry import TelemetryMessage, TelemetryObserver, TelemetryServer
+from .telecommand import TelecommandInterface, TelecommandScript
+from .telemetry import TelemetryMessage, TelemetryObserver, TelemetryServer, TelemetrySocketServer, TelemetryQueueServer
+from .cmdtlmrouter import CmdTlmRouter
+

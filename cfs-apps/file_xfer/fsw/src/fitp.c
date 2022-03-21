@@ -92,13 +92,13 @@ void FITP_ResetStatus(void)
 ** Notes:
 **   1. Must match CMDMGR_CmdFuncPtr_t function signature
 */
-boolean FITP_StartTransferCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr)
+bool FITP_StartTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
-   FITP_StartTransferCmdMsg_t* StartTransferCmd = (FITP_StartTransferCmdMsg_t *) MsgPtr;
-   boolean RetStatus = false;
+   const FITP_StartTransferCmdPayload_t* StartTransferCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FITP_StartTransferCmdMsg_t);
+   bool RetStatus = false;
    
-   uinnt32        OsStatus;
+   uint32         OsStatus;
    os_err_name_t  OsErrStr;
 
    if (Fitp->FileTransferActive)
@@ -114,7 +114,7 @@ boolean FITP_StartTransferCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr)
       if (FileUtil_VerifyFilenameStr(StartTransferCmd->DestFilename))
       {
          
-         OsStatus = OS_OpenCreate(&Fitp->FileHandle, EvtPlbk->EvsLogFilename, OS_FILE_FLAG_CREATE | OS_FILE_FLAG_TRUNCATE, OS_WRITE_ONLY);
+         OsStatus = OS_OpenCreate(&Fitp->FileHandle, StartTransferCmd->DestFilename, OS_FILE_FLAG_CREATE | OS_FILE_FLAG_TRUNCATE, OS_WRITE_ONLY);
          
          if (OsStatus == OS_SUCCESS)
          { 
@@ -170,11 +170,11 @@ boolean FITP_StartTransferCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr)
 **      successful file writes. If a file write fails then the stats are not
 **      updated.
 */
-boolean FITP_DataSegmentCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr)
+bool FITP_DataSegmentCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
-   FITP_DataSegmentCmdMsg_t* DataSegmentCmd = (FITP_DataSegmentCmdMsg_t *) MsgPtr;
-   boolean RetStatus = false;
+   const FITP_DataSegmentCmdPayload_t* DataSegmentCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FITP_DataSegmentCmdMsg_t);
+   bool  RetStatus = false;
    int32 BytesWritten;
 
    if (Fitp->FileTransferActive == true)
@@ -193,7 +193,7 @@ boolean FITP_DataSegmentCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr)
             
                Fitp->LastDataSegmentId++;
                Fitp->FileTransferByteCnt += DataSegmentCmd->Len;
-               Fitp->FileRunningCrc = CFE_ES_CalculateCRC(DataSegmentCmd->Data, DataSegmentCmd->Len, Fitp->FileRunningCrc, CFE_ES_DEFAULT_CRC);
+               Fitp->FileRunningCrc = CRC_32c(Fitp->FileRunningCrc, DataSegmentCmd->Data, DataSegmentCmd->Len);
               
                RetStatus = true;
                CFE_EVS_SendEvent(FITP_DATA_SEGMENT_CMD_EID, CFE_EVS_EventType_DEBUG,
@@ -261,11 +261,11 @@ boolean FITP_DataSegmentCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr)
 **      file length, CRC, and sgement IDs are verified. If the expected values
 **      are not correct then there's a chance the file was transferred.
 */
-boolean FITP_FinishTransferCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr)
+bool FITP_FinishTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
  
-   FITP_FinishTransferCmdMsg_t* FinishTransferCmd = (FITP_FinishTransferCmdMsg_t *) MsgPtr;
-   boolean RetStatus = false;
+   const FITP_FinishTransferCmdPayload_t* FinishTransferCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FITP_FinishTransferCmdMsg_t);
+   bool    RetStatus = false;
    uint16  ValidityFailures = 0;
 
    if (Fitp->FileTransferActive == true)
@@ -330,10 +330,10 @@ boolean FITP_FinishTransferCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr)
 **   2. Receiving a cancel command when no transfer is in progress is not
 **      considered an error because this command may be sent in the blind 
 */
-boolean FITP_CancelTransferCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr)
+bool FITP_CancelTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
-   boolean RetStatus = true;
+   bool RetStatus = true;
    
    if (Fitp->FileTransferActive == true)
    {

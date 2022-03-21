@@ -22,7 +22,7 @@
 """
 import os
 import sys
-sys.path.append(r'../../cfe-eds-framework/build/exe/lib/python')
+#sys.path.append(r'../../cfe-eds-framework/build/exe/lib/python')
 if 'LD_LIBRARY_PATH' not in os.environ:
     print("LD_LIBRARY_PATH not defined. Run setvars.sh to corrrect the problem")
     sys.exit(1)
@@ -56,21 +56,22 @@ logger = logging.getLogger(__name__)
 
 import PySimpleGUI as sg
 
+from cfsinterface import CmdTlmRouter
 from cfsinterface import Cfe, EdsMission
-from cfsinterface import Telecommand, ScriptTelecommand
-from cfsinterface import TelemetryMessage, TelemetryObserver, TelemetryServer
-from tools import CreateApp, ManageTutorials
+from cfsinterface import TelecommandInterface, TelecommandScript
+from cfsinterface import TelemetryMessage, TelemetryObserver, TelemetryQueueServer
+from tools import CreateApp, ManageTutorials, crc_32c, datagram_to_str
 
 
 ###############################################################################
 
-class GuiTelecommand(Telecommand):
+class TelecommandGui(TelecommandInterface):
     """
     GUI to manage a user selecting and sending a single telecommand 
     """
     
-    def __init__(self, mission, target, host_addr, cmd_port):
-        super().__init__(mission, target, host_addr, cmd_port)
+    def __init__(self, mission, target, cmd_router_queue):
+        super().__init__(mission, target, cmd_router_queue)
 
         """
         eds_mission -
@@ -261,7 +262,7 @@ class GuiTelecommand(Telecommand):
         row_title_font = 'Courier 12 bold'
         row_label_size = (20,1)
         row_input_size = (20,1)
-        self.payload_layout = [[sg.Text(heading, font=row_title_font, size=row_label_size,) for i, heading in enumerate(self.PAYLOAD_HEADINGS)]]
+        self.payload_layout = [[sg.Text(heading, font=row_title_font, size=row_label_size) for i, heading in enumerate(self.PAYLOAD_HEADINGS)]]
         for row in range(self.PAYLOAD_ROWS):
             if row < self.PAYLOAD_INPUT_START:
                 self.payload_layout += [[sg.pin(sg.Text('Name', font=row_font, size=row_label_size, key="-PAYLOAD_%d_NAME-"%row))] + [sg.pin(sg.Text('Type', font=row_font, size=row_label_size, key="-PAYLOAD_%d_TYPE-"%row))] + [sg.pin(sg.Combo((self.UNDEFINED_LIST), font=row_font, size=row_input_size, enable_events=True, key="-PAYLOAD_%d_VALUE-"%row, default_value=self.UNDEFINED_LIST[0]))]]
@@ -393,12 +394,12 @@ class GuiTelecommand(Telecommand):
 
 ###############################################################################
 
-class GuiTelemetry(TelemetryObserver):
+class TelemetryGuiClient(TelemetryObserver):
     """
     Create a screen that displays a single telemetry message
     """
 
-    def __init__(self, tlm_server: TelemetryServer, topic_name):
+    def __init__(self, tlm_server: TelemetryQueueServer, topic_name):
         super().__init__(tlm_server)
 
         self.NULL_STR = self.tlm_server.eds_mission.NULL_STR
@@ -510,11 +511,11 @@ class GuiTelemetry(TelemetryObserver):
         while not self.gui_thread.kill:  # Event Loop
             
             #todo: Big kludge for multi-threaded tlm windows
-            #todo: PySimpleGUI has a subprocess API, execute_command_subprocess() that I'm using for tutorials and it can be used for each telmeetry GUI
+            #todo: PySimpleGUI has a subprocess API, execute_command_subprocess() that I'm using for tutorials and it can be used for each telemetry GUI
             try:
                 self.event, self.values = self.window.read(timeout=500)
             except (RuntimeError, AttributeError):
-                #print("GUI Telemetry read loop exception")
+                #print("Telemetry GUI read loop exception")
                 self.event = "void"
             logger.debug("GUI Window Read()\nEvent: %s\nValues: %s" % (self.event, self.values))
 
@@ -567,14 +568,14 @@ class GuiTelemetry(TelemetryObserver):
 
 ###############################################################################
 
-class SystemTelemetry(TelemetryObserver):
+class CfsatTelemetryMonitor(TelemetryObserver):
     """
     callback_functions
        [app_name] : {packet: [item list]} 
     
     """
 
-    def __init__(self, tlm_server: TelemetryServer, tlm_monitors, tlm_callback, event_queue):
+    def __init__(self, tlm_server: TelemetryQueueServer, tlm_monitors, tlm_callback, event_queue):
         super().__init__(tlm_server)
 
         self.tlm_monitors = tlm_monitors
@@ -636,7 +637,7 @@ class App():
         self.CFS_TARGET_HOST_ADDR   = self.config.get('CFS_TARGET','HOST_ADDR')
         self.CFS_TARGET_CMD_PORT    = self.config.getint('CFS_TARGET','SEND_CMD_PORT')
         self.CFS_TARGET_TLM_PORT    = self.config.getint('CFS_TARGET','RECV_TLM_PORT')
-        self.CFS_TARGET_TLM_TIMEOUT = self.config.getint('CFS_TARGET','RECV_TLM_TIMEOUT')
+        self.CFS_TARGET_TLM_TIMEOUT = float(self.config.getint('CFS_TARGET','RECV_TLM_TIMEOUT'))/1000.0
         
         self.GUI_CMD_PAYLOAD_TABLE_ROWS = self.config.getint('GUI','CMD_PAYLOAD_TABLE_ROWS')
 
@@ -644,8 +645,8 @@ class App():
         self.cfe_time_event_filter = False  #todo: Retaining the state here doesn't work if user starts and stops the cFS and doesn't restart cFSAT
         
         self.event_queue = queue.Queue()
-        self.gui_tlm_objects = {}
-        self.gui_tlm_threads = {}
+        self.tlm_gui_clients = {}
+        self.tlm_gui_threads = {}
         self.window = None
         
         self.cfs_subprocess = None
@@ -666,13 +667,12 @@ class App():
         self.window["-EVENT_TEXT-"].update(self.event_history)
 
     def display_tlm_monitor(self, app_name, tlm_msg, tlm_item, tlm_text):
-
         print("Received [%s, %s, %s] %s" % (app_name, tlm_msg, tlm_item, tlm_text))
         
 
     def send_app_cmd(self, app_name, cmd_name, cmd_payload):
 
-        (cmd_sent, cmd_text, cmd_status) = self.script_telecommand.send_app_cmd(app_name, cmd_name, cmd_payload)
+        (cmd_sent, cmd_text, cmd_status) = self.telecommand_script.send_app_cmd(app_name, cmd_name, cmd_payload)
         self.display_event(cmd_status)
 
 
@@ -694,10 +694,11 @@ class App():
  
     def shutdown(self):
         logger.info("Starting app shutdown sequence")
+        self.cmd_tlm_router.shutdown()
         self.tlm_server.shutdown()
-        for tlm_topic in self.gui_tlm_objects:
-            if self.gui_tlm_objects[tlm_topic] != None:
-                 self.gui_tlm_objects[tlm_topic].shutdown()
+        for tlm_topic in self.tlm_gui_clients:
+            if self.tlm_gui_clients[tlm_topic] != None:
+                 self.tlm_gui_clients[tlm_topic].shutdown()
         time.sleep(self.CFS_TARGET_TLM_TIMEOUT)
         if self.cfs_popen is not None:
             self.cfs_popen.kill()
@@ -714,17 +715,25 @@ class App():
         self.tlm_monitors = {'CFE_ES': {'HK_TLM': ['Seconds']}, 'FILEMGR': {'DIR_LIST_TLM': ['Seconds']}}
         
         try:
-    
-             self.gui_telecommand = GuiTelecommand(self.EDS_MISSION_NAME, self.EDS_CFS_TARGET_NAME, self.CFS_TARGET_HOST_ADDR, self.CFS_TARGET_CMD_PORT)
-             self.script_telecommand = ScriptTelecommand(self.EDS_MISSION_NAME, self.EDS_CFS_TARGET_NAME, self.CFS_TARGET_HOST_ADDR, self.CFS_TARGET_CMD_PORT)
+
+             # Command & Telemetry Router
+             self.cmd_tlm_router = CmdTlmRouter(self.CFS_TARGET_HOST_ADDR, self.CFS_TARGET_CMD_PORT, self.CFS_TARGET_HOST_ADDR, self.CFS_TARGET_TLM_PORT, self.CFS_TARGET_TLM_TIMEOUT)
+             self.cfs_cmd_output_queue = self.cmd_tlm_router.get_cfs_cmd_queue()
+             self.cfs_cmd_input_queue  = self.cmd_tlm_router.get_cfs_cmd_source_queue()
              
-             self.tlm_server = TelemetryServer(self.EDS_MISSION_NAME, self.EDS_CFS_TARGET_NAME, self.CFS_TARGET_HOST_ADDR,
-                                               self.CFS_TARGET_TLM_PORT, self.CFS_TARGET_TLM_TIMEOUT)
-         
-             self.sys_telemetry = SystemTelemetry(self.tlm_server, self.tlm_monitors, self.display_tlm_monitor, self.event_queue)
-         
+             # Command Objects    
+             
+             self.telecommand_gui    = TelecommandGui(self.EDS_MISSION_NAME, self.EDS_CFS_TARGET_NAME, self.cfs_cmd_output_queue)
+             self.telecommand_script = TelecommandScript(self.EDS_MISSION_NAME, self.EDS_CFS_TARGET_NAME, self.cfs_cmd_output_queue)
+             
+             # Telemetry Objects
+             
+             self.tlm_server  = TelemetryQueueServer(self.EDS_MISSION_NAME, self.EDS_CFS_TARGET_NAME, self.cmd_tlm_router.get_gnd_tlm_queue())
+             self.tlm_monitor = CfsatTelemetryMonitor(self.tlm_server, self.tlm_monitors, self.display_tlm_monitor, self.event_queue)
              self.tlm_server.execute()
          
+             self.cmd_tlm_router.start()
+             
              logger.info("Successfully created application objects")
         
         except RuntimeError:
@@ -739,7 +748,7 @@ class App():
                        ['System', ['Options','Perf Monitor', 'About...', 'Exit']],
                        #['cFS Target', ['Set Target', 'Start cFS', 'Stop cFS', 'App Suite...']],
                        ['Apps', ['Create...']], #, 'Develop', 'Test']],
-                       ['Files', ['Uplink File', 'Downlink File', 'Load Binary Table', 'Dump Binary Table', 'Load JSON Table', 'Dump JSON Table']],
+                       ['Files', ['File Browser', 'Uplink File', 'Downlink File', 'Load JSON Table', 'Dump JSON Table']],
                        ['Tutorials', self.manage_tutorials.tutorial_titles]
                    ]
 
@@ -752,7 +761,7 @@ class App():
         self.update_event_history_str(sys_comm_str)
             
         cmd_topics = []
-        cmd_topic_list = list(self.gui_telecommand.get_topics().keys())
+        cmd_topic_list = list(self.telecommand_gui.get_topics().keys())
         all_cmd_topics = self.config.getboolean('GUI','CMD_TOPICS_ALL')
         for topic in cmd_topic_list:
             if 'Application/CMD' in topic:
@@ -772,7 +781,7 @@ class App():
         layout = [
                      [sg.Menu(menu_def, tearoff=False, pad=(400, 10))],
                      [sg.Text('Mission: ' + self.EDS_MISSION_NAME, font=pri_hdr_font),
-                      sg.Text('Target: ' + self.gui_telecommand.target_name, font=pri_hdr_font, pad=(10,1)),
+                      sg.Text('Target: ' + self.telecommand_gui.target_name, font=pri_hdr_font, pad=(10,1)),
                       sg.Text(self.GUI_NO_IMAGE_TXT, key='-CFS_IMAGE-', font=pri_hdr_font, pad=(10,1)),],
                      [sg.Button('Start cFS', enable_events=True, key='-START_CFS-',  image_data=green, image_subsample=2, button_color=('black', sg.theme_background_color()), border_width=0),
                       sg.Button('Stop cFS', enable_events=True, key='-STOP_CFS-',image_data=red, image_subsample=2, button_color=('black', sg.theme_background_color()), border_width=0),
@@ -797,16 +806,24 @@ class App():
     
             self.event, self.values = self.window.read(timeout=500)
             logger.debug("App Window Read()\nEvent: %s\nValues: %s" % (self.event, self.values))
-            
-            try:
-                new_event_text = self.event_queue.get_nowait()
-                self.display_event(new_event_text)
-            except:
-                pass
-            
+
             if self.event in (sg.WIN_CLOSED, 'Exit') or self.event is None:
                 break
-        
+            
+            ######################################
+            ##### Autonomous System Behavior #####
+            ######################################
+
+            while not self.event_queue.empty():
+                new_event_text = self.event_queue.get_nowait()
+                self.display_event(new_event_text)
+            
+            # Route commands from remote processes. for now, always accept commands
+            while not self.cfs_cmd_input_queue.empty():
+                datagram = self.cfs_cmd_input_queue.get()[0]
+                self.cfs_cmd_output_queue.put(datagram)
+                self.display_event("Sent remote process command: " + datagram_to_str(datagram))
+            
             #######################
             ##### MENU EVENTS #####
             #######################
@@ -831,22 +848,47 @@ class App():
 
             ### FILES ###
 
-            if self.event == 'Uplink File':
-                self.ComingSoonPopup("Uplink a file from the ground to the FSW")
+            if self.event == 'File Browser':
+                self.cmd_tlm_router.add_cmd_source(8000)   #TODO - Add port number management 
+                self.cmd_tlm_router.add_tlm_dest(9000)     #TODO - Add port number management
+                self.ComingSoonPopup("Create router cmd soucre and tlm destnation. Start file browser. Time reset command will be sent when you close this.")
+                self.send_app_cmd('CFE_TIME', 'SetTimeCmd', {'Seconds': 0,'MicroSeconds': 0 })
+                self.ComingSoonPopup("Create router cmd soucre and tlm destnation. Start file browser")
 
+            if self.event == 'Uplink File':
+                
+                filename = 'fitp_test.txt'
+                file_crc    = 0
+                bytes_read  = 0
+                data_seg_id = 1
+                file_len = os.stat(filename).st_size
+                
+                sg.popup("Before SendFile command", title='FILE_XFER Debug', grab_anywhere=True, modal=False)
+                self.send_app_cmd('FILE_XFER', 'SendFile', {'DestFilename': '/cf/fitp_test.txt'})
+
+                # https://stackoverflow.com/questions/52722787/problem-sending-binary-files-via-sockets-python
+                # send file size as big endian 64 bit value (8 bytes)
+                # self.sock.sendall(os.stat(filename).st_size.tobytes(8,'big'))
+                with open(filename,'rb') as f: 
+                    while True:
+                        data_segment = bytearray(f.read(64))
+                        if not data_segment: # Null indicates EOF
+                           break
+                
+                        sg.popup("Before SendFitpDataSegment command", title='FILE_XFER Debug', grab_anywhere=True, modal=False)
+                        self.send_app_cmd('FILE_XFER', 'SendFitpDataSegment', {'Id': data_seg_id, 'Len': len(data_segment), 'Data': data_segment})
+                        file_crc = CRC_32c(file_crc, data_segment)
+                        data_seg_id += 1
+                    sg.popup("Before FinishFitpTransfer command", title='FILE_XFER Debug', grab_anywhere=True, modal=False)
+                    self.send_app_cmd('FILE_XFER', 'FinishFitpTransfer', {'FileLen': file_len, 'FileCrc': file_crc, 'LastDataSegmentId': data_seg_id-1})
+            
             if self.event == 'Downlink File':
                 self.ComingSoonPopup("Downlink a file from the FSW to the ground")
 
-            if self.event == 'Load Binary Table':
-                self.ComingSoonPopup("Load an app's binary table")
-       
-            if self.event == 'Dump Binary Table':
-                self.ComingSoonPopup("Dump an app's binary table")
-
-            if self.event == 'Load JSON Table':
+            if self.event == 'Load Table':
                 self.ComingSoonPopup("Load an app's JSON table")
        
-            if self.event == 'Dump JSON Table':
+            if self.event == 'Dump Table':
                 self.ComingSoonPopup("Dump an app's JSON table")
 
             ### TUTORIALS ###
@@ -968,7 +1010,7 @@ class App():
             if self.event == '-CMD_TOPICS-':
                 #todo: Create a command string for event window. Raw text may be an option so people can capture commands
                 cmd_topic = self.values['-CMD_TOPICS-']
-                (cmd_sent, cmd_text, cmd_status) = self.gui_telecommand.execute(cmd_topic)
+                (cmd_sent, cmd_text, cmd_status) = self.telecommand_gui.execute(cmd_topic)
                 self.display_event(cmd_status)
                 self.display_event(cmd_text)
             
@@ -979,19 +1021,19 @@ class App():
                 if tlm_topic != EdsMission.TOPIC_TLM_TITLE_KEY:
                     """
                     The thread start() nevers returns and I don't know why. Guessing underlying GUI control issue.
-                    The GuiTelemetry object contains thread management but this is causing execeptions. For now I"m
+                    The TelemetryGui object contains thread management but this is causing execeptions. For now I"m
                     catching the exceptions because eveything else hangs together, but it's a kludge!!
                     """
-                    self.gui_tlm_objects[tlm_topic] = GuiTelemetry(self.tlm_server, tlm_topic)
-                    if self.gui_tlm_objects[tlm_topic] != None:
-                        self.gui_tlm_objects[tlm_topic].execute()
-                        #self.gui_tlm_threads[tlm_topic] = Thread(target=self.gui_tlm_objects[tlm_topic].gui())
-                        #self.gui_tlm_threads[tlm_topic].start()
+                    self.tlm_gui_clients[tlm_topic] = TelemetryGuiClient(self.tlm_server, tlm_topic)
+                    if self.tlm_gui_clients[tlm_topic] != None:
+                        self.tlm_gui_clients[tlm_topic].execute()
+                        #self.tlm_gui_threads[tlm_topic] = Thread(target=self.tlm_gui_clients[tlm_topic].gui())
+                        #self.tlm_gui_threads[tlm_topic].start()
                         self.display_event("Created telemetry screen for %s" % tlm_topic)
                     else:
                         self.display_event("Failed to create telemetry screen for %s. Verify EDS naming standard compliance" % tlm_topic)
                 else:
-                    sg.popup('Please select a telmeetry topic from the dropdown list', title='Telemetry Topic')
+                    sg.popup('Please select a telemetry topic from the dropdown list', title='Telemetry Topic')
                 
             if self.event == '-CLEAR_EVENTS-':
                 self.event_history = ""

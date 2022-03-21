@@ -67,6 +67,7 @@
 #include "staterep.h"
 #include "pktutil.h"
 #include "childmgr.h"
+#include "crc.h"
 
 #endif /* _osk_c_fw_ */
 

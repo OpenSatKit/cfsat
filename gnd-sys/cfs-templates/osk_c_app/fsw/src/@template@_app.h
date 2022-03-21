@@ -155,14 +155,14 @@ void @TEMPLATE@_AppMain(void);
 ** Function: @TEMPLATE@_NoOpCmd
 **
 */
-bool @TEMPLATE@_NoOpCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
+bool @TEMPLATE@_NoOpCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
 
 
 /******************************************************************************
 ** Function: @TEMPLATE@_ResetAppCmd
 **
 */
-bool @TEMPLATE@_ResetAppCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
+bool @TEMPLATE@_ResetAppCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
 
 
 #endif /* _@template@_ */

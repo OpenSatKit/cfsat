@@ -89,11 +89,11 @@ void EXOBJ_ResetStatus()
 ** Notes:
 **   1. See file prologue for logging/playback logic.
 */
-bool EXOBJ_SetModeCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool EXOBJ_SetModeCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
    bool RetStatus = false;
-   EXOBJ_SetModeCmdMsg_t* Cmd = (EXOBJ_SetModeCmdMsg_t*)MsgPtr;
+   const EXOBJ_CounterModeCmd_Payload_t* Cmd = &((const EXOBJ_SetModeCmdMsg_t*)SbBufPtr)->Payload;
    EXOBJ_CounterModeType_t PrevMode = ExObj->CounterMode;
    
    if ((Cmd->CounterMode == EXOBJ_CounterModeType_INCREMENT) ||

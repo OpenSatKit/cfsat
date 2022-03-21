@@ -35,8 +35,10 @@ import logging
 logger = logging.getLogger(__name__)
 if __name__ == '__main__':
     from jsonfile import JsonFile
+    from utils    import compress_abs_path
 else:
     from .jsonfile import JsonFile
+    from .utils    import compress_abs_path
 
 import PySimpleGUI as sg
 

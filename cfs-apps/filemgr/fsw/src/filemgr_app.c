@@ -311,11 +311,13 @@ static int32 ProcessCommands(void)
    SysStatus = CFE_SB_ReceiveBuffer(&SbBufPtr, FileMgr.CmdPipe, CFE_SB_PEND_FOREVER);
    CFE_ES_PerfLogEntry(FileMgr.PerfId);
 
-   if (SysStatus == CFE_SUCCESS) {
+   if (SysStatus == CFE_SUCCESS)
+   {
       
       SysStatus = CFE_MSG_GetMsgId(&SbBufPtr->Msg, &MsgId);
    
-      if (SysStatus == OS_SUCCESS) {
+      if (SysStatus == CFE_SUCCESS)
+      {
 
          if (CFE_SB_MsgId_Equal(MsgId, FileMgr.CmdMid))
          {

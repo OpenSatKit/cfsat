@@ -81,35 +81,56 @@
 typedef struct
 {
 
-   CFE_MSG_CommandHeader_t  CmdHeader;
    char    DestFilename[FITP_FILENAME_LEN];
 
-}  OS_PACK FITP_StartTransferCmdMsg_t;
-#define FITP_START_TRANSFER_CMD_DATA_LEN  (sizeof(FITP_StartTransferCmdMsg_t) - CFE_SB_CMD_HDR_SIZE)
+} FITP_StartTransferCmdPayload_t;
+
+typedef struct
+{
+
+   CFE_MSG_CommandHeader_t        CmdHeader;
+   FITP_StartTransferCmdPayload_t Payload;
+
+} FITP_StartTransferCmdMsg_t;
+#define FITP_START_TRANSFER_CMD_DATA_LEN  (sizeof(FITP_StartTransferCmdMsg_t) - sizeof(CFE_MSG_CommandHeader_t))
 
 
 typedef struct
 {
 
-   CFE_MSG_CommandHeader_t  CmdHeader;
    uint16  Id;
    uint16  Len;
    uint8   Data[FITP_DATA_SEG_MAX_LEN];
 
-}  OS_PACK FITP_DataSegmentCmdMsg_t;
-#define FITP_DATA_SEGMENT_CMD_DATA_LEN  (sizeof(FITP_DataSegmentCmdMsg_t) - CFE_SB_CMD_HDR_SIZE)
+} FITP_DataSegmentCmdPayload_t;
+
+typedef struct
+{
+
+   CFE_MSG_CommandHeader_t      CmdHeader;
+   FITP_DataSegmentCmdPayload_t Payload;
+
+} FITP_DataSegmentCmdMsg_t;
+#define FITP_DATA_SEGMENT_CMD_DATA_LEN  (sizeof(FITP_DataSegmentCmdMsg_t) - sizeof(CFE_MSG_CommandHeader_t))
 
 
 typedef struct
 {
 
-   CFE_MSG_CommandHeader_t  CmdHeader;
    uint32  FileLen;
    uint32  FileCrc;
    uint16  LastDataSegmentId;
 
-}  OS_PACK FITP_FinishTransferCmdMsg_t;
-#define FITP_FINISH_TRANSFER_CMD_DATA_LEN  (sizeof(FITP_FinishTransferCmdMsg_t) - CFE_SB_CMD_HDR_SIZE)
+} FITP_FinishTransferCmdPayload_t;
+
+typedef struct
+{
+
+   CFE_MSG_CommandHeader_t         CmdHeader;
+   FITP_FinishTransferCmdPayload_t Payload; 
+
+} FITP_FinishTransferCmdMsg_t;
+#define FITP_FINISH_TRANSFER_CMD_DATA_LEN  (sizeof(FITP_FinishTransferCmdMsg_t) - sizeof(CFE_MSG_CommandHeader_t))
 
 #define FITP_CANCEL_TRANSFER_CMD_DATA_LEN  PKTUTIL_NO_PARAM_CMD_DATA_LEN
 
@@ -124,16 +145,16 @@ typedef struct
 typedef struct
 {
 
-   char     DestFilename[FITP_FILENAME_LEN];
+   char      DestFilename[FITP_FILENAME_LEN];
 
-   int32    FileHandle;
-   uint32   FileTransferByteCnt;
-   uint32   FileRunningCrc;
-   bool     FileTransferActive;
-   uint16   FileTransferCnt;
+   osal_id_t FileHandle;
+   uint32    FileTransferByteCnt;
+   uint32    FileRunningCrc;
+   bool      FileTransferActive;
+   uint16    FileTransferCnt;
 
-   uint16   LastDataSegmentId;
-   uint16   DataSegmentErrCnt;   
+   uint16    LastDataSegmentId;
+   uint16    DataSegmentErrCnt;   
 
 } FITP_Class_t;
 
@@ -169,7 +190,7 @@ void FITP_ResetStatus(void);
 ** Notes:
 **   1. Must match CMDMGR_CmdFuncPtr_t function signature
 */
-bool FITP_StartTransferCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
+bool FITP_StartTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
 
 
 /******************************************************************************
@@ -180,7 +201,7 @@ bool FITP_StartTransferCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
 ** Notes:
 **   1. Must match CMDMGR_CmdFuncPtr_t function signature
 */
-bool FITP_DataSegmentCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
+bool FITP_DataSegmentCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
 
 
 /******************************************************************************
@@ -191,7 +212,7 @@ bool FITP_DataSegmentCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
 ** Notes:
 **   1. Must match CMDMGR_CmdFuncPtr_t function signature
 */
-bool FITP_FinishTransferCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
+bool FITP_FinishTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
 
 
 /******************************************************************************
@@ -202,7 +223,7 @@ bool FITP_FinishTransferCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
 ** Notes:
 **   1. Must match CMDMGR_CmdFuncPtr_t function signature
 */
-bool FITP_CancelTransferCmd(void* ObjDataPtr, const CFE_SB_MsgPtr_t MsgPtr);
+bool FITP_CancelTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
 
 
 #endif /* _fitp_ */

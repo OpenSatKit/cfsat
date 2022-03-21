@@ -555,7 +555,7 @@
               <GenericTypeMap name="TelemetryDataType" type="HkTlm" />
             </GenericTypeMapSet>
           </Interface>
-          <Interface name="DIR_LIST_TLM" shortDescription="List directory contents inn a telemetry packet" type="CFE_SB/Telemetry">
+          <Interface name="DIR_LIST_TLM" shortDescription="List directory contents in a telemetry packet" type="CFE_SB/Telemetry">
             <GenericTypeMapSet>
               <GenericTypeMap name="TelemetryDataType" type="DirListTlm" />
             </GenericTypeMapSet>
