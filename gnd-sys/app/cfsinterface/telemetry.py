@@ -230,7 +230,10 @@ class TelemetryServer(CfeEdsTarget):
         
     @abstractmethod
     def _recv_tlm_handler(self):
-        raise NotImplementedError
+       
+       # If this handler is part fo a GUI then a time.sleep() is needed to prevent updates from
+       # being sent before the GUI is fully initialized
+       raise NotImplementedError
         
 
     def execute(self):
@@ -238,8 +241,6 @@ class TelemetryServer(CfeEdsTarget):
         self._recv_tlm_thread = threading.Thread(target=self._recv_tlm_handler)
         self._recv_tlm_thread.kill = False
 
-        time.sleep(1.0) #todo: Wait for GUI to init. If cFS running an event message occurs before GUI is up it will crash the system
-        
         self._recv_tlm_thread.start()
 
 
@@ -277,6 +278,8 @@ class TelemetrySocketServer(TelemetryServer):
         
         print("TelemetrySocketServer started receive telemetry handler thread")
 
+        time.sleep(2.0) #todo: Wait for GUI to init. If cFS running an event message occurs before GUI is up it will crash the system
+        
         # Constructor sets a timeout so the thread will terminate if no packets
         while not self._recv_tlm_thread.kill:
             try:
@@ -321,8 +324,6 @@ class TelemetrySocketServer(TelemetryServer):
         
         self._recv_tlm_thread.kill = False
 
-        time.sleep(1.0) #todo: Wait for GUI to init. If cFS running an event message occurs before GUI is up it will crash the system
-        
         self._recv_tlm_thread.start()
 
 
@@ -349,6 +350,8 @@ class TelemetryQueueServer(TelemetryServer):
         
         logger.info("TelemetryQueueServer started receive telemetry handler thread")
 
+        time.sleep(1.0) #todo: Wait for GUI to init. If cFS running an event message occurs before GUI is up it will crash the system
+        
         while not self._recv_tlm_thread.kill:
 
             while not self.tlm_router_queue.empty():
@@ -379,13 +382,8 @@ class TelemetryQueueServer(TelemetryServer):
     
     
     def execute(self):
-
         self._recv_tlm_thread = threading.Thread(target=self._recv_tlm_handler)
-        
         self._recv_tlm_thread.kill = False
-
-        time.sleep(1.0) #todo: Wait for GUI to init. If cFS running an event message occurs before GUI is up it will crash the system
-        
         self._recv_tlm_thread.start()
 
 

@@ -29,7 +29,7 @@ import os
 import socket
 import configparser
 from queue import Queue
-sys.path.append('..')
+from datetime import datetime
 
 import logging
 logger = logging.getLogger(__name__)
@@ -92,52 +92,90 @@ class CmdTlmProcess():
         self.tlm_socket.setblocking(False)
         self.tlm_socket.settimeout(self.tlm_timeout)
 
-    def send_app_cmd(self, app_name, cmd_name, cmd_payload):
+    def send_cfs_cmd(self, app_name, cmd_name, cmd_payload):
     
-        (cmd_sent, cmd_text, cmd_status) = self.cmd_script.send_app_cmd(app_name, cmd_name, cmd_payload)
+        (cmd_sent, cmd_text, cmd_status) = self.cmd_script.send_cfs_cmd(app_name, cmd_name, cmd_payload)
         datagram = self.cfs_cmd_queue.get()
         self.router_cmd_socket.sendto(datagram, self.router_cmd_socket_addr)
 
 
 ###############################################################################
 
-class GroundFileSys():
+class FlightDir():
     """
     """
-    def __init__(self, default_path):
-
-        self.curr_path = compress_abs_path(default_path if os.path.isdir(default_path) else "")
+    def __init__(self, path, cmd_script: TelecommandScript, sg_window: sg.Window):
+        self.cmd_script = cmd_script
+        self.sg_window  = sg_window
+        
+        self.path = path
+        self.file_cnt  = 0
         self.file_list = []
-        self.create_file_list(default_path)
-
 
     def create_file_list(self, path):
+        self.path = path
+        self.file_list = []
+        self.cmd_script.send_cfs_cmd('FILEMGR', 'SendDirTlm',  {'DirName': path, 'IncludeSizeTime': 0})
 
+    def delete_file(self, filename):
+        self.cmd_script.send_cfs_cmd('FILEMGR', 'DeleteFile',  {'Filename': filename})
+        self.create_file_list(self.path)
+
+    def rename_file(self, src_file):
+        dst_file = sg.popup_get_text(title='Rename '+src_file, message='Please enter the new filename')
+        if dst_file is not None:
+            dst_file = self.curr_path + '/' + dst_file
+            self.cmd_script.send_cfs_cmd('FILEMGR', 'RenameFile',  {'SourceFilename': src_file, 'TargetFilename': dst_file})
+            self.create_file_list(self.path)
+
+    def filemgr_dir_list_callback(self, time, payload):
+        print("payload.DirName = "       + str(payload.DirName))
+        print("payload.DirFileCnt = "    + str(payload.DirFileCnt))
+        print("payload.PktFileCnt = "    + str(payload.PktFileCnt))
+        print("payload.DirListOffset = " + str(payload.DirListOffset))        
+        for entry in payload.FileList:
+            if (len(str(entry['Name'])) > 0):
+                self.file_list.append(str(entry['Name']))
+        print("file_list: " + str(self.file_list))
+        self.sg_window.update(self.file_list)
+
+
+###############################################################################
+
+class GroundDir():
+    """
+    """
+    def __init__(self, path, sg_window: sg.Window):
+        self.sg_window  = sg_window
+
+        self.path = compress_abs_path(path if os.path.isdir(path) else "")
+        self.file_list = []
+
+    def create_file_list(self, path):
         try:
-            dir_list = os.listdir(path)
+            dir_list = os.listdir(self.path)
+            self.path = path
         except:
             dir_list = []
-        self.file_list = [f for f in dir_list if os.path.isfile(os.path.join(path, f))]
-        return self.file_list
-   
-   
-    def delete_file(self, file):
-   
-        file_pathname = os.path.join(self.curr_path, file)
+        self.file_list = [f for f in dir_list if os.path.isfile(os.path.join(self.path, f))]
+        self.sg_window.update(self.file_list)
+        
+    def delete_file(self, filename):
+        file_pathname = os.path.join(self.path, filename)
         if os.path.exists(file_pathname):
             os.remove(file_pathname)
         else:
             print("TODO: The file does not exist")
-
-            
+        create_file_list(self.path)
+        
     def rename_file(self, src_file):
-   
-        src_file_pathname = os.path.join(self.curr_path, src_file)
+        src_file_pathname = os.path.join(self.path, src_file)
         if os.path.exists(src_file_pathname):
             dst_file = sg.popup_get_text(title='Rename '+src_file, message='Please enter the new filename')
             if dst_file is not None:
-               dst_file_pathname = os.path.join(self.curr_path, dst_file)
+               dst_file_pathname = os.path.join(self.path, dst_file)
                os.rename(src_file_pathname, dst_file_pathname)
+               create_file_list(self.path)
         else:
             print("TODO: The file does not exist")
             
@@ -151,11 +189,12 @@ class FileBrowserTelemetryMonitor(TelemetryObserver):
     
     """
 
-    def __init__(self, tlm_server: TelemetrySocketServer, tlm_monitors, tlm_callback):
+    def __init__(self, tlm_server: TelemetrySocketServer, tlm_monitors, event_callback, filemgr_callback): 
         super().__init__(tlm_server)
 
         self.tlm_monitors = tlm_monitors
-        self.tlm_callback = tlm_callback
+        self.event_callback = event_callback
+        self.filemgr_callback = filemgr_callback
         
         self.sys_apps = ['CFE_ES', 'CFE_EVS', 'FILEMGR']
         
@@ -173,10 +212,20 @@ class FileBrowserTelemetryMonitor(TelemetryObserver):
         """
         #todo: Determine best tlm identification method: if int(tlm_msg.app_id) == int(self.cfe_es_hk.app_id):
         
-        if tlm_msg.app_name in self.tlm_monitors:
-            self.tlm_callback(tlm_msg.app_name, tlm_msg.msg_name, "Seconds", str(tlm_msg.sec_hdr().Seconds))
-
-
+        if tlm_msg.app_name == 'FILEMGR':
+            if tlm_msg.msg_name == 'DIR_LIST_TLM':
+                payload = tlm_msg.payload()
+                self.filemgr_callback(str(tlm_msg.sec_hdr().Seconds), payload)
+        
+        elif tlm_msg.app_name == 'CFE_EVS':
+            if tlm_msg.msg_name == 'LONG_EVENT_MSG':
+                payload = tlm_msg.payload()
+                pkt_id = payload.PacketID
+                event_text = "FSW Event at %s: %s, %d - %s" % \
+                             (str(tlm_msg.sec_hdr().Seconds), pkt_id.AppName, pkt_id.EventType, payload.Message)
+                self.event_callback(event_text)
+                
+                
 ###############################################################################
 
 class FileBrowser(CmdTlmProcess):
@@ -186,41 +235,57 @@ class FileBrowser(CmdTlmProcess):
     """
     def __init__(self, gnd_path, flt_path, gnd_ip_addr, router_cmd_port, tlm_port, tlm_timeout):
         super().__init__(gnd_ip_addr, router_cmd_port, tlm_port, tlm_timeout)
-
-        self.gnd_file_sys = GroundFileSys(gnd_path)
         
-        self.flt_path      = flt_path
-        self.flt_file_list = []
+        self.default_gnd_path = gnd_path
+        self.default_flt_path = flt_path
+        self.event_history = ""
+        self.init_cycle = True
             
-    def refresh_gnd_file_list(self):
-    
-        file_names = self.gnd_file_sys.create_file_list(self.gnd_file_sys.curr_path)
-        self.window['-GND_FILE_LIST-'].update(file_names)
-    
-    def tlm_monitor_callback(self, app_name, tlm_msg, tlm_item, tlm_text):
-        logger.info("Received [%s, %s, %s] %s" % (app_name, tlm_msg, tlm_item, tlm_text))
-        print("Received [%s, %s, %s] %s" % (app_name, tlm_msg, tlm_item, tlm_text))
+    def event_callback(self, event_txt):
+        self.display_event(event_txt)
             
+    def update_event_history_str(self, new_event_text):
+        time = datetime.now().strftime("%H:%M:%S")
+        event_str = time + " - " + new_event_text + "\n"        
+        self.event_history += event_str
+ 
+    def display_event(self, new_event_text):
+        self.update_event_history_str(new_event_text)
+        self.window["-EVENT_TEXT-"].update(self.event_history)
+                
     def gui(self):
-    
-        col_title_font = 'Courier 20 bold'
+        col_title_font = ('Arial bold',20)
+        pri_hdr_font   = ('Arial bold',14)
+        sec_hdr_font   = ('Arial',12)
+        log_font       = ('Courier',12)
         self.gnd_file_menu = [[''], ['Delete','Rename','Send to Flight']] 
         self.gnd_col = [
             [sg.Text('Ground', font=col_title_font)],
-            [sg.Text('Folder'), sg.In(self.gnd_file_sys.curr_path, size=(25,1), enable_events=True ,key='-GND_FOLDER-'), sg.FolderBrowse(initial_folder=self.gnd_file_sys.curr_path)],
-            [sg.Listbox(values=self.gnd_file_sys.file_list, enable_events=True, size=(40,20),key='-GND_FILE_LIST-',right_click_menu=self.gnd_file_menu)]]
+            [sg.Text('Folder'), sg.In(self.default_gnd_path, size=(25,1), enable_events=True ,key='-GND_FOLDER-'), sg.FolderBrowse(initial_folder=self.default_gnd_path)],
+            [sg.Listbox(values=[], enable_events=True, size=(40,20),key='-GND_FILE_LIST-',right_click_menu=self.gnd_file_menu)]]
         
         # Duplicate ground names have a space. A little kludgy but it works
         self.flt_file_menu = [[''], ['Delete ','Rename ','Send to Ground']] 
         self.flt_col = [
             [sg.Text('Flight', font=col_title_font)],
-            [sg.Text('Folder'), sg.In(size=(25,1), enable_events=True ,key='-FLT-FOLDER-'), sg.FolderBrowse()],
+            [sg.Text('Folder'), sg.In(self.default_flt_path, size=(25,1), enable_events=True ,key='-FLT-FOLDER-'), sg.FolderBrowse()],
             [sg.Listbox(values=[], enable_events=True, size=(40,20),key='-FLT_FILE_LIST-',right_click_menu=self.flt_file_menu)]]
 
-        self.layout = [[sg.Column(self.gnd_col, element_justification='c'), sg.VSeperator(), sg.Column(self.flt_col, element_justification='c')]]
+        self.layout = [
+            [sg.Column(self.gnd_col, element_justification='c'), sg.VSeperator(), sg.Column(self.flt_col, element_justification='c')],
+            [sg.Text('Ground & Flight Events', font=pri_hdr_font), sg.Button('Clear', enable_events=True, key='-CLEAR_EVENTS-', pad=(5,1))],
+            [sg.MLine(default_text=self.event_history, font=log_font, enable_events=True, size=(65, 5), key='-EVENT_TEXT-')]]
+            
  
         self.window = sg.Window('File Browser', self.layout, resizable=True)
         
+        self.flt_dir = FlightDir(self.default_flt_path, self.cmd_script, self.window['-FLT_FILE_LIST-'])
+        self.gnd_dir = GroundDir(self.default_gnd_path,self.window['-GND_FILE_LIST-'])
+        
+        self.tlm_monitors = {'CFE_ES': {'HK_TLM': ['Seconds']}, 'FILEMGR': {'DIR_LIST_TLM': ['Seconds']}}        
+        self.tlm_monitor = FileBrowserTelemetryMonitor(self.tlm_server, self.tlm_monitors, self.event_callback, self.flt_dir.filemgr_dir_list_callback)
+        self.tlm_server.execute()
+
         while True:
 
             self.event, self.values = self.window.read(timeout=100)
@@ -228,47 +293,46 @@ class FileBrowser(CmdTlmProcess):
             if self.event in (sg.WIN_CLOSED, 'Exit') or self.event is None:
                 break
 
-            
-
+            if self.init_cycle:
+                self.init_cycle = False
+                self.gnd_dir.create_file_list(self.default_gnd_path)
+                self.flt_dir.create_file_list(self.default_flt_path)
+                
             if self.event == '-GND_FOLDER-':                         
-                gnd_folder = self.values['-GND_FOLDER-']
-                file_names = self.gnd_file_sys.create_file_list(gnd_folder)
-                self.window['-GND_FILE_LIST-'].update(file_names)
+                self.gnd_dir.create_file_list(self.values['-GND_FOLDER-'])                
 
             elif self.event == '-FLT_FOLDER-':
-                print('Selected flight folder')
+                self.flt_dir.create_file_list(self.values['-FLT_FOLDER-'])                
 
             elif self.event == 'Delete':
                 if len(self.values['-GND_FILE_LIST-']) > 0:
-                   self.gnd_file_sys.delete_file(self.values['-GND_FILE_LIST-'][0])
-                   self.refresh_gnd_file_list()
+                   self.gnd_dir.delete_file(self.values['-GND_FILE_LIST-'][0])
 
             elif self.event == 'Rename':
                 if len(self.values['-GND_FILE_LIST-']) > 0:
-                    self.gnd_file_sys.rename_file(self.values['-GND_FILE_LIST-'][0])
-                    self.refresh_gnd_file_list()
+                    self.gnd_dir.rename_file(self.values['-GND_FILE_LIST-'][0])
 
             elif self.event == 'Send to Flight':
-                self.send_app_cmd('CFE_SB', 'NoopCmd', {})
+                self.send_cfs_cmd('CFE_SB', 'NoopCmd', {})
                 print('Selected send to flight')
 
             elif self.event == 'Delete ':
-                print('Selected flight delete')
+                if len(self.values['-FLT_FILE_LIST-']) > 0:
+                    self.flt_dir.delete_file(self.values['-FLT_FILE_LIST-'][0])
 
             elif self.event == 'Rename ':
-                print('Selected flight rename')
+                if len(self.values['-FLT_FILE_LIST-']) > 0:
+                    self.flt_dir.rename_file(self.values['-FLT_FILE_LIST-'][0])
 
             elif self.event == 'Send to Ground':
+                self.send_cfs_cmd('CFE_TBL', 'NoopCmd', {})
                 print('Selected send to ground')
                 
+            elif self.event == '-CLEAR_EVENTS-':
+                self.event_history = ""
+                self.display_event("Cleared event display")
 
     def execute(self):
-    
-        self.tlm_monitors = {'CFE_ES': {'HK_TLM': ['Seconds']}, 'FILEMGR': {'DIR_LIST_TLM': ['Seconds']}}
-        
-        self.tlm_monitor = FileBrowserTelemetryMonitor(self.tlm_server, self.tlm_monitors, self.tlm_monitor_callback)
-        self.tlm_server.execute()
-        
         self.gui()
     
         

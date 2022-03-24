@@ -338,7 +338,7 @@ class TelecommandScript(TelecommandInterface):
         return result
 
 
-    def send_app_cmd(self, app_name, cmd_name, cmd_payload):
+    def send_cfs_cmd(self, app_name, cmd_name, cmd_payload):
     
         self.cmd_payload = cmd_payload
         
@@ -528,7 +528,7 @@ def main():
         sys.exit(2)
 
     cmd_tlm_router.start()
-    telecommand_script.send_app_cmd('TO_LAB','EnableOutputCmd',{'dest_IP':'127.0.0.1'})
+    telecommand_script.send_cfs_cmd('TO_LAB','EnableOutputCmd',{'dest_IP':'127.0.0.1'})
     telecommand_cmd_line.execute()    
     cmd_tlm_router.shutdown()
 

@@ -445,7 +445,7 @@
 
       <!-- FileMgr::FileSys -->
 
-      <ContainerDataType name="SendFileSysTblTlm" baseType="CommandBase" shortDescription="Send the File System table contents in a teleetry message">
+      <ContainerDataType name="SendFileSysTblTlm" baseType="CommandBase" shortDescription="Send the File System table contents in a telemetry message">
         <ConstraintSet>
           <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 15" />
         </ConstraintSet>

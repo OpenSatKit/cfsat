@@ -283,7 +283,7 @@ class TelecommandGui(TelecommandInterface):
                 
         while True:
         
-            self.event, self.values = self.window.read()
+            self.event, self.values = self.window.read(timeout=100)
             logger.debug("Command Window Read()\nEvent: %s\nValues: %s" % (self.event, self.values))
 
             self.sg_values = self.values
@@ -670,9 +670,9 @@ class App():
         print("Received [%s, %s, %s] %s" % (app_name, tlm_msg, tlm_item, tlm_text))
         
 
-    def send_app_cmd(self, app_name, cmd_name, cmd_payload):
+    def send_cfs_cmd(self, app_name, cmd_name, cmd_payload):
 
-        (cmd_sent, cmd_text, cmd_status) = self.telecommand_script.send_app_cmd(app_name, cmd_name, cmd_payload)
+        (cmd_sent, cmd_text, cmd_status) = self.telecommand_script.send_cfs_cmd(app_name, cmd_name, cmd_payload)
         self.display_event(cmd_status)
 
 
@@ -685,9 +685,9 @@ class App():
             evs_cmd = 'AddEventFilterCmd'
             self.cfe_time_event_filter = True
                         
-            self.send_app_cmd('CFE_EVS', evs_cmd,  {'AppName': 'CFE_TIME', 'EventID': Cfe.CFE_TIME_FLY_ON_EID, 'Mask': Cfe.CFE_EVS_FIRST_ONE_STOP})
+            self.send_cfs_cmd('CFE_EVS', evs_cmd,  {'AppName': 'CFE_TIME', 'EventID': Cfe.CFE_TIME_FLY_ON_EID, 'Mask': Cfe.CFE_EVS_FIRST_ONE_STOP})
             time.sleep(0.5)
-            self.send_app_cmd('CFE_EVS', evs_cmd,  {'AppName': 'CFE_TIME', 'EventID': Cfe.CFE_TIME_FLY_OFF_EID, 'Mask': Cfe.CFE_EVS_FIRST_ONE_STOP})
+            self.send_cfs_cmd('CFE_EVS', evs_cmd,  {'AppName': 'CFE_TIME', 'EventID': Cfe.CFE_TIME_FLY_OFF_EID, 'Mask': Cfe.CFE_EVS_FIRST_ONE_STOP})
 
     def ComingSoonPopup(self, feature_str):
         sg.popup(feature_str, title='Coming soon...', grab_anywhere=True, modal=False)
@@ -852,7 +852,7 @@ class App():
                 self.cmd_tlm_router.add_cmd_source(8000)   #TODO - Add port number management 
                 self.cmd_tlm_router.add_tlm_dest(9000)     #TODO - Add port number management
                 self.ComingSoonPopup("Create router cmd soucre and tlm destnation. Start file browser. Time reset command will be sent when you close this.")
-                self.send_app_cmd('CFE_TIME', 'SetTimeCmd', {'Seconds': 0,'MicroSeconds': 0 })
+                self.send_cfs_cmd('CFE_TIME', 'SetTimeCmd', {'Seconds': 0,'MicroSeconds': 0 })
                 self.ComingSoonPopup("Create router cmd soucre and tlm destnation. Start file browser")
 
             if self.event == 'Uplink File':
@@ -864,7 +864,7 @@ class App():
                 file_len = os.stat(filename).st_size
                 
                 sg.popup("Before SendFile command", title='FILE_XFER Debug', grab_anywhere=True, modal=False)
-                self.send_app_cmd('FILE_XFER', 'SendFile', {'DestFilename': '/cf/fitp_test.txt'})
+                self.send_cfs_cmd('FILE_XFER', 'SendFile', {'DestFilename': '/cf/fitp_test.txt'})
 
                 # https://stackoverflow.com/questions/52722787/problem-sending-binary-files-via-sockets-python
                 # send file size as big endian 64 bit value (8 bytes)
@@ -876,11 +876,11 @@ class App():
                            break
                 
                         sg.popup("Before SendFitpDataSegment command", title='FILE_XFER Debug', grab_anywhere=True, modal=False)
-                        self.send_app_cmd('FILE_XFER', 'SendFitpDataSegment', {'Id': data_seg_id, 'Len': len(data_segment), 'Data': data_segment})
+                        self.send_cfs_cmd('FILE_XFER', 'SendFitpDataSegment', {'Id': data_seg_id, 'Len': len(data_segment), 'Data': data_segment})
                         file_crc = CRC_32c(file_crc, data_segment)
                         data_seg_id += 1
                     sg.popup("Before FinishFitpTransfer command", title='FILE_XFER Debug', grab_anywhere=True, modal=False)
-                    self.send_app_cmd('FILE_XFER', 'FinishFitpTransfer', {'FileLen': file_len, 'FileCrc': file_crc, 'LastDataSegmentId': data_seg_id-1})
+                    self.send_cfs_cmd('FILE_XFER', 'FinishFitpTransfer', {'FileLen': file_len, 'FileCrc': file_crc, 'LastDataSegmentId': data_seg_id-1})
             
             if self.event == 'Downlink File':
                 self.ComingSoonPopup("Downlink a file from the FSW to the ground")
@@ -940,19 +940,19 @@ class App():
             if self.event == '-CFS_CONFIG_CMD-':
                 cfs_config_cmd = self.values['-CFS_CONFIG_CMD-']
                 if cfs_config_cmd == cfs_config_cmds[1]: # Enable Telemetry
-                    self.send_app_cmd('TO_LAB', 'EnableOutputCmd', {'dest_IP': self.CFS_TARGET_HOST_ADDR})
+                    self.send_cfs_cmd('TO_LAB', 'EnableOutputCmd', {'dest_IP': self.CFS_TARGET_HOST_ADDR})
                     # Disable flywheel events. Assume new cFS instance running so set time_event_filter to false 
                     self.cfe_time_event_filter = False 
                     time.sleep(0.5)
                     self.disable_flywheel_event()
 
                 elif cfs_config_cmd == cfs_config_cmds[2]: # cFE Version (CFE ES Noop)
-                    self.send_app_cmd('CFE_ES', 'NoopCmd', {})
+                    self.send_cfs_cmd('CFE_ES', 'NoopCmd', {})
             
                 elif cfs_config_cmd == cfs_config_cmds[3]: # Reset Time
-                    self.send_app_cmd('CFE_TIME', 'SetMETCmd', {'Seconds': 0,'MicroSeconds': 0 })
+                    self.send_cfs_cmd('CFE_TIME', 'SetMETCmd', {'Seconds': 0,'MicroSeconds': 0 })
                     time.sleep(0.5)
-                    self.send_app_cmd('CFE_TIME', 'SetTimeCmd', {'Seconds': 0,'MicroSeconds': 0 })
+                    self.send_cfs_cmd('CFE_TIME', 'SetTimeCmd', {'Seconds': 0,'MicroSeconds': 0 })
             
                 elif cfs_config_cmd == cfs_config_cmds[4]: # Configure Events
                 
@@ -976,9 +976,9 @@ class App():
                     bit_mask = (bit_mask | (Cfe.EVS_CRITICAL_MASK if pop_values['-CRITICAL-'] else 0))
 
                     if pop_event == '-ENABLE-':
-                        self.send_app_cmd('CFE_EVS', 'EnableAppEventTypeCmd',  {'AppName': app_name, 'BitMask': bit_mask})
+                        self.send_cfs_cmd('CFE_EVS', 'EnableAppEventTypeCmd',  {'AppName': app_name, 'BitMask': bit_mask})
                     if pop_event == '-DISABLE-':
-                        self.send_app_cmd('CFE_EVS', 'DisableAppEventTypeCmd',  {'AppName': app_name, 'BitMask': bit_mask})
+                        self.send_cfs_cmd('CFE_EVS', 'DisableAppEventTypeCmd',  {'AppName': app_name, 'BitMask': bit_mask})
 
                     pop_win.close()
                 
@@ -997,9 +997,9 @@ class App():
                  
                     if pop_event == '-FLYWHEEL_ENABLE-':
                 
-                        self.send_app_cmd('CFE_EVS', 'SetFilterCmd',  {'AppName': 'CFE_TIME','EventID': Cfe.CFE_TIME_FLY_ON_EID, 'Mask': Cfe.CFE_EVS_NO_FILTER})
+                        self.send_cfs_cmd('CFE_EVS', 'SetFilterCmd',  {'AppName': 'CFE_TIME','EventID': Cfe.CFE_TIME_FLY_ON_EID, 'Mask': Cfe.CFE_EVS_NO_FILTER})
                         time.sleep(0.5)
-                        self.send_app_cmd('CFE_EVS', 'SetFilterCmd',  {'AppName': 'CFE_TIME','EventID': Cfe.CFE_TIME_FLY_OFF_EID, 'Mask': Cfe.CFE_EVS_NO_FILTER})
+                        self.send_cfs_cmd('CFE_EVS', 'SetFilterCmd',  {'AppName': 'CFE_TIME','EventID': Cfe.CFE_TIME_FLY_OFF_EID, 'Mask': Cfe.CFE_EVS_NO_FILTER})
                 
                     if pop_event == '-FLYWHEEL_DISABLE-':
                         
@@ -1041,6 +1041,14 @@ class App():
 
         self.shutdown()
 
+"""
+Open PDF options
+import subprocess
+subprocess.Popen([file],shell=True)
+subprocess.call(["xdg-open", file])
+import webbrowser
+webbrowser.open_new(r'file://C:\path\to\file.pdf')
+"""
 
 if __name__ == '__main__':
 
