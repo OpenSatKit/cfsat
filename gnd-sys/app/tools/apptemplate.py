@@ -220,13 +220,13 @@ class CreateApp():
             logger.debug("self.app_template_lookup[%s] => %s" % (app_title, str(app_meta_data)))
             app_template_layout.append([sg.Radio(app_title, "APP_TEMPLATES", default=False, font=hdr_value_font, size=(30,0), key=app_title)])
         
-        self.layout = [
-                       [sg.Text('Select Application Template: ', font=hdr_label_font)],
-                       app_template_layout, 
-                       [sg.Button('Description'), sg.Button('Create App'), sg.Button('Cancel')]
-                      ]
+        layout = [
+                  [sg.Text('Select Application Template: ', font=hdr_label_font)],
+                  app_template_layout, 
+                  [sg.Button('Description'), sg.Button('Create App'), sg.Button('Cancel')]
+                 ]
         
-        self.window = sg.Window('Create Application', self.layout, modal=False)
+        self.window = sg.Window('Create Application', layout, modal=False)
 
         while True: # Event Loop
             

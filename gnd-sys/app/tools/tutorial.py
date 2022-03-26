@@ -111,13 +111,13 @@ class Lesson():
     
         self.update_slide_file()
         
-        self.layout = [
-                       [sg.Text('Slide'), sg.Text(str(self.cur_slide), pad=(2,1), key='-SLIDE-')],   
-                       [sg.Image(filename=self.slide_file, key='-IMAGE-')],
-                       [sg.Button('Prev', size=(8,2)), sg.Button('Next', size=(8, 2)), sg.Button('Mark as Complete', pad=(10,0))]
-                      ]
+        layout = [
+                  [sg.Text('Slide'), sg.Text(str(self.cur_slide), pad=(2,1), key='-SLIDE-')],   
+                  [sg.Image(filename=self.slide_file, key='-IMAGE-')],
+                  [sg.Button('Prev', size=(8,2)), sg.Button('Next', size=(8, 2)), sg.Button('Mark as Complete', pad=(10,0))]
+                 ]
  
-        self.window = sg.Window(self.json.title(), self.layout, element_justification='c', resizable=True, modal=True)
+        self.window = sg.Window(self.json.title(), layout, element_justification='c', resizable=True, modal=True)
         
         while True:
 
@@ -187,7 +187,6 @@ class Tutorial():
             logger.info("lesson_pngs = " + str(lesson_pngs))
             self.lesson_objs[l] = Lesson(l, lesson_num_path, lesson_pngs)
         
-        self.window  = None
         self.display = True
         self.reset   = False
 
@@ -221,22 +220,24 @@ class Tutorial():
             radio_state    = True if lesson.number == resume_lesson else False
             lesson_layout.append([sg.Radio(title, "LESSONS", default=radio_state, font=hdr_value_font, size=(30,0), key='-LESSON%d-'%lesson.number), sg.Text(complete_state, key='-COMPLETE%d-'%lesson.number)])
         
-        self.layout = [
-                       [sg.Text('Objectives', font=hdr_label_font)],
-                       [sg.MLine(default_text=objective_text, font = hdr_value_font, size=(40, 4))],
-                       # Lesson size less than lesson layout so complete status will appear centered 
-                       [sg.Text('Lesson', font=hdr_label_font, size=(28,0)),sg.Text('Complete', font=hdr_label_font, size=(10,0))],  
-                       lesson_layout, 
-                       [sg.Button('Start'), sg.Button('Reset'), sg.Button('Exit')]
-                      ]
         
         while self.display:
 
-            self.window = sg.Window(self.json.title(), self.layout, modal=True)
+            # Layouts can't be reused/shared so if someone does a tutorial reset it casues issues if layout is a class variable
+            layout = [
+                      [sg.Text('Objectives', font=hdr_label_font)],
+                      [sg.MLine(default_text=objective_text, font = hdr_value_font, size=(40, 4))],
+                      # Lesson size less than lesson layout so complete status will appear centered 
+                      [sg.Text('Lesson', font=hdr_label_font, size=(28,0)),sg.Text('Complete', font=hdr_label_font, size=(10,0))],  
+                      lesson_layout, 
+                      [sg.Button('Start'), sg.Button('Reset'), sg.Button('Exit')]
+                     ]
+
+            window = sg.Window(self.json.title(), layout, modal=True)
 
             while True: # Event Loop
 
-                self.event, self.values = self.window.read(timeout=100)
+                self.event, self.values = window.read(timeout=100)
                    
                 if self.event in (sg.WIN_CLOSED, 'Exit') or self.event is None:       
                     break
@@ -245,7 +246,7 @@ class Tutorial():
                     for lesson in self.lesson_objs:
                         if self.values["-LESSON%d-"%lesson] == True:
                             if self.lesson_objs[lesson].execute():
-                                self.window['-COMPLETE%d-'%lesson].update('Yes') 
+                                window['-COMPLETE%d-'%lesson].update('Yes') 
                 
                 if self.event == 'Reset':
                     for lesson in list(self.lesson_objs.values()):
@@ -254,7 +255,7 @@ class Tutorial():
                     break
         
             self.json.update()
-            self.window.close()
+            window.close()
         
             if self.reset:
                 self.reset = False

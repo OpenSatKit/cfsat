@@ -69,6 +69,7 @@ class CfsCmdSource():
                 datagram, host = self.socket.recvfrom(1024)
                 queue.put((datagram, host))
                 logger.info(f"Received cmd source datagram: size={len(datagram)} {host}")
+                print(f"Received cmd source datagram: size={len(datagram)} {host}")
         except socket.timeout:
             pass
 

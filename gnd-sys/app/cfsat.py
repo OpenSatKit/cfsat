@@ -47,6 +47,7 @@ import threading
 import queue
 import json
 import signal
+import webbrowser
 from datetime import datetime
 
 import logging
@@ -748,7 +749,8 @@ class App():
                        ['System', ['Options','Perf Monitor', 'About...', 'Exit']],
                        #['cFS Target', ['Set Target', 'Start cFS', 'Stop cFS', 'App Suite...']],
                        ['Apps', ['Create...']], #, 'Develop', 'Test']],
-                       ['Files', ['File Browser', 'Uplink File', 'Downlink File', 'Load JSON Table', 'Dump JSON Table']],
+                       ['Files', ['File Browser...', 'Uplink File', 'JSON Tables...']],
+                       ['Docs', ['cFS Overview', 'cFE Overview', 'OSK App Dev']],
                        ['Tutorials', self.manage_tutorials.tutorial_titles]
                    ]
 
@@ -804,7 +806,7 @@ class App():
         # --- Loop taking in user input --- #
         while True:
     
-            self.event, self.values = self.window.read(timeout=500)
+            self.event, self.values = self.window.read(timeout=250)
             logger.debug("App Window Read()\nEvent: %s\nValues: %s" % (self.event, self.values))
 
             if self.event in (sg.WIN_CLOSED, 'Exit') or self.event is None:
@@ -823,6 +825,7 @@ class App():
                 datagram = self.cfs_cmd_input_queue.get()[0]
                 self.cfs_cmd_output_queue.put(datagram)
                 self.display_event("Sent remote process command: " + datagram_to_str(datagram))
+                print("Sent remote process command: " + datagram_to_str(datagram))
             
             #######################
             ##### MENU EVENTS #####
@@ -833,31 +836,32 @@ class App():
             if self.event == 'Options':
                 self.ComingSoonPopup("Configure system behavioral options")
             
-            if self.event == 'Perf Monitor':
+            elif self.event == 'Perf Monitor':
                 self.ComingSoonPopup("Launch the cFS Performanc Monitor tool")
-            
-            if self.event == 'About...':
+                subprocess.Popen("java -jar ../perf-monitor/CPM.jar",shell=True)  #TODO - Use ini file path definition
+
+            elif self.event == 'About...':
                 sg.popup('Version ' + self.APP_VERSION,
                          title='About cFS Application Toolkit', 
                          grab_anywhere=True)
        
             ### APPS ###
 
-            if self.event == 'Create...':
+            elif self.event == 'Create...':
                 self.create_app.execute()
 
             ### FILES ###
 
-            if self.event == 'File Browser':
+            elif self.event == 'File Browser...':
                 self.cmd_tlm_router.add_cmd_source(8000)   #TODO - Add port number management 
                 self.cmd_tlm_router.add_tlm_dest(9000)     #TODO - Add port number management
                 self.ComingSoonPopup("Create router cmd soucre and tlm destnation. Start file browser. Time reset command will be sent when you close this.")
                 self.send_cfs_cmd('CFE_TIME', 'SetTimeCmd', {'Seconds': 0,'MicroSeconds': 0 })
                 self.ComingSoonPopup("Create router cmd soucre and tlm destnation. Start file browser")
 
-            if self.event == 'Uplink File':
+            elif self.event == 'Uplink File':
                 
-                filename = 'fitp_test.txt'
+                filename = '/home/grandpa-dave/cfsat/gnd-sys/flt-file-server/fitp_test.txt'
                 file_crc    = 0
                 bytes_read  = 0
                 data_seg_id = 1
@@ -882,18 +886,27 @@ class App():
                     sg.popup("Before FinishFitpTransfer command", title='FILE_XFER Debug', grab_anywhere=True, modal=False)
                     self.send_cfs_cmd('FILE_XFER', 'FinishFitpTransfer', {'FileLen': file_len, 'FileCrc': file_crc, 'LastDataSegmentId': data_seg_id-1})
             
-            if self.event == 'Downlink File':
-                self.ComingSoonPopup("Downlink a file from the FSW to the ground")
-
-            if self.event == 'Load Table':
-                self.ComingSoonPopup("Load an app's JSON table")
+            elif self.event == 'JSON Tables...':
+                self.ComingSoonPopup("Load/Dump app JSON tables")
        
-            if self.event == 'Dump Table':
-                self.ComingSoonPopup("Dump an app's JSON table")
 
+            ### DOCS ###
+            
+            elif self.event == 'cFS Overview':
+                path_filename = os.path.join(self.path, "../../docs/cFS-Overview.pdf")  #TODO - Ini file
+                webbrowser.open_new(r'file://'+path_filename)
+                #subprocess.Popen([path_filename],shell=True) # Permision Denied
+                #subprocess.call(["xdg-open", path_filename]) # Not portable
+            
+            elif self.event == 'cFE Overview':
+                pass
+                
+            elif self.event == 'OSK App Dev':
+                pass
+                
             ### TUTORIALS ###
                    
-            if self.event in self.manage_tutorials.tutorial_titles:
+            elif self.event in self.manage_tutorials.tutorial_titles:
                 tutorial_dir = os.path.join(self.path, "tools")
                 sg.execute_py_file("tutorial.py", cwd=tutorial_dir)
                 
@@ -901,7 +914,7 @@ class App():
             ##### TOP ROW BUTTON EVENTS #####
             #################################
  
-            if self.event == '-START_CFS-':
+            elif self.event == '-START_CFS-':
 
                 #todo: Kill current thread if running
                 #todo: history_setting_filename doesn't seem to do anything. My goal is to save cFS imagelocations across app invocations 
@@ -916,7 +929,7 @@ class App():
                     self.window["-CFS_IMAGE-"].update(self.GUI_IMAGE_TXT_PREFIX + self.cfs_exe_str)
                     self.cfs_popen = sg.execute_command_subprocess(self.cfs_exe_str, cwd=cfs_dir)
 
-            if self.event == '-STOP_CFS-':
+            elif self.event == '-STOP_CFS-':
                 if self.cfs_popen is not None:
                     logger.info("Killing cFS Process")
                     self.cfs_popen.kill()
@@ -937,7 +950,7 @@ class App():
                 else:
                     self.window["-CFS_IMAGE-"].update(self.GUI_NO_IMAGE_TXT)
 
-            if self.event == '-CFS_CONFIG_CMD-':
+            elif self.event == '-CFS_CONFIG_CMD-':
                 cfs_config_cmd = self.values['-CFS_CONFIG_CMD-']
                 if cfs_config_cmd == cfs_config_cmds[1]: # Enable Telemetry
                     self.send_cfs_cmd('TO_LAB', 'EnableOutputCmd', {'dest_IP': self.CFS_TARGET_HOST_ADDR})
@@ -1007,14 +1020,14 @@ class App():
 
                     pop_win.close()
                    
-            if self.event == '-CMD_TOPICS-':
+            elif self.event == '-CMD_TOPICS-':
                 #todo: Create a command string for event window. Raw text may be an option so people can capture commands
                 cmd_topic = self.values['-CMD_TOPICS-']
                 (cmd_sent, cmd_text, cmd_status) = self.telecommand_gui.execute(cmd_topic)
                 self.display_event(cmd_status)
                 self.display_event(cmd_text)
             
-            if self.event == '-TLM_TOPICS-':
+            elif self.event == '-TLM_TOPICS-':
                 print("View TLM")
                 tlm_topic = self.values['-TLM_TOPICS-']
                 print("tlm_topic = " + tlm_topic)
@@ -1035,20 +1048,12 @@ class App():
                 else:
                     sg.popup('Please select a telemetry topic from the dropdown list', title='Telemetry Topic')
                 
-            if self.event == '-CLEAR_EVENTS-':
+            elif self.event == '-CLEAR_EVENTS-':
                 self.event_history = ""
                 self.display_event("Cleared event display")
 
         self.shutdown()
 
-"""
-Open PDF options
-import subprocess
-subprocess.Popen([file],shell=True)
-subprocess.call(["xdg-open", file])
-import webbrowser
-webbrowser.open_new(r'file://C:\path\to\file.pdf')
-"""
 
 if __name__ == '__main__':
 
