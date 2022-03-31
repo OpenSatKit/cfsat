@@ -10,8 +10,8 @@
       "APP_CMD_PIPE_NAME":   "FILE_XFER_CMD",
            
       "APP_CMD_MID":      6239,
-      "APP_SEND_HK_MID":  6240,
-      "APP_EXECUTE_MID":  6241,
+      "APP_EXECUTE_MID":  6240,
+      "APP_SEND_HK_MID":  6241,
      
       "APP_HK_TLM_MID":               2140,
       "FOTP_START_TRANSFER_TLM_MID":  2141,

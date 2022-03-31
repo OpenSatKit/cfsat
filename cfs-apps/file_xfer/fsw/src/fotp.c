@@ -73,17 +73,17 @@ void FOTP_Constructor(FOTP_Class_t* FotpPtr, INITBL_Class_t* IniTbl)
    
    FOTP_ResetStatus();
 
-   CFE_MSG_Init(CFE_MSG_PTR(Fotp->StartTransferPkt.TlmHeader), 
-                  CFE_SB_ValueToMsgId(INITBL_GetIntConfig(Fotp->IniTbl, CFG_FOTP_START_TRANSFER_TLM_MID)),
-                  FOTP_START_TRANSFER_TLM_LEN);
+   CFE_MSG_Init(CFE_MSG_PTR(Fotp->StartTransferPkt.TelemetryHeader), 
+                CFE_SB_ValueToMsgId(INITBL_GetIntConfig(Fotp->IniTbl, CFG_FOTP_START_TRANSFER_TLM_MID)),
+                sizeof(FILE_XFER_FotpStartTransferTlm_t));
 
-   CFE_MSG_Init(CFE_MSG_PTR(Fotp->DataSegmentPkt.TlmHeader), 
-                 CFE_SB_ValueToMsgId(INITBL_GetIntConfig(Fotp->IniTbl, CFG_FOTP_DATA_SEGMENT_TLM_MID)),
-                 FOTP_DATA_SEGMENT_TLM_LEN);
+   CFE_MSG_Init(CFE_MSG_PTR(Fotp->DataSegmentPkt.TelemetryHeader),
+               CFE_SB_ValueToMsgId(INITBL_GetIntConfig(Fotp->IniTbl, CFG_FOTP_DATA_SEGMENT_TLM_MID)),
+               sizeof(FILE_XFER_FotpDataSegmentTlm_t));
 
-   CFE_MSG_Init(CFE_MSG_PTR(Fotp->FinishTransferPkt.TlmHeader),
-                  CFE_SB_ValueToMsgId(INITBL_GetIntConfig(Fotp->IniTbl, CFG_FOTP_FINISH_TRANSFER_TLM_MID)),
-                  FOTP_FINISH_TRANSFER_TLM_LEN);
+   CFE_MSG_Init(CFE_MSG_PTR(Fotp->FinishTransferPkt.TelemetryHeader),
+                CFE_SB_ValueToMsgId(INITBL_GetIntConfig(Fotp->IniTbl, CFG_FOTP_FINISH_TRANSFER_TLM_MID)),
+                sizeof(FILE_XFER_FotpFinishTransferTlm_t));
 
    OS_TaskInstallDeleteHandler(DestructorCallback); /* Called when application terminates */
 
@@ -128,8 +128,8 @@ void FOTP_ResetStatus(void)
 */
 bool FOTP_StartTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
-   
-   const FOTP_StartTransferCmdPayload_t* StartTransferCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FOTP_StartTransferCmdMsg_t);
+
+   const FILE_XFER_FotpStartTransfer_Payload_t *StartTransferCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_XFER_StartReceiveFile_t);   
    
    FileUtil_FileInfo_t  FileInfo;
    os_err_name_t        OsErrStr;
@@ -141,12 +141,12 @@ bool FOTP_StartTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
    bool    ValidCmdParams = false;
    bool    RetStatus = false;
    
-
+   OS_printf("FOTP_StartTransferCmd: %s, DataSegLen %d, DataSegOffset %d\n", StartTransferCmd->SrcFilename, StartTransferCmd->DataSegLen, StartTransferCmd->DataSegOffset);
    if (Fotp->FileTransferState == FOTP_IDLE)
    {
             
       /* FileUtil_GetFileInfo() validates the filename */
-      FileInfo = FileUtil_GetFileInfo(StartTransferCmd->SrcFilename,FOTP_FILENAME_LEN, true);
+      FileInfo = FileUtil_GetFileInfo(StartTransferCmd->SrcFilename, FOTP_FILENAME_LEN, true);
       if (FILEUTIL_FILE_EXISTS(FileInfo.State) && FileInfo.State == FILEUTIL_FILE_CLOSED)
       {
          
@@ -162,8 +162,8 @@ bool FOTP_StartTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
             {
                CFE_EVS_SendEvent(FOTP_START_TRANSFER_CMD_ERR_EID, CFE_EVS_EventType_ERROR, 
                                  "Start transfer command rejected: File byte offset %d (seg len*offset %d*%d) not less than file length %d.",
-                                 StartTransferCmd->DataSegLen, StartTransferCmd->DataSegOffset,
-                                 FileByteOffset, FileInfo.Size);
+                                 FileByteOffset, StartTransferCmd->DataSegLen,
+                                 StartTransferCmd->DataSegOffset, FileInfo.Size);
             }
          } /* End if valid DataSegLen */
          else
@@ -176,7 +176,7 @@ bool FOTP_StartTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
          if (ValidCmdParams)
          {
 
-            OsStatus = OS_OpenCreate(&Fotp->FileHandle, StartTransferCmd->SrcFilename, OS_FILE_FLAG_CREATE | OS_FILE_FLAG_TRUNCATE, OS_READ_WRITE);
+            OsStatus = OS_OpenCreate(&Fotp->FileHandle, StartTransferCmd->SrcFilename, OS_FILE_FLAG_NONE, OS_READ_ONLY);
             
             if (OsStatus == OS_SUCCESS)
             {      
@@ -244,7 +244,7 @@ OS_printf("i=%d, StartTransferCmd->DataSegOffset=%d\n",i,StartTransferCmd->DataS
          
          CFE_EVS_SendEvent(FOTP_START_TRANSFER_CMD_ERR_EID, CFE_EVS_EventType_ERROR, 
                            "Start transfer command rejected: %s is either an invalid filename or the file is open",
-                           Fotp->SrcFilename);
+                           StartTransferCmd->SrcFilename);
 
       }
       
@@ -459,32 +459,32 @@ static SendDataSegmentState_t SendDataSegments(void)
       while (ContinueSend)
       {
          
-         Fotp->DataSegmentPkt.Id = Fotp->NextDataSegmentId;
+         Fotp->DataSegmentPkt.Payload.Id = Fotp->NextDataSegmentId;
          
          RemainingBytes = Fotp->FileLen - Fotp->FileTransferByteCnt;
          if (RemainingBytes <= Fotp->DataSegmentLen)
          {
-            Fotp->DataSegmentPkt.Len = RemainingBytes;
+            Fotp->DataSegmentPkt.Payload.Len = RemainingBytes;
             Fotp->LastDataSegment = true;
          }
          else
          {
-            Fotp->DataSegmentPkt.Len = Fotp->DataSegmentLen;
+            Fotp->DataSegmentPkt.Payload.Len = Fotp->DataSegmentLen;
          }
          
-         memset(Fotp->DataSegmentPkt.Data, 0, FOTP_DATA_SEG_MAX_LEN);
-         FileBytesRead = OS_read(Fotp->FileHandle, Fotp->DataSegmentPkt.Data, Fotp->DataSegmentPkt.Len);
+         memset(Fotp->DataSegmentPkt.Payload.Data, 0, FOTP_DATA_SEG_MAX_LEN);
+         FileBytesRead = OS_read(Fotp->FileHandle, Fotp->DataSegmentPkt.Payload.Data, Fotp->DataSegmentPkt.Payload.Len);
          
-         if (FileBytesRead == Fotp->DataSegmentPkt.Len)
+         if (FileBytesRead == Fotp->DataSegmentPkt.Payload.Len)
          {
-            Fotp->FileRunningCrc = CRC_32c(Fotp->FileRunningCrc, Fotp->DataSegmentPkt.Data, FileBytesRead);
-            CFE_SB_SetUserDataLength((CFE_MSG_Message_t *)&Fotp->DataSegmentPkt, (FOTP_DATA_SEGMENT_NON_DATA_TLM_LEN + Fotp->DataSegmentPkt.Len));
+            Fotp->FileRunningCrc = CRC_32c(Fotp->FileRunningCrc, (const uint8 *)Fotp->DataSegmentPkt.Payload.Data, FileBytesRead);
+            //TODO - Always send full packet: CFE_SB_SetUserDataLength((CFE_MSG_Message_t *)&Fotp->DataSegmentPkt, (FOTP_DATA_SEGMENT_NON_DATA_TLM_LEN + Fotp->DataSegmentPkt.Payload.Len));
           
             if (SendFileTransferTlm(FOTP_SEND_DATA))
             {
                Fotp->PrevSendDataSegmentFailed = false;
                Fotp->NextDataSegmentId++;
-               Fotp->FileTransferByteCnt += Fotp->DataSegmentPkt.Len;
+               Fotp->FileTransferByteCnt += Fotp->DataSegmentPkt.Payload.Len;
                if (Fotp->LastDataSegment)
                {
                   CloseFile    = true;
@@ -507,10 +507,11 @@ static SendDataSegmentState_t SendDataSegments(void)
          else
          {
            CloseFile = true;
+           ContinueSend = false;
            SendDataSegmentState = SEND_DATA_SEGMENT_ABORTED;
            CFE_EVS_SendEvent(FOTP_SEND_DATA_SEGMENT_ERR_EID, CFE_EVS_EventType_ERROR, 
                              "File transfer aborted: Error reading data from file %s. Attempted %d bytes, read %d",
-                             Fotp->SrcFilename, Fotp->DataSegmentPkt.Len, FileBytesRead);
+                             Fotp->SrcFilename, Fotp->DataSegmentPkt.Payload.Len, FileBytesRead);
          }
          
       } /* End while send DataSegment */
@@ -529,7 +530,7 @@ static SendDataSegmentState_t SendDataSegments(void)
          
          Fotp->PrevSendDataSegmentFailed = false;
          Fotp->NextDataSegmentId++;
-         Fotp->FileTransferByteCnt += Fotp->DataSegmentPkt.Len;
+         Fotp->FileTransferByteCnt += Fotp->DataSegmentPkt.Payload.Len;
          if (Fotp->LastDataSegment)
          {
             CloseFile = true;
@@ -577,21 +578,21 @@ static bool SendFileTransferTlm(FOTP_FileTransferState_t FileTransferState)
    switch (Fotp->FileTransferState)
    {   
       case FOTP_START:
-         Fotp->StartTransferPkt.DataLen = Fotp->DataTransferLen;
-         strncpy(Fotp->StartTransferPkt.SrcFilename, Fotp->SrcFilename, FOTP_FILENAME_LEN);
-         TlmHeader = &Fotp->StartTransferPkt.TlmHeader;
+         Fotp->StartTransferPkt.Payload.DataLen = Fotp->DataTransferLen;
+         strncpy(Fotp->StartTransferPkt.Payload.SrcFilename, Fotp->SrcFilename, FOTP_FILENAME_LEN);
+         TlmHeader = &Fotp->StartTransferPkt.TelemetryHeader;
          break;
          
       case FOTP_SEND_DATA:
          /* Segment ID is loaded prior to this call */
-         TlmHeader = &Fotp->DataSegmentPkt.TlmHeader;
+         TlmHeader = &Fotp->DataSegmentPkt.TelemetryHeader;
          break;
          
       case FOTP_FINISH:
-         Fotp->FinishTransferPkt.FileLen           = Fotp->FileLen;
-         Fotp->FinishTransferPkt.FileCrc           = Fotp->FileRunningCrc;
-         Fotp->FinishTransferPkt.LastDataSegmentId = Fotp->NextDataSegmentId-1;
-         TlmHeader = &Fotp->FinishTransferPkt.TlmHeader;
+         Fotp->FinishTransferPkt.Payload.FileLen           = Fotp->FileLen;
+         Fotp->FinishTransferPkt.Payload.FileCrc           = Fotp->FileRunningCrc;
+         Fotp->FinishTransferPkt.Payload.LastDataSegmentId = Fotp->NextDataSegmentId-1;
+         TlmHeader = &Fotp->FinishTransferPkt.TelemetryHeader;
          break;
          
       default:

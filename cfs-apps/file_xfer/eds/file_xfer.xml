@@ -62,7 +62,25 @@
         </EnumerationList>
       </EnumeratedDataType>
 
+      <StringDataType name="FitpDataSegment" length="${FILE_XFER/FITP_DATA_SEG_MAX_LEN}" shortDescription="" />
+      <StringDataType name="FotpDataSegment" length="${FILE_XFER/FOTP_DATA_SEG_MAX_LEN}" shortDescription="" />
 
+      <!-- Failed attempts
+      <ArrayDataType name="FitpDataBlock" dataTypeRef="BASE_TYPES/uint8">
+        <DimensionList>
+           <Dimension size="${FILE_XFER/FITP_DATA_SEG_MAX_LEN}"/>
+        </DimensionList>
+      </ArrayDataType>
+      <BinaryDataType name="FitpDataBlock">
+
+      <ArrayDataType name="FotpDataBlock" dataTypeRef="BASE_TYPES/uint8">
+        <DimensionList>
+           <Dimension size="${FILE_XFER/FOTP_DATA_SEG_MAX_LEN}"/>
+        </DimensionList>
+      </ArrayDataType>
+      -->
+      
+            
       <!--***************************************-->
       <!--**** DataTypeSet: Command Payloads ****-->
       <!--***************************************-->
@@ -75,21 +93,11 @@
         </EntryList>
       </ContainerDataType>
 
-      <!-- Failed attempts
-      <ArrayDataType name="FitpDataBlock" dataTypeRef="BASE_TYPES/uint8">
-        <DimensionList>
-           <Dimension size="${FILE_XFER/FITP_DATA_SEG_MAX_LEN}"/>
-        </DimensionList>
-      </ArrayDataType>
-      <BinaryDataType name="FitpDataBlock">
-      -->
-      
-      <StringDataType name="FitpDataBlock" length="${FILE_XFER/FITP_DATA_SEG_MAX_LEN}" shortDescription="" />
       <ContainerDataType name="FitpDataSegment_Payload">
         <EntryList>
           <Entry name="Id"    type="BASE_TYPES/uint16"  shortDescription="Integer identifier that increments for each sequential segement" />
           <Entry name="Len"   type="BASE_TYPES/uint16"  shortDescription="Number of data bytes in the data blosk" />
-          <Entry name="Data"  type="FitpDataBlock"      shortDescription="Data must be defined last because it is variable length" />
+          <Entry name="Data"  type="FitpDataSegment"    shortDescription="Data must be defined last because it is variable length" />
         </EntryList>
       </ContainerDataType>
 
@@ -175,17 +183,11 @@
         </EntryList>
       </ContainerDataType>
 
-      <ArrayDataType name="FotpDataBlock" dataTypeRef="BASE_TYPES/uint8">
-        <DimensionList>
-           <Dimension size="${FILE_XFER/FOTP_DATA_SEG_MAX_LEN}"/>
-        </DimensionList>
-      </ArrayDataType>
-      
       <ContainerDataType name="FotpDataSegmentTlm_Payload" shortDescription="">
         <EntryList>
           <Entry name="Id"    type="BASE_TYPES/uint16" shortDescription="Integer identifier that increments for each sequential segement" />
           <Entry name="Len"   type="BASE_TYPES/uint16" shortDescription="Either file length or file length minus commanded segment offset" />
-          <Entry name="Data"  type="FotpDataBlock"     shortDescription="Data must be defined last because it is variable length" />
+          <Entry name="Data"  type="FotpDataSegment"   shortDescription="Data must be defined last because it is variable length" />
         </EntryList>
       </ContainerDataType>
 

@@ -33,6 +33,7 @@ from datetime import datetime
 
 import logging
 logger = logging.getLogger(__name__)
+
 if __name__ == '__main__':
     from jsonfile import JsonFile
     from utils    import compress_abs_path

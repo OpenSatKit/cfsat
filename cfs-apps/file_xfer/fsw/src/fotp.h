@@ -117,6 +117,7 @@ typedef enum
 ** Command Packets
 */
 
+/* TODO - Delete
 typedef struct
 {
 
@@ -138,17 +139,18 @@ typedef struct
 #define FOTP_PAUSE_TRANSFER_CMD_DATA_LEN   PKTUTIL_NO_PARAM_CMD_DATA_LEN
 #define FOTP_RESUME_TRANSFER_CMD_DATA_LEN  PKTUTIL_NO_PARAM_CMD_DATA_LEN
 #define FOTP_CANCEL_TRANSFER_CMD_DATA_LEN  PKTUTIL_NO_PARAM_CMD_DATA_LEN
-
+*/
 
 /******************************************************************************
 ** Telemetry Packets
 */
 
+/* TODO - Delete
 typedef struct
 {
 
    CFE_MSG_TelemetryHeader_t TlmHeader;
-   uint32  DataLen;                          /* Either file length or file length minus commanded segment offset */
+   uint32  DataLen;                          // Either file length or file length minus commanded segment offset
    char    SrcFilename[FOTP_FILENAME_LEN];
 
 } FOTP_StartTransferPkt_t;
@@ -160,7 +162,7 @@ typedef struct
    CFE_MSG_TelemetryHeader_t TlmHeader;
    uint16  Id;
    uint16  Len;
-   uint8   Data[FOTP_DATA_SEG_MAX_LEN];   /* Data must be defined last because it is variable length */
+   uint8   Data[FOTP_DATA_SEG_MAX_LEN];   // Data must be defined last because it is variable length
 
 } FOTP_DataSegmentPkt_t;
 #define FOTP_DATA_SEGMENT_TLM_LEN sizeof (FOTP_DataSegmentPkt_t)
@@ -176,7 +178,7 @@ typedef struct
 
 } FOTP_FinishTransferPkt_t;
 #define FOTP_FINISH_TRANSFER_TLM_LEN sizeof (FOTP_FinishTransferPkt_t)
-
+*/
 
 /******************************************************************************
 ** FOTP Class
@@ -198,9 +200,9 @@ typedef struct
    ** Telemetry Packets
    */
    
-   FOTP_StartTransferPkt_t   StartTransferPkt;
-   FOTP_DataSegmentPkt_t     DataSegmentPkt;
-   FOTP_FinishTransferPkt_t  FinishTransferPkt;
+   FILE_XFER_FotpStartTransferTlm_t   StartTransferPkt;
+   FILE_XFER_FotpDataSegmentTlm_t     DataSegmentPkt;
+   FILE_XFER_FotpFinishTransferTlm_t  FinishTransferPkt;
 
    /*
    ** FOTP State Data

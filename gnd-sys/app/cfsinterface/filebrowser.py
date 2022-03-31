@@ -35,17 +35,19 @@ from datetime import datetime
 import logging
 logger = logging.getLogger(__name__)
 
-import PySimpleGUI as sg
+
 if __name__ == '__main__':
     sys.path.append('..')
-    from telecommand import TelecommandScript
-    from telemetry   import TelemetryMessage, TelemetryObserver, TelemetrySocketServer
+    from cfeconstants import Cfe
+    from telecommand  import TelecommandScript
+    from telemetry    import TelemetryMessage, TelemetryObserver, TelemetrySocketServer
 else:
-    from .telecommand import TelecommandScript
-    from .telemetry   import TelemetryMessage, TelemetryObserver, TelemetrySocketServer
+    from .cfeconstants import Cfe
+    from .telecommand  import TelecommandScript
+    from .telemetry    import TelemetryMessage, TelemetryObserver, TelemetrySocketServer
 from tools import crc_32c, compress_abs_path
 
-
+import PySimpleGUI as sg
     
 ###############################################################################
 
@@ -107,6 +109,9 @@ class GroundDir():
         self.path = compress_abs_path(path if os.path.isdir(path) else "")
         self.file_list = []
 
+    def path_filename(self, filename):
+        return os.path.join(self.path, filename)
+
     def create_file_list(self, path):
         dir_list = []
         try:
@@ -153,11 +158,14 @@ class FlightDir():
     def path_filename(self, filename):
         return self.path + '/' + filename
     
-    def create_file_list(self, path):
-        self.path = path
+    def create_file_list(self, path=None):
+        if path is not None:
+            self.path = path
         self.file_list = []
-        self.cmd_tlm_process.send_cfs_cmd('FILEMGR', 'SendDirTlm',  {'DirName': path, 'IncludeSizeTime': 0})
-        self.sg_window.update(['Empty or Nonexistent directory'])
+        self.cmd_tlm_process.send_cfs_cmd('FILEMGR', 'SendDirTlm',  {'DirName': self.path, 'IncludeSizeTime': 0})
+        time.sleep(1.5) # Give time for telemetry
+        if len(self.file_list) == 0:
+            self.sg_window.update(['Empty or Nonexistent directory'])
 
     def move_up(self):
         """
@@ -216,6 +224,73 @@ class FlightDir():
 
 ###############################################################################
 
+class FileXfer():
+    """
+    """
+    def __init__(self, cmd_tlm_process: CmdTlmProcess):
+        self.cmd_tlm_process = cmd_tlm_process
+        self.recv_state = 'IDLE'
+
+    def send_file(self, gnd_file, flt_file):
+        """
+        Send a file to the cFS. This is a prototype 
+        TODO - General to binary once the EDS binary block updates are approved
+        TODO - and implemented in cfe-eds-framework 
+        """
+        file_crc    = 0
+        bytes_read  = 0
+        data_seg_id = 1
+        file_len = os.stat(gnd_file).st_size
+                
+        #TODO sg.popup("Before SendFile command", title='FILE_XFER Debug', grab_anywhere=True, modal=False)
+        self.cmd_tlm_process.send_cfs_cmd('FILE_XFER', 'SendFile', {'DestFilename': flt_file})
+
+        # https://stackoverflow.com/questions/52722787/problem-sending-binary-files-via-sockets-python
+        # send file size as big endian 64 bit value (8 bytes)
+        # self.sock.sendall(os.stat(gnd_file).st_size.tobytes(8,'big'))
+        with open(gnd_file,'r') as f: 
+            while True:
+                data_segment = f.read(64) #bytearray(f.read(64))
+                if not data_segment: # Null indicates EOF
+                    break
+                
+                #TODO sg.popup("Before SendFitpDataSegment command", title='FILE_XFER Debug', grab_anywhere=True, modal=False)
+                self.cmd_tlm_process.send_cfs_cmd('FILE_XFER', 'SendFitpDataSegment', {'Id': data_seg_id, 'Len': len(data_segment), 'Data': data_segment})
+                file_crc = crc_32c(file_crc, bytearray(data_segment,'utf-8'))
+                data_seg_id += 1
+                time.sleep(0.25)
+            #TODO sg.popup("Before FinishFitpTransfer command", title='FILE_XFER Debug', grab_anywhere=True, modal=False)
+            self.cmd_tlm_process.send_cfs_cmd('FILE_XFER', 'FinishFitpTransfer', {'FileLen': file_len, 'FileCrc': file_crc, 'LastDataSegmentId': data_seg_id-1})
+
+    def tlm_callback(self, tlm_msg: TelemetryMessage):
+        """
+        """
+        print("filexfer_callback()")
+        payload = payload = tlm_msg.payload()
+        if tlm_msg.msg_name == 'FOTP_START_TRANSFER_TLM':
+            print('Start receive file for %s with length %d' % (payload.SrcFilename, payload.DataLen))
+            self.recv_state = 'START'
+        elif tlm_msg.msg_name == 'FOTP_DATA_SEGMENT_TLM':
+            print('Receive file data segment %d, length %d, data: %s' % (payload.Id, payload.Len, str(payload.Data)))
+            self.recv_state = 'RECV_DATA'
+        elif tlm_msg.msg_name == 'FOTP_FINISH_TRANSFER_TLM':
+            print('Finish receive file with length %d, CRC %d, Last Data Segment ID %d' % (payload.FileLen, payload.FileCrc, payload.LastDataSegmentId))
+            self.recv_state = 'FINISH'
+
+
+    def start_recv_file(self, flt_file, gnd_file):
+        if self.recv_state not in ('IDLE', 'FINISH'):
+            self.cancel_recv_file()
+        self.cmd_tlm_process.send_cfs_cmd('FILE_XFER', 'StartReceiveFile', {'DataSegLen': Cfe.FILE_XFER_DATA_SEG_LEN, 'DataSegOffset': 0, 'SrcFilename': ''.join(flt_file)})
+
+
+    def cancel_recv_file(self):
+        self.cmd_tlm_process.send_cfs_cmd('FILE_XFER', 'CancelSendFile', {})
+        self.recv_state = 'IDLE'
+            
+
+###############################################################################
+
 class FileBrowserTelemetryMonitor(TelemetryObserver):
     """
     callback_functions
@@ -223,14 +298,15 @@ class FileBrowserTelemetryMonitor(TelemetryObserver):
     
     """
 
-    def __init__(self, tlm_server: TelemetrySocketServer, tlm_monitors, event_callback, filemgr_callback): 
+    def __init__(self, tlm_server: TelemetrySocketServer, tlm_monitors, event_callback, filemgr_callback, filexfer_callback): 
         super().__init__(tlm_server)
 
         self.tlm_monitors = tlm_monitors
         self.event_callback = event_callback
         self.filemgr_callback = filemgr_callback
+        self.filexfer_callback = filexfer_callback
         
-        self.sys_apps = ['CFE_ES', 'CFE_EVS', 'FILEMGR']
+        self.sys_apps = ['CFE_ES', 'CFE_EVS', 'FILEMGR', 'FILE_XFER']
         
         for msg in self.tlm_server.tlm_messages:
             tlm_msg = self.tlm_server.tlm_messages[msg]
@@ -259,6 +335,10 @@ class FileBrowserTelemetryMonitor(TelemetryObserver):
                              (str(tlm_msg.sec_hdr().Seconds), pkt_id.AppName, pkt_id.EventType, payload.Message)
                 self.event_callback(event_text)
                 
+        elif tlm_msg.app_name == 'FILE_XFER':
+            if 'FOTP' in tlm_msg.msg_name:
+                self.filexfer_callback(tlm_msg)
+              
                 
 ###############################################################################
 
@@ -292,14 +372,14 @@ class FileBrowser(CmdTlmProcess):
         pri_hdr_font   = ('Arial bold',14)
         list_font      = ('Arial',12)
         log_font       = ('Courier',11)
-        self.gnd_file_menu = ['_', ['Delete File', 'Rename File', 'Send to Flight']] #TODO - Decide on dir support 
+        self.gnd_file_menu = ['_', ['Send to Flight', 'Edit File', '---',  'Rename File', 'Delete File']] #TODO - Decide on dir support 
         self.gnd_col = [
             [sg.Text('Ground', font=col_title_font)],
             [sg.Text('Folder'), sg.In(self.default_gnd_path, size=(25,1), enable_events=True ,key='-GND_FOLDER-'), sg.FolderBrowse(initial_folder=self.default_gnd_path)],
             [sg.Listbox(values=[], font=list_font, enable_events=True, size=(40,20), key='-GND_FILE_LIST-', right_click_menu=self.gnd_file_menu)]]
         
         # Duplicate ground names have a space. A little kludgy but it works
-        self.flt_file_menu = ['_', [ 'List Dir', 'Create Dir', 'Delete Dir', 'Delete File ', 'Rename File ', 'Send to Ground']] # Use space to differentiate from ground 
+        self.flt_file_menu = ['_', [ 'List Dir', 'Send to Ground', 'Cancel Send', '---',  'Create Dir', 'Delete Dir', '---', 'Rename File ', 'Delete File ']] # Use space to differentiate from ground 
         self.flt_col = [
             [sg.Text('Flight', font=col_title_font)],
             [sg.Text('Folder'), sg.In(self.default_flt_path, size=(25,1), enable_events=True ,key='-FLT_FOLDER-'),
@@ -314,11 +394,12 @@ class FileBrowser(CmdTlmProcess):
  
         self.window = sg.Window('File Browser', self.layout, resizable=True)
         
-        self.flt_dir = FlightDir(self.default_flt_path, self, self.window['-FLT_FILE_LIST-'])
-        self.gnd_dir = GroundDir(self.default_gnd_path, self.window['-GND_FILE_LIST-'])
-        
+        self.flt_dir   = FlightDir(self.default_flt_path, self, self.window['-FLT_FILE_LIST-'])
+        self.gnd_dir   = GroundDir(self.default_gnd_path, self.window['-GND_FILE_LIST-'])
+        self.file_xfer = FileXfer(self)
+
         self.tlm_monitors = {'CFE_ES': {'HK_TLM': ['Seconds']}, 'FILEMGR': {'DIR_LIST_TLM': ['Seconds']}}        
-        self.tlm_monitor = FileBrowserTelemetryMonitor(self.tlm_server, self.tlm_monitors, self.event_callback, self.flt_dir.filemgr_dir_list_callback)
+        self.tlm_monitor = FileBrowserTelemetryMonitor(self.tlm_server, self.tlm_monitors, self.event_callback, self.flt_dir.filemgr_dir_list_callback, self.file_xfer.tlm_callback)
         self.tlm_server.execute()
 
         while True:
@@ -341,10 +422,42 @@ class FileBrowser(CmdTlmProcess):
                 self.display_event("Cleared event display")
 
 
+            ### File Transfer ###
+
+            elif self.event == 'Send to Flight':
+                if len(self.values['-GND_FILE_LIST-']) > 0:
+                    filename = self.values['-GND_FILE_LIST-'][0]
+                    gnd_file = self.gnd_dir.path_filename(filename)
+                    flt_file = self.flt_dir.path_filename(filename)
+                    self.file_xfer.send_file(gnd_file, flt_file)
+                    self.flt_dir.create_file_list()
+                else:
+                    sg.popup("Please select/highlight a file to be transferred to the cFS", title='Send File to FLight', grab_anywhere=True, modal=False)
+            
+            elif self.event == 'Send to Ground':
+                if len(self.values['-FLT_FILE_LIST-']) > 0:
+                    filename = self.values['-FLT_FILE_LIST-'][0]
+                    flt_file = self.flt_dir.path_filename(filename)
+                    gnd_file = self.gnd_dir.path_filename(filename)
+                    print('flt_file: %s, gnd_file: %s' % (flt_file, gnd_file))
+                    self.file_xfer.start_recv_file(flt_file, gnd_file)
+                    #TODO - Trigger ground file list display refresh
+                else:
+                    sg.popup("Please select/highlight a file to be transferred to the ground", title='Send File to FLight', grab_anywhere=True, modal=False)
+                               
+            elif self.event == 'Cancel Send':
+                self.file_xfer.cancel_recv_file()
+
             ### Ground ###
                 
             elif self.event == '-GND_FOLDER-':                         
                 self.gnd_dir.create_file_list(self.values['-GND_FOLDER-'])                
+
+            elif self.event == 'Edit File':
+                if len(self.values['-GND_FILE_LIST-']) > 0:
+                    filename = self.values['-GND_FILE_LIST-'][0]
+                    if filename.endswith((".txt", ".json", ".h", ".c", ".py")):
+                        sg.execute_editor(self.gnd_dir.path_filename(filename))
 
             elif self.event == 'Delete File':
                 if len(self.values['-GND_FILE_LIST-']) > 0:
@@ -355,7 +468,6 @@ class FileBrowser(CmdTlmProcess):
                     dst_file = sg.popup_get_text(title='Rename ' + self.values['-GND_FILE_LIST-'][0], message='Please enter the new filename')
                     if dst_file is not None:
                         self.gnd_dir.rename_file(self.values['-GND_FILE_LIST-'][0], dst_file)
-
 
             ### Flight ###
 
@@ -400,17 +512,6 @@ class FileBrowser(CmdTlmProcess):
                         self.flt_dir.rename_file(self.values['-FLT_FILE_LIST-'][0], dst_file)
                         self.window['-FLT_FOLDER-'].update(self.flt_dir.path)
             
-
-            ### File Transfer ###
-
-            elif self.event == 'Send to Flight':
-                self.send_cfs_cmd('CFE_SB', 'NoopCmd', {})
-                print('Selected send to flight')
-
-            elif self.event == 'Send to Ground':
-                self.send_cfs_cmd('CFE_TBL', 'NoopCmd', {})
-                print('Selected send to ground')
-                               
 
     def execute(self):
         self.gui()

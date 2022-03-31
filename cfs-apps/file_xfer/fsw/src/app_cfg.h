@@ -38,6 +38,9 @@
 ** Includes
 */
 
+#include "file_xfer_eds_typedefs.h"
+#include "file_xfer_eds_designparameters.h"
+
 #include "file_xfer_platform_cfg.h"
 #include "osk_c_fw.h"
 

@@ -477,6 +477,9 @@ static bool ProcessFile(const char* Filename, char* JsonBuf, size_t MaxJsonFileC
                            Filename, ReadStatus);
          
       } /* End if invalid read */
+   
+      OS_close(FileHandle);
+      
    }/* End if valid open */
    else
    {

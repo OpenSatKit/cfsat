@@ -78,6 +78,7 @@
 ** Command Packets
 */
 
+/* TODO - Delete
 typedef struct
 {
 
@@ -133,7 +134,7 @@ typedef struct
 #define FITP_FINISH_TRANSFER_CMD_DATA_LEN  (sizeof(FITP_FinishTransferCmdMsg_t) - sizeof(CFE_MSG_CommandHeader_t))
 
 #define FITP_CANCEL_TRANSFER_CMD_DATA_LEN  PKTUTIL_NO_PARAM_CMD_DATA_LEN
-
+*/
 
 /******************************************************************************
 ** FITP Class

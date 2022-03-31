@@ -324,7 +324,7 @@ bool FileUtil_VerifyFilenameStr(const char* Filename)
 ** Function: FileUtil_VerifyFileForRead
 **
 ** Notes:
-**  1.  Verify file name is valid and that the file exists for a read operation.
+**  1. Verify file name is valid and that the file exists for a read operation.
 **  2. The file is opened/closed to make sure it's valid for a read operation.
 **     The file descriptor is not returned to the caller function because there
 **     are scenarios when the user must stil open the file.  For example when
@@ -341,7 +341,7 @@ bool FileUtil_VerifyFileForRead(const char* Filename)
    if (FileUtil_VerifyFilenameStr(Filename))
    {
       
-      OsStatus = OS_OpenCreate(&FileHandle, Filename, OS_FILE_FLAG_NONE, OS_READ_WRITE);
+      OsStatus = OS_OpenCreate(&FileHandle, Filename, OS_FILE_FLAG_NONE, OS_READ_ONLY);
       if (OsStatus == OS_SUCCESS)
       {   
          OS_close (FileHandle);

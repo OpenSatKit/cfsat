@@ -95,7 +95,7 @@ void FITP_ResetStatus(void)
 bool FITP_StartTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
-   const FITP_StartTransferCmdPayload_t* StartTransferCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FITP_StartTransferCmdMsg_t);
+   const FILE_XFER_FitpStartTransfer_Payload_t *StartTransferCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_XFER_SendFile_t);
    bool RetStatus = false;
    
    uint32         OsStatus;
@@ -173,7 +173,7 @@ bool FITP_StartTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
 bool FITP_DataSegmentCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
-   const FITP_DataSegmentCmdPayload_t* DataSegmentCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FITP_DataSegmentCmdMsg_t);
+   const FILE_XFER_FitpDataSegment_Payload_t *DataSegmentCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_XFER_SendFitpDataSegment_t);
    bool  RetStatus = false;
    int32 BytesWritten;
 
@@ -193,7 +193,7 @@ bool FITP_DataSegmentCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
             
                Fitp->LastDataSegmentId++;
                Fitp->FileTransferByteCnt += DataSegmentCmd->Len;
-               Fitp->FileRunningCrc = CRC_32c(Fitp->FileRunningCrc, DataSegmentCmd->Data, DataSegmentCmd->Len);
+               Fitp->FileRunningCrc = CRC_32c(Fitp->FileRunningCrc, (const uint8 *)DataSegmentCmd->Data, DataSegmentCmd->Len);
               
                RetStatus = true;
                CFE_EVS_SendEvent(FITP_DATA_SEGMENT_CMD_EID, CFE_EVS_EventType_DEBUG,
@@ -264,7 +264,7 @@ bool FITP_DataSegmentCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
 bool FITP_FinishTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
  
-   const FITP_FinishTransferCmdPayload_t* FinishTransferCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FITP_FinishTransferCmdMsg_t);
+   const FILE_XFER_FitpFinishTransfer_Payload_t *FinishTransferCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_XFER_FinishFitpTransfer_t);
    bool    RetStatus = false;
    uint16  ValidityFailures = 0;
 

@@ -271,26 +271,22 @@ static int32 InitApp(void)
       if (Status == CFE_SUCCESS) 
       {
 
+         /* Minimal chance of subcribe errors so keep logic simple */
          Status = CFE_SB_Subscribe(FileXfer.CmdMid, FileXfer.CmdPipe);
          if (Status == CFE_SUCCESS) 
          {
-            Status = CFE_SB_Subscribe(FileXfer.SendHkMid, FileXfer.CmdPipe);
-            if (Status != CFE_SUCCESS) 
+            Status = CFE_SB_Subscribe(FileXfer.ExecuteMid, FileXfer.CmdPipe);
+            if (Status == CFE_SUCCESS) 
             {
-               CFE_EVS_SendEvent(FILE_XFER_INIT_ERR_EID, CFE_EVS_EventType_ERROR,
-                                 "Error subscribing to Send HK MID value %d on command pipe %s failed. SB Status = 0x%08X",
-                                 CFE_SB_MsgIdToValue(FileXfer.SendHkMid),
-                                 INITBL_GetStrConfig(INITBL_OBJ, CFG_APP_CMD_PIPE_NAME), Status);
+               Status = CFE_SB_Subscribe(FileXfer.SendHkMid, FileXfer.CmdPipe);
             }
-         }
-         else
+         }       
+         if (Status != CFE_SUCCESS) 
          {
             CFE_EVS_SendEvent(FILE_XFER_INIT_ERR_EID, CFE_EVS_EventType_ERROR,
-                              "Error subscribing to Command MID value %d on command pipe %s failed. SB Status = 0x%08X",
-                              CFE_SB_MsgIdToValue(FileXfer.CmdMid),
+                              "Error subscribing to messages on pipe %s. SB Status = 0x%08X",
                               INITBL_GetStrConfig(INITBL_OBJ, CFG_APP_CMD_PIPE_NAME), Status);
          }
-         
       } /* End if create pipe */
       else
       {
@@ -308,15 +304,15 @@ static int32 InitApp(void)
          CMDMGR_RegisterFunc(CMDMGR_OBJ, CMDMGR_NOOP_CMD_FC,   NULL, FILE_XFER_NoOpCmd,     0);
          CMDMGR_RegisterFunc(CMDMGR_OBJ, CMDMGR_RESET_CMD_FC,  NULL, FILE_XFER_ResetAppCmd, 0);
          
-         CMDMGR_RegisterFunc(CMDMGR_OBJ, FITP_START_TRANSFER_CMD_FC,  FITP_OBJ, FITP_StartTransferCmd,  FITP_START_TRANSFER_CMD_DATA_LEN);
-         CMDMGR_RegisterFunc(CMDMGR_OBJ, FITP_DATA_SEGMENT_CMD_FC,    FITP_OBJ, FITP_DataSegmentCmd,    FITP_DATA_SEGMENT_CMD_DATA_LEN);
-         CMDMGR_RegisterFunc(CMDMGR_OBJ, FITP_FINISH_TRANSFER_CMD_FC, FITP_OBJ, FITP_FinishTransferCmd, FITP_FINISH_TRANSFER_CMD_DATA_LEN);
-         CMDMGR_RegisterFunc(CMDMGR_OBJ, FITP_CANCEL_TRANSFER_CMD_FC, FITP_OBJ, FITP_CancelTransferCmd, FITP_CANCEL_TRANSFER_CMD_DATA_LEN);
+         CMDMGR_RegisterFunc(CMDMGR_OBJ, FITP_START_TRANSFER_CMD_FC,  FITP_OBJ, FITP_StartTransferCmd,  sizeof(FILE_XFER_FitpStartTransfer_Payload_t));
+         CMDMGR_RegisterFunc(CMDMGR_OBJ, FITP_DATA_SEGMENT_CMD_FC,    FITP_OBJ, FITP_DataSegmentCmd,    sizeof(FILE_XFER_FitpDataSegment_Payload_t));
+         CMDMGR_RegisterFunc(CMDMGR_OBJ, FITP_FINISH_TRANSFER_CMD_FC, FITP_OBJ, FITP_FinishTransferCmd, sizeof(FILE_XFER_FitpFinishTransfer_Payload_t));
+         CMDMGR_RegisterFunc(CMDMGR_OBJ, FITP_CANCEL_TRANSFER_CMD_FC, FITP_OBJ, FITP_CancelTransferCmd, 0);
 
-         CMDMGR_RegisterFunc(CMDMGR_OBJ, FOTP_START_TRANSFER_CMD_FC,  FOTP_OBJ, FOTP_StartTransferCmd,  FOTP_START_TRANSFER_CMD_DATA_LEN);
-         CMDMGR_RegisterFunc(CMDMGR_OBJ, FOTP_CANCEL_TRANSFER_CMD_FC, FOTP_OBJ, FOTP_CancelTransferCmd, FOTP_CANCEL_TRANSFER_CMD_DATA_LEN);
-         CMDMGR_RegisterFunc(CMDMGR_OBJ, FOTP_PAUSE_TRANSFER_CMD_FC,  FOTP_OBJ, FOTP_PauseTransferCmd,  FOTP_PAUSE_TRANSFER_CMD_DATA_LEN);
-         CMDMGR_RegisterFunc(CMDMGR_OBJ, FOTP_RESUME_TRANSFER_CMD_FC, FOTP_OBJ, FOTP_ResumeTransferCmd, FOTP_RESUME_TRANSFER_CMD_DATA_LEN);
+         CMDMGR_RegisterFunc(CMDMGR_OBJ, FOTP_START_TRANSFER_CMD_FC,  FOTP_OBJ, FOTP_StartTransferCmd,  sizeof(FILE_XFER_FotpStartTransfer_Payload_t));
+         CMDMGR_RegisterFunc(CMDMGR_OBJ, FOTP_CANCEL_TRANSFER_CMD_FC, FOTP_OBJ, FOTP_CancelTransferCmd, 0);
+         CMDMGR_RegisterFunc(CMDMGR_OBJ, FOTP_PAUSE_TRANSFER_CMD_FC,  FOTP_OBJ, FOTP_PauseTransferCmd,  0);
+         CMDMGR_RegisterFunc(CMDMGR_OBJ, FOTP_RESUME_TRANSFER_CMD_FC, FOTP_OBJ, FOTP_ResumeTransferCmd, 0);
 
          CFE_MSG_Init(CFE_MSG_PTR(FileXfer.HkPkt.TlmHeader), CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_APP_HK_TLM_MID)), sizeof(FILE_XFER_HkPkt_t));
 
