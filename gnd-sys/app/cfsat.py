@@ -787,8 +787,6 @@ class App():
             if self.tlm_gui_clients[tlm_topic] != None:
                  self.tlm_gui_clients[tlm_topic].shutdown()
         time.sleep(self.CFS_TARGET_TLM_TIMEOUT)
-        if self.cfs_popen is not None:
-            self.cfs_popen.kill()
         self.window.close()
 
     def execute(self):
@@ -891,7 +889,6 @@ class App():
         #sg.Button('Send Cmd', enable_events=True, key='-SEND_CMD-', pad=(10,1)),
         #sg.Button('View Tlm', enable_events=True, key='-VIEW_TLM-', pad=(10,1)),
         self.window = sg.Window('cFS Application Toolkit - Beta', layout, auto_size_text=True, finalize=True)
-    
         # --- Loop taking in user input --- #
         while True:
     
@@ -927,10 +924,10 @@ class App():
             
             elif self.event == 'About':
                 about_msg = ('The core FLight System (cFS) Application Toolkit (cFSAT) is\n' 
-                    'a PySimpleGUI based pogram that allows users to develop,\n'
-                    'integrate, and run cFS apps. It is not intended to be a\n'
-                    'complete ground system for remote operations of a cFS target.\n\n'
-                    'Version.......{}'.format(self.APP_VERSION))
+                             'a PySimpleGUI based pogram that allows users to develop,\n'
+                             'integrate, and run cFS apps. It is not intended to be a\n'
+                             'complete ground system for remote operations of a cFS target.\n\n'
+                             'Version.......{}'.format(self.APP_VERSION))
                 sg.popup(about_msg,
                          title='About cFS Application Toolkit', 
                          grab_anywhere=True)
@@ -966,6 +963,7 @@ class App():
                 self.cmd_tlm_router.add_cmd_source(8000)   #TODO - Add port number management 
                 self.cmd_tlm_router.add_tlm_dest(9000)     #TODO - Add port number management
                 cfs_interface_dir = os.path.join(self.path, "cfsinterface")
+                print('cfs_interface_dir = ' + cfs_interface_dir)
                 self.filebrowser = sg.execute_py_file("filebrowser.py", cwd=cfs_interface_dir)
 
             elif self.event == 'Manage Tables':

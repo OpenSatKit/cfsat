@@ -26,6 +26,7 @@ logger.addHandler(logging.NullHandler())
 
 from .apptemplate import CreateApp
 from .tutorial import ManageTutorials
+from .texteditor import TextEditor
 from .utils import *
 
 

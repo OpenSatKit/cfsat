@@ -45,7 +45,7 @@ else:
     from .cfeconstants import Cfe
     from .telecommand  import TelecommandScript
     from .telemetry    import TelemetryMessage, TelemetryObserver, TelemetrySocketServer
-from tools import crc_32c, compress_abs_path
+from tools import crc_32c, compress_abs_path, TextEditor
 
 import PySimpleGUI as sg
     
@@ -112,11 +112,12 @@ class GroundDir():
     def path_filename(self, filename):
         return os.path.join(self.path, filename)
 
-    def create_file_list(self, path):
+    def create_file_list(self, path=None):
+        if path is not None:
+            self.path = compress_abs_path(path)
         dir_list = []
         try:
             dir_list = os.listdir(self.path)
-            self.path = path
         except:
             pass
         self.file_list = [f for f in dir_list if os.path.isfile(os.path.join(self.path, f))]
@@ -229,7 +230,12 @@ class FileXfer():
     """
     def __init__(self, cmd_tlm_process: CmdTlmProcess):
         self.cmd_tlm_process = cmd_tlm_process
+
         self.recv_state = 'IDLE'
+        self.recv_file  = None
+        self.recv_flt_filename = None
+        self.recv_gnd_filename = None
+        self.gnd_file_list_refresh = None  # Callback function to refresh ground display
 
     def send_file(self, gnd_file, flt_file):
         """
@@ -268,17 +274,28 @@ class FileXfer():
         print("filexfer_callback()")
         payload = payload = tlm_msg.payload()
         if tlm_msg.msg_name == 'FOTP_START_TRANSFER_TLM':
-            print('Start receive file for %s with length %d' % (payload.SrcFilename, payload.DataLen))
             self.recv_state = 'START'
+            print('Start receive file for %s with length %d' % (payload.SrcFilename, payload.DataLen))
+            self.recv_file = open(self.recv_gnd_filename, "w")
         elif tlm_msg.msg_name == 'FOTP_DATA_SEGMENT_TLM':
-            print('Receive file data segment %d, length %d, data: %s' % (payload.Id, payload.Len, str(payload.Data)))
             self.recv_state = 'RECV_DATA'
+            print('Receive file data segment %d, length %d, data: %s' % (payload.Id, payload.Len, str(payload.Data)))
+            self.recv_file.write(str(payload.Data))
         elif tlm_msg.msg_name == 'FOTP_FINISH_TRANSFER_TLM':
-            print('Finish receive file with length %d, CRC %d, Last Data Segment ID %d' % (payload.FileLen, payload.FileCrc, payload.LastDataSegmentId))
             self.recv_state = 'FINISH'
-
-
-    def start_recv_file(self, flt_file, gnd_file):
+            print('Finish receive file with length %d, CRC %d, Last Data Segment ID %d' % (payload.FileLen, payload.FileCrc, payload.LastDataSegmentId))
+            self.recv_file.close()
+            self.recv_file = None
+            if self.gnd_file_list_refresh is not None:
+                self.gnd_file_list_refresh()
+                
+    def start_recv_file(self, flt_file, gnd_file, gnd_file_list_refresh):
+        self.recv_flt_filename = flt_file
+        self.recv_gnd_filename = gnd_file
+        self.gnd_file_list_refresh = gnd_file_list_refresh
+        if self.recv_file is not None:
+            self.recv_file.close()
+            self.recv_file = None
         if self.recv_state not in ('IDLE', 'FINISH'):
             self.cancel_recv_file()
         self.cmd_tlm_process.send_cfs_cmd('FILE_XFER', 'StartReceiveFile', {'DataSegLen': Cfe.FILE_XFER_DATA_SEG_LEN, 'DataSegOffset': 0, 'SrcFilename': ''.join(flt_file)})
@@ -440,7 +457,7 @@ class FileBrowser(CmdTlmProcess):
                     flt_file = self.flt_dir.path_filename(filename)
                     gnd_file = self.gnd_dir.path_filename(filename)
                     print('flt_file: %s, gnd_file: %s' % (flt_file, gnd_file))
-                    self.file_xfer.start_recv_file(flt_file, gnd_file)
+                    self.file_xfer.start_recv_file(flt_file, gnd_file, self.gnd_dir.create_file_list)
                     #TODO - Trigger ground file list display refresh
                 else:
                     sg.popup("Please select/highlight a file to be transferred to the ground", title='Send File to FLight', grab_anywhere=True, modal=False)
@@ -454,11 +471,23 @@ class FileBrowser(CmdTlmProcess):
                 self.gnd_dir.create_file_list(self.values['-GND_FOLDER-'])                
 
             elif self.event == 'Edit File':
+                """
+                Only loads initial file if it is of a partial type. Does allow editor to be 
+                launched if no file selected. 
+                """
+                #TODO - Use ini file config
+                cwd = os.getcwd()
+                if 'cfsinterface' in cwd:
+                    tools_dir = compress_abs_path(os.path.join(cwd, "../tools"))
+                else:
+                    tools_dir = os.path.join(cwd, "tools")
+                filename = ''
                 if len(self.values['-GND_FILE_LIST-']) > 0:
                     filename = self.values['-GND_FILE_LIST-'][0]
-                    if filename.endswith((".txt", ".json", ".h", ".c", ".py")):
-                        sg.execute_editor(self.gnd_dir.path_filename(filename))
-
+                    if filename.endswith((".txt", ".json", ".h", ".c", ".py", ".cmake", ".scr")):
+                        filename = self.gnd_dir.path_filename(filename)
+                self.text_editor = sg.execute_py_file("texteditor.py", parms=filename, cwd=tools_dir)
+                
             elif self.event == 'Delete File':
                 if len(self.values['-GND_FILE_LIST-']) > 0:
                    self.gnd_dir.delete_file(self.values['-GND_FILE_LIST-'][0])
