@@ -1,32 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    GSC-18128-1, "Core Flight Executive Version 6.7"
-    LEW-19710-1, "CCSDS electronic data sheet implementation"
-
-    Copyright (c) 2006-2019 United States Government as represented by
-    the Administrator of the National Aeronautics and Space Administration.
+    Copyright 2022 Open STEMware Foundation
     All Rights Reserved.
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+    This program is free software; you can modify and/or redistribute it under
+    the terms of the GNU Affero General Public License as published by the Free
+    Software Foundation; version 3 with attribution addendums as found in the
+    LICENSE.txt
 
-      http://www.apache.org/licenses/LICENSE-2.0
+    This program is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
+    details.
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+    This program may also be used under the terms of a commercial or enterprise
+    edition license of cFSAT if purchased from the copyright holder.
 
-    This document adheres to the Electronic Data Sheet (EDS) XML schema
-    as prescribed in CCSDS book 876.0.
-
-    Purpose:
-      This describes all interface objects for the Executive Services (CFE_ES)
-      core application
-
+    This document adheres to the Electronic Data Sheet (EDS) XML schema 
+    as prescribed in CCSDS book 876.0. 
+      
+    Purpose: 
+      This describes all interface objects for the OpenSatKit(OSK) File
+      Manager (FileMgr) application.
+      
 -->
 <PackageFile xmlns="http://www.ccsds.org/schema/sois/seds">
   <Package name="FILEMGR" shortDescription="Manage ground interface to flight file systems">
@@ -45,7 +42,7 @@
       </EnumeratedDataType>
 
       <EnumeratedDataType name="BooleanUint16" shortDescription="8-bit Boolean for commands" >
-        <IntegerDataEncoding sizeInBits="8" encoding="unsigned" />
+        <IntegerDataEncoding sizeInBits="16" encoding="unsigned" />
         <EnumerationList>
           <Enumeration label="FALSE" value="0" shortDescription="" />
           <Enumeration label="TRUE"  value="1" shortDescription="" />
@@ -96,6 +93,13 @@
         <EntryList>
           <Entry name="DirName"         type="BASE_TYPES/PathName" shortDescription="path/filename of directory to delete all of its files" />
           <Entry name="DirListOffset"   type="BASE_TYPES/uint16"   shortDescription="Offset into alphabetical listing" />
+          <Entry name="IncludeSizeTime" type="BooleanUint16"       shortDescription="True: Include file sizes and times" />
+        </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="SendDirTlm_Payload">
+        <EntryList>
+          <Entry name="DirName"         type="BASE_TYPES/PathName" shortDescription="path/filename of directory to delete all of its files" />
           <Entry name="IncludeSizeTime" type="BooleanUint16"       shortDescription="True: Include file sizes and times" />
         </EntryList>
       </ContainerDataType>
@@ -196,6 +200,7 @@
           <Entry name="ChildQueueCnt"      type="BASE_TYPES/uint8" />
           <Entry name="ChildCurrentCC"     type="BASE_TYPES/uint8" />
           <Entry name="ChildPreviousCC"    type="BASE_TYPES/uint8" />
+          <Entry name="Spare16"            type="BASE_TYPES/uint16" />
         </EntryList>
       </ContainerDataType>
       
@@ -220,7 +225,7 @@
       <ContainerDataType name="DirListTlm_Payload" shortDescription="Get Directory Listing telemetry packet">
         <EntryList>
           <Entry name="DirName"       type="BASE_TYPES/PathName" shortDescription="" />
-          <Entry name="DirFileCnt"    type="BASE_TYPES/uint32"   shortDescription="Number of files in the directory" />
+          <Entry name="DirFileCnt"    type="BASE_TYPES/uint32"   shortDescription="Number of files in dir or running count of files in dir when tlm entire dir " />
           <Entry name="PktFileCnt"    type="BASE_TYPES/uint32"   shortDescription="Number of files in this packet" />
           <Entry name="DirListOffset" type="BASE_TYPES/uint32"   shortDescription="Starting offset into alphabetical directory list" />
           <Entry name="FileList"      type="DirListFileList"     shortDescription="Directory listing file data" />
@@ -337,9 +342,18 @@
         </EntryList>
       </ContainerDataType>
 
-      <ContainerDataType name="WriteDirListFile" baseType="CommandBase" shortDescription="">
+      <ContainerDataType name="SendDirTlm" baseType="CommandBase" shortDescription="">
         <ConstraintSet>
           <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 4" />
+        </ConstraintSet>
+        <EntryList>
+          <Entry type="SendDirTlm_Payload" name="Payload" />
+        </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="WriteDirListFile" baseType="CommandBase" shortDescription="">
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 5" />
         </ConstraintSet>
         <EntryList>
           <Entry type="WriteDirListFile_Payload" name="Payload" />
@@ -350,7 +364,7 @@
     
       <ContainerDataType name="ConcatenateFile" baseType="CommandBase" shortDescription="">
         <ConstraintSet>
-          <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 5" />
+          <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 6" />
         </ConstraintSet>
         <EntryList>
           <Entry type="ConcatenateFile_Payload" name="Payload" />
@@ -359,7 +373,7 @@
     
       <ContainerDataType name="CopyFile" baseType="CommandBase" shortDescription="">
         <ConstraintSet>
-          <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 6" />
+          <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 7" />
         </ConstraintSet>
         <EntryList>
           <Entry type="CopyFile_Payload" name="Payload" />
@@ -368,23 +382,14 @@
     
       <ContainerDataType name="DecompressFile" baseType="CommandBase" shortDescription="">
         <ConstraintSet>
-          <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 7" />
+          <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 8" />
         </ConstraintSet>
         <EntryList>
-          <Entry type="CopyFile_Payload" name="Payload" />
+          <Entry type="DecompressFile_Payload" name="Payload" />
         </EntryList>
       </ContainerDataType>
 
       <ContainerDataType name="DeleteFile" baseType="CommandBase" shortDescription="">
-        <ConstraintSet>
-          <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 8" />
-        </ConstraintSet>
-        <EntryList>
-          <Entry type="DeleteFile_Payload" name="Payload" />
-        </EntryList>
-      </ContainerDataType>
-
-      <ContainerDataType name="DeleteFileAlt" baseType="CommandBase" shortDescription="Alternate indicates the command counter is not incremented">
         <ConstraintSet>
           <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 9" />
         </ConstraintSet>
@@ -393,16 +398,16 @@
         </EntryList>
       </ContainerDataType>
 
-      <ContainerDataType name="MoveFile" baseType="CommandBase" shortDescription="">
+      <ContainerDataType name="DeleteFileAlt" baseType="CommandBase" shortDescription="Alternate indicates the command counter is not incremented">
         <ConstraintSet>
           <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 10" />
         </ConstraintSet>
         <EntryList>
-          <Entry type="MoveFile_Payload" name="Payload" />
+          <Entry type="DeleteFile_Payload" name="Payload" />
         </EntryList>
       </ContainerDataType>
 
-      <ContainerDataType name="RenameFile" baseType="CommandBase" shortDescription="">
+      <ContainerDataType name="MoveFile" baseType="CommandBase" shortDescription="">
         <ConstraintSet>
           <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 11" />
         </ConstraintSet>
@@ -411,9 +416,18 @@
         </EntryList>
       </ContainerDataType>
 
-      <ContainerDataType name="SendFileInfoTlm" baseType="CommandBase" shortDescription="">
+      <ContainerDataType name="RenameFile" baseType="CommandBase" shortDescription="">
         <ConstraintSet>
           <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 12" />
+        </ConstraintSet>
+        <EntryList>
+          <Entry type="RenameFile_Payload" name="Payload" />
+        </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="SendFileInfoTlm" baseType="CommandBase" shortDescription="">
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 13" />
         </ConstraintSet>
         <EntryList>
           <Entry type="SendFileInfoTlm_Payload" name="Payload" />
@@ -422,7 +436,7 @@
 
       <ContainerDataType name="SetFilePermissions" baseType="CommandBase" shortDescription="">
         <ConstraintSet>
-          <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 13" />
+          <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 14" />
         </ConstraintSet>
         <EntryList>
           <Entry type="SetFilePermissions_Payload" name="Payload" />
@@ -433,19 +447,19 @@
 
       <ContainerDataType name="SendFileSysTblTlm" baseType="CommandBase" shortDescription="Send the File System table contents in a teleetry message">
         <ConstraintSet>
-          <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 14" />
+          <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 15" />
         </ConstraintSet>
       </ContainerDataType>
 
       <ContainerDataType name="SendOpenFileTlm" baseType="CommandBase" shortDescription="Send a listof open files in a telemetry message">
         <ConstraintSet>
-          <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 15" />
+          <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 16" />
         </ConstraintSet>
       </ContainerDataType>
       
       <ContainerDataType name="SetFileSysTblState" baseType="CommandBase" shortDescription="">
         <ConstraintSet>
-          <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 16" />
+          <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 17" />
         </ConstraintSet>
         <EntryList>
           <Entry type="SetFileSysTblState_Payload" name="Payload" />
@@ -536,7 +550,31 @@
               <GenericTypeMap name="TelecommandDataType" type="CFE_HDR/CommandHeader" />
             </GenericTypeMapSet>
           </Interface>
-          <!-- todo: Add HK_TLM, Directory packet, etc. -->
+          <Interface name="HK_TLM" shortDescription="Software bus housekeeping telemetry interface" type="CFE_SB/Telemetry">
+            <GenericTypeMapSet>
+              <GenericTypeMap name="TelemetryDataType" type="HkTlm" />
+            </GenericTypeMapSet>
+          </Interface>
+          <Interface name="DIR_LIST_TLM" shortDescription="List directory contents inn a telemetry packet" type="CFE_SB/Telemetry">
+            <GenericTypeMapSet>
+              <GenericTypeMap name="TelemetryDataType" type="DirListTlm" />
+            </GenericTypeMapSet>
+          </Interface>
+          <Interface name="FILE_INFO_TLM" shortDescription="Send details about a single file in a telemetry" type="CFE_SB/Telemetry">
+            <GenericTypeMapSet>
+              <GenericTypeMap name="TelemetryDataType" type="FileInfoTlm" />
+            </GenericTypeMapSet>
+          </Interface>
+          <Interface name="OPEN_FILE_TLM" shortDescription="Send list of open files in telemetry" type="CFE_SB/Telemetry">
+            <GenericTypeMapSet>
+              <GenericTypeMap name="TelemetryDataType" type="OpenFileTlm" />
+            </GenericTypeMapSet>
+          </Interface>
+          <Interface name="FILE_SYS_TBL_TLM" shortDescription="Send systems telemetry" type="CFE_SB/Telemetry">
+            <GenericTypeMapSet>
+              <GenericTypeMap name="TelemetryDataType" type="FileSysTblTlm" />
+            </GenericTypeMapSet>
+          </Interface>
         </RequiredInterfaceSet>
 
         <!--***************************************-->
@@ -545,13 +583,23 @@
 
         <Implementation>
           <VariableSet>
-            <Variable type="BASE_TYPES/uint16" readOnly="true" name="CmdTopicId" initialValue="${CFE_MISSION/FILEMGR_CMD_TOPICID}" />
-            <Variable type="BASE_TYPES/uint16" readOnly="true" name="SendHkTopicId" initialValue="${CFE_MISSION/FILEMGR_SEND_HK_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="CmdTopicId"            initialValue="${CFE_MISSION/FILEMGR_CMD_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="SendHkTopicId"         initialValue="${CFE_MISSION/FILEMGR_SEND_HK_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="HkTlmTopicId"          initialValue="${CFE_MISSION/FILEMGR_HK_TLM_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="DirListTlmTopicId"     initialValue="${CFE_MISSION/FILEMGR_DIR_LIST_TLM_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="FileInfoTlmTopicId"    initialValue="${CFE_MISSION/FILEMGR_FILE_INFO_TLM_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="OpenFileTlmTopicId"    initialValue="${CFE_MISSION/FILEMGR_OPEN_FILE_TLM_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="FileSysTblTlmTopicId"  initialValue="${CFE_MISSION/FILEMGR_FILE_SYS_TBL_TLM_TOPICID}" />
           </VariableSet>
           <!-- Assign fixed numbers to the "TopicId" parameter of each interface -->
           <ParameterMapSet>          
-            <ParameterMap interface="CMD" parameter="TopicId" variableRef="CmdTopicId" />
-            <ParameterMap interface="SEND_HK" parameter="TopicId" variableRef="SendHkTopicId" />
+            <ParameterMap interface="CMD"               parameter="TopicId" variableRef="CmdTopicId" />
+            <ParameterMap interface="SEND_HK"           parameter="TopicId" variableRef="SendHkTopicId" />
+            <ParameterMap interface="HK_TLM"            parameter="TopicId" variableRef="HkTlmTopicId" />
+            <ParameterMap interface="DIR_LIST_TLM"      parameter="TopicId" variableRef="DirListTlmTopicId" />
+            <ParameterMap interface="FILE_INFO_TLM"     parameter="TopicId" variableRef="FileInfoTlmTopicId" />
+            <ParameterMap interface="OPEN_FILE_TLM"     parameter="TopicId" variableRef="OpenFileTlmTopicId" />
+            <ParameterMap interface="FILE_SYS_TBL_TLM"  parameter="TopicId" variableRef="FileSysTblTlmTopicId" />
           </ParameterMapSet>
         </Implementation>
       </Component>

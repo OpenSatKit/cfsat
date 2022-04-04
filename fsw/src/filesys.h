@@ -1,35 +1,41 @@
 /*
-** Purpose: Provide a table for identifying onboard file systems and for
-**          managing commands that obtain information about the file systems. 
+**  Copyright 2022 Open STEMware Foundation
+**  All Rights Reserved.
 **
-** Notes:
-**   1. Refactored from NASA's FM FreeSpace table. I renamed to FileSys 
-**      because "free space" is an attrbute of a file system volume.
-**   2. The original design doesn't have concepts such as File and Dir
-**      objects but it did separate table from non-table functions. This
-**      design includes file system functions like "SendOpenFilesTlm"
-**      because it is not operating on a File object. 
-**   3. Use the Singleton design pattern. A pointer to the table object
-**      is passed to the constructor and saved for all other operations.
-**      Note the cFE's buffers are used to store the actual data itself.
-**      This is a table-specific file so it doesn't need to be re-entrant.
-**   4. Command and telemetry packets are defined in EDS file filemgr.xml.
+**  This program is free software; you can modify and/or redistribute it under
+**  the terms of the GNU Affero General Public License as published by the Free
+**  Software Foundation; version 3 with attribution addendums as found in the
+**  LICENSE.txt
 **
-** References:
-**   1. OpenSatKit Object-based Application Developer's Guide.
-**   2. cFS Application Developer's Guide.
+**  This program is distributed in the hope that it will be useful, but WITHOUT
+**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
+**  details.
+**  
+**  This program may also be used under the terms of a commercial or enterprise
+**  edition license of cFSAT if purchased from the copyright holder.
 **
-**   Written by David McComas, licensed under the Apache License, Version 2.0
-**   (the "License"); you may not use this file except in compliance with the
-**   License. You may obtain a copy of the License at
+**  Purpose:
+**    Provide a table for identifying onboard file systems and for managing
+**    commands that obtain information about the file systems
 **
-**      http://www.apache.org/licenses/LICENSE-2.0
+**  Notes:
+**    1. Refactored from NASA's FM FreeSpace table. I renamed to FileSys 
+**       because "free space" is an attrbute of a file system volume.
+**    2. The original design doesn't have concepts such as File and Dir
+**       objects but it did separate table from non-table functions. This
+**       design includes file system functions like "SendOpenFilesTlm"
+**       because it is not operating on a File object. 
+**    3. Use the Singleton design pattern. A pointer to the table object
+**       is passed to the constructor and saved for all other operations.
+**       Note the cFE's buffers are used to store the actual data itself.
+**       This is a table-specific file so it doesn't need to be re-entrant.
+**    4. Command and telemetry packets are defined in EDS file filemgr.xml.
 **
-**   Unless required by applicable law or agreed to in writing, software
-**   distributed under the License is distributed on an "AS IS" BASIS,
-**   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-**   See the License for the specific language governing permissions and
-**   limitations under the License.
+**  References:
+**    1. OpenSatKit Object-based Application Developer's Guide.
+**    2. cFS Application Developer's Guide.
+**
 */
 
 #ifndef _filesys_
@@ -176,7 +182,7 @@ void FILESYS_ManageTbl(void);
 ** Note:
 **  1. This function must comply with the CMDMGR_CmdFuncPtr_t definition
 */
-bool FILESYS_SendOpenFileTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
+bool FILESYS_SendOpenFileTlmCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
 
 
 /******************************************************************************
@@ -185,7 +191,7 @@ bool FILESYS_SendOpenFileTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPt
 ** Note:
 **  1. This function must comply with the CMDMGR_CmdFuncPtr_t definition
 */
-bool FILESYS_SendTblTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
+bool FILESYS_SendTblTlmCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
 
 
 /******************************************************************************
@@ -194,7 +200,7 @@ bool FILESYS_SendTblTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 ** Note:
 **  1. This function must comply with the CMDMGR_CmdFuncPtr_t definition
 */
-bool FILESYS_SetTblStateCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
+bool FILESYS_SetTblStateCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
 
 
 #endif /* _filesys_ */

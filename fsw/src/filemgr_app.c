@@ -1,24 +1,30 @@
 /*
-** Purpose: Implement the File Manager application
+**  Copyright 2022 Open STEMware Foundation
+**  All Rights Reserved.
 **
-** Notes:
-**   1. See header notes. 
+**  This program is free software; you can modify and/or redistribute it under
+**  the terms of the GNU Affero General Public License as published by the Free
+**  Software Foundation; version 3 with attribution addendums as found in the
+**  LICENSE.txt
 **
-** References:
-**   1. OpenSatKit Object-based Application Developer's Guide.
-**   2. cFS Application Developer's Guide.
+**  This program is distributed in the hope that it will be useful, but WITHOUT
+**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
+**  details.
+**  
+**  This program may also be used under the terms of a commercial or enterprise
+**  edition license of cFSAT if purchased from the copyright holder.
 **
-**   Written by David McComas, licensed under the Apache License, Version 2.0
-**   (the "License"); you may not use this file except in compliance with the
-**   License. You may obtain a copy of the License at
+**  Purpose:
+**    Implement the File Manager application
 **
-**      http://www.apache.org/licenses/LICENSE-2.0
+**  Notes:
+**    1. See header notes
 **
-**   Unless required by applicable law or agreed to in writing, software
-**   distributed under the License is distributed on an "AS IS" BASIS,
-**   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-**   See the License for the specific language governing permissions and
-**   limitations under the License.
+**  References:
+**    1. OpenSatKit Object-based Application Developer's Guide.
+**    2. cFS Application Developer's Guide.
+**
 */
 
 /*
@@ -28,6 +34,7 @@
 #include <string.h>
 #include "filemgr_app.h"
 #include "filemgr_eds_cc.h"
+#include "filemgr_msgids.h"
 
 /***********************/
 /** Macro Definitions **/
@@ -109,7 +116,7 @@ void FILEMGR_AppMain(void)
 **
 */
 
-bool    FILEMGR_NoOpCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
+bool    FILEMGR_NoOpCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
 
    CFE_EVS_SendEvent (FILEMGR_NOOP_EID, CFE_EVS_EventType_INFORMATION,
@@ -127,7 +134,7 @@ bool    FILEMGR_NoOpCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 **
 */
 
-bool FILEMGR_ResetAppCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
+bool FILEMGR_ResetAppCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
 
    CMDMGR_ResetStatus(CMDMGR_OBJ);
@@ -155,7 +162,7 @@ void FILEMGR_SendHousekeepingPkt(void)
    HkTlmPayload->ValidCmdCnt   = FileMgr.CmdMgr.ValidCmdCnt;
    HkTlmPayload->InvalidCmdCnt = FileMgr.CmdMgr.InvalidCmdCnt;
 
-   HkTlmPayload->NumOpenFiles  = FileUtil_GetOpenFileList(&FileMgr.OpenFileList);
+   HkTlmPayload->NumOpenFiles  = FileUtil_GetOpenFileCount();
 
    HkTlmPayload->ChildValidCmdCnt   = FileMgr.ChildMgr.ValidCmdCnt;
    HkTlmPayload->ChildInvalidCmdCnt = FileMgr.ChildMgr.InvalidCmdCnt;
@@ -230,11 +237,13 @@ static int32 InitApp(void)
       CMDMGR_RegisterFunc(CMDMGR_OBJ, FILEMGR_DELETE_DIR_CC,          CHILDMGR_OBJ, CHILDMGR_InvokeChildCmd, sizeof(FILEMGR_DeleteDir_Payload_t));
       CMDMGR_RegisterFunc(CMDMGR_OBJ, FILEMGR_DELETE_ALL_DIR_CC,      CHILDMGR_OBJ, CHILDMGR_InvokeChildCmd, sizeof(FILEMGR_DeleteAllDir_Payload_t));
       CMDMGR_RegisterFunc(CMDMGR_OBJ, FILEMGR_SEND_DIR_LIST_TLM_CC,   CHILDMGR_OBJ, CHILDMGR_InvokeChildCmd, sizeof(FILEMGR_SendDirListTlm_Payload_t));
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, FILEMGR_SEND_DIR_TLM_CC,        CHILDMGR_OBJ, CHILDMGR_InvokeChildCmd, sizeof(FILEMGR_SendDirTlm_Payload_t));
       CMDMGR_RegisterFunc(CMDMGR_OBJ, FILEMGR_WRITE_DIR_LIST_FILE_CC, CHILDMGR_OBJ, CHILDMGR_InvokeChildCmd, sizeof(FILEMGR_WriteDirListFile_Payload_t));
       CHILDMGR_RegisterFunc(CHILDMGR_OBJ, FILEMGR_CREATE_DIR_CC,          DIR_OBJ, DIR_CreateCmd);
       CHILDMGR_RegisterFunc(CHILDMGR_OBJ, FILEMGR_DELETE_DIR_CC,          DIR_OBJ, DIR_DeleteCmd);
       CHILDMGR_RegisterFunc(CHILDMGR_OBJ, FILEMGR_DELETE_ALL_DIR_CC,      DIR_OBJ, DIR_DeleteAllCmd);
       CHILDMGR_RegisterFunc(CHILDMGR_OBJ, FILEMGR_SEND_DIR_LIST_TLM_CC,   DIR_OBJ, DIR_SendDirListTlmCmd);
+      CHILDMGR_RegisterFunc(CHILDMGR_OBJ, FILEMGR_SEND_DIR_TLM_CC,        DIR_OBJ, DIR_SendDirTlmCmd);
       CHILDMGR_RegisterFunc(CHILDMGR_OBJ, FILEMGR_WRITE_DIR_LIST_FILE_CC, DIR_OBJ, DIR_WriteListFileCmd);
 
       CMDMGR_RegisterFunc(CMDMGR_OBJ, FILEMGR_CONCATENATE_FILE_CC,     CHILDMGR_OBJ, CHILDMGR_InvokeChildCmd, sizeof(FILEMGR_ConcatenateFile_Payload_t));
@@ -275,7 +284,8 @@ static int32 InitApp(void)
       CFE_EVS_SendEvent(FILEMGR_INIT_APP_EID, CFE_EVS_EventType_INFORMATION,
                         "FILEMGR App Initialized. Version %d.%d.%d",
                         FILEMGR_MAJOR_VER, FILEMGR_MINOR_VER, FILEMGR_PLATFORM_REV);
-                        
+                     
+     
    } /* End if CHILDMGR constructed */
    
    return(Status);
@@ -293,7 +303,7 @@ static int32 ProcessCommands(void)
    int32  RetStatus = CFE_ES_RunStatus_APP_RUN;
    int32  SysStatus;
 
-   CFE_SB_Buffer_t* SbBufPtr;
+   CFE_SB_Buffer_t *SbBufPtr;
    CFE_SB_MsgId_t   MsgId = CFE_SB_INVALID_MSG_ID;
    
 
@@ -309,7 +319,7 @@ static int32 ProcessCommands(void)
 
          if (CFE_SB_MsgId_Equal(MsgId, FileMgr.CmdMid))
          {
-            CMDMGR_DispatchFunc(CMDMGR_OBJ, &SbBufPtr->Msg);
+            CMDMGR_DispatchFunc(CMDMGR_OBJ, SbBufPtr);
          } 
          else if (CFE_SB_MsgId_Equal(MsgId, FileMgr.SendHkMid))
          {  

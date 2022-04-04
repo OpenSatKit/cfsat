@@ -1,24 +1,30 @@
 /*
-** Purpose: Define methods for managing directories
+**  Copyright 2022 Open STEMware Foundation
+**  All Rights Reserved.
 **
-** Notes:
-**   1. Command and telemetry packets are defined in EDS file filemgr.xml. 
+**  This program is free software; you can modify and/or redistribute it under
+**  the terms of the GNU Affero General Public License as published by the Free
+**  Software Foundation; version 3 with attribution addendums as found in the
+**  LICENSE.txt
 **
-** References:
-**   1. OpenSatKit Object-based Application Developer's Guide.
-**   2. cFS Application Developer's Guide.
+**  This program is distributed in the hope that it will be useful, but WITHOUT
+**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
+**  details.
+**  
+**  This program may also be used under the terms of a commercial or enterprise
+**  edition license of cFSAT if purchased from the copyright holder.
 **
-**   Written by David McComas, licensed under the Apache License, Version 2.0
-**   (the "License"); you may not use this file except in compliance with the
-**   License. You may obtain a copy of the License at
+**  Purpose:
+**    Define methods for managing directories
 **
-**      http://www.apache.org/licenses/LICENSE-2.0
+**  Notes:
+**    1. Command and telemetry packets are defined in EDS file filemgr.xml. 
 **
-**   Unless required by applicable law or agreed to in writing, software
-**   distributed under the License is distributed on an "AS IS" BASIS,
-**   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-**   See the License for the specific language governing permissions and
-**   limitations under the License.
+**  References:
+**    1. OpenSatKit Object-based Application Developer's Guide.
+**    2. cFS Application Developer's Guide.
+**
 */
 
 #ifndef _dir_
@@ -45,7 +51,36 @@
 #define DIR_DELETE_ALL_ERR_EID       (DIR_BASE_EID +  3)
 #define DIR_DELETE_ALL_WARN_EID      (DIR_BASE_EID +  4)
 #define DIR_DELETE_EID               (DIR_BASE_EID +  5)
-#define DIR_DELETE_ERR_EID           (DIR_BASE_EID +  6)
+#define DIR_DELETE_ERR_EID  /*
+**  Copyright 2022 Open STEMware Foundation
+**  All Rights Reserved.
+**
+**  This program is free software; you can modify and/or redistribute it under
+**  the terms of the GNU Affero General Public License as published by the Free
+**  Software Foundation; version 3 with attribution addendums as found in the
+**  LICENSE.txt
+**
+**  This program is distributed in the hope that it will be useful, but WITHOUT
+**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
+**  details.
+**  
+**  This program may also be used under the terms of a commercial or enterprise
+**  edition license of cFSAT if purchased from the copyright holder.
+**
+**  Purpose:
+**    Implement the DIR_Class methods
+**
+**  Notes:
+**    1. TODO: Complete EDS integration. EDS is used for cmd & tlm but not files
+**       so the LoadFileEntry(), used during telemetry and file generation, uses
+**       a dir.h typedef and not an EDS generated typedef  
+**
+**  References:
+**    1. OpenSatKit Object-based Application Developer's Guide.
+**    2. cFS Application Developer's Guide.
+**
+*/         (DIR_BASE_EID +  6)
 #define DIR_SEND_LIST_PKT_EID        (DIR_BASE_EID +  7)
 #define DIR_SEND_LIST_PKT_ERR_EID    (DIR_BASE_EID +  8)
 #define DIR_SEND_LIST_PKT_WARN_EID   (DIR_BASE_EID +  9)
@@ -151,7 +186,7 @@ void DIR_ResetStatus(void);
 **
 ** Create a new directory. 
 */
-bool DIR_CreateCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
+bool DIR_CreateCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
 
 
 /******************************************************************************
@@ -159,21 +194,28 @@ bool DIR_CreateCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 **
 ** Delete an existing empty directory.
 */
-bool DIR_DeleteCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
+bool DIR_DeleteCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
 
 
 /******************************************************************************
 ** Function: DIR_DeleteAllCmd
 **
 */
-bool DIR_DeleteAllCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
+bool DIR_DeleteAllCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
 
 
 /******************************************************************************
 ** Function: DIR_SendDirListTlmCmd
 **
 */
-bool DIR_SendDirListTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
+bool DIR_SendDirListTlmCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
+
+
+/******************************************************************************
+** Function: DIR_SendDirTlmCmd
+**
+*/
+bool DIR_SendDirTlmCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
 
 
 /******************************************************************************
@@ -182,6 +224,6 @@ bool DIR_SendDirListTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 ** Notes:
 **   1. Target file will be overwritten if it exists an is closed.
 */
-bool DIR_WriteListFileCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
+bool DIR_WriteListFileCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
 
 #endif /* _dir_ */

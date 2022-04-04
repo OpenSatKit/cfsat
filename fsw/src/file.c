@@ -1,29 +1,35 @@
 /*
-** Purpose: Implement the FILE_Class methods
+**  Copyright 2022 Open STEMware Foundation
+**  All Rights Reserved.
 **
-** Notes:
-**   1. The sprintf() event message strategy uses buffers that are longer than 
-**      CFE_MISSION_EVS_MAX_MESSAGE_LENGTH and relies on CFE_EVS_SendEvent() to
-**      truncate long messages. TODO - Improve this.
-**   2. When get FileUtil_GetFileInfo() is used to verify whether a target file
-**      exists it does not verify the directroy path is valid so an operation
-**      could still get an error when it tries to use the target path/file.
+**  This program is free software; you can modify and/or redistribute it under
+**  the terms of the GNU Affero General Public License as published by the Free
+**  Software Foundation; version 3 with attribution addendums as found in the
+**  LICENSE.txt
 **
-** References:
-**   1. OpenSatKit Object-based Application Developer's Guide.
-**   2. cFS Application Developer's Guide.
+**  This program is distributed in the hope that it will be useful, but WITHOUT
+**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
+**  details.
+**  
+**  This program may also be used under the terms of a commercial or enterprise
+**  edition license of cFSAT if purchased from the copyright holder.
 **
-**   Written by David McComas, licensed under the Apache License, Version 2.0
-**   (the "License"); you may not use this file except in compliance with the
-**   License. You may obtain a copy of the License at
+**  Purpose:
+**    Implement the FILE_Class methods
 **
-**      http://www.apache.org/licenses/LICENSE-2.0
+**  Notes:
+**    1. The sprintf() event message strategy uses buffers that are longer than 
+**       CFE_MISSION_EVS_MAX_MESSAGE_LENGTH and relies on CFE_EVS_SendEvent() to
+**       truncate long messages. TODO - Improve this.
+**    2. When get FileUtil_GetFileInfo() is used to verify whether a target file
+**       exists it does not verify the directroy path is valid so an operation
+**       could still get an error when it tries to use the target path/file.
 **
-**   Unless required by applicable law or agreed to in writing, software
-**   distributed under the License is distributed on an "AS IS" BASIS,
-**   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-**   See the License for the specific language governing permissions and
-**   limitations under the License.
+**  References:
+**    1. OpenSatKit Object-based Application Developer's Guide.
+**    2. cFS Application Developer's Guide.
+**
 */
 
 /*
@@ -34,7 +40,6 @@
 
 #include "app_cfg.h"
 #include "file.h"
-
 
 /*******************************/
 /** Local Function Prototypes **/
@@ -90,10 +95,10 @@ void FILE_ResetStatus()
 **   1. FileUtil_GetFileInfo() verifies filename prior to checking state.
 **
 */
-bool FILE_ConcatenateCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool FILE_ConcatenateCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
-   const FILEMGR_ConcatenateFile_Payload_t *ConcatenateCmd = (FILEMGR_ConcatenateFile_Payload_t *) MsgPtr;
+   const FILEMGR_ConcatenateFile_Payload_t *ConcatenateCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILEMGR_ConcatenateFile_t);
    FileUtil_FileInfo_t FileInfo;
    char  EventErrStr[256] = "\0";
    
@@ -175,10 +180,10 @@ bool FILE_ConcatenateCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 **   1. FileUtil_GetFileInfo() verifies filename prior to checking state.
 **
 */
-bool FILE_CopyCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool FILE_CopyCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
-   const FILEMGR_CopyFile_Payload_t *CopyCmd = (FILEMGR_CopyFile_Payload_t *) MsgPtr;
+   const FILEMGR_CopyFile_Payload_t *CopyCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILEMGR_CopyFile_t);
    FileUtil_FileInfo_t FileInfo;
    int32  SysStatus;   
    bool   PerformCopy = false;
@@ -284,16 +289,17 @@ bool FILE_CopyCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 ** Notes:
 **    1. FileUtil_GetFileInfo() verifies filename prior to checking state
 */
-bool FILE_DecompressCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool FILE_DecompressCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
    /* Can't uses const because CFE_PSP_Decompress() */
-   FILEMGR_DecompressFile_Payload_t *DecompressCmd = (FILEMGR_DecompressFile_Payload_t *) MsgPtr;
-   FileUtil_FileInfo_t FileInfo;
-   int32  CfeStatus;
+   const FILEMGR_DecompressFile_Payload_t *DecompressCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILEMGR_DecompressFile_t);
    bool   RetStatus = false;
-   
 
+   int32  CfeStatus;
+   FileUtil_FileInfo_t  FileInfo;
+   
+   
    FileInfo = FileUtil_GetFileInfo(DecompressCmd->SourceFilename, OS_MAX_PATH_LEN, false);
    
    if (FileInfo.State == FILEUTIL_FILE_CLOSED)
@@ -304,7 +310,8 @@ bool FILE_DecompressCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
       if (FileInfo.State == FILEUTIL_FILE_NONEXISTENT)
       {
           
-         CfeStatus = CFE_PSP_Decompress(DecompressCmd->SourceFilename, DecompressCmd->TargetFilename);
+         //todo: CfeStatus = CFE_FS_Decompress(DecompressCmd->SourceFilename, DecompressCmd->TargetFilename); 
+         CfeStatus = CFE_SUCCESS;
 
          if (CfeStatus == CFE_SUCCESS)
          {
@@ -355,10 +362,10 @@ bool FILE_DecompressCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 **   1. FileUtil_GetFileInfo() verifies filename prior to checking state.
 **
 */
-bool FILE_DeleteCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool FILE_DeleteCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
-   const FILEMGR_DeleteFile_Payload_t *DeleteCmd = (FILEMGR_DeleteFile_Payload_t *) MsgPtr;
+   const FILEMGR_DeleteFile_Payload_t *DeleteCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILEMGR_DeleteFile_t);
    FileUtil_FileInfo_t FileInfo;
    int32  SysStatus;
    bool   RetStatus = false;
@@ -408,10 +415,10 @@ bool FILE_DeleteCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 **   1. FileUtil_GetFileInfo() verifies filename prior to checking state.
 **
 */
-bool FILE_MoveCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool FILE_MoveCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
-   const FILEMGR_MoveFile_Payload_t *MoveCmd = (FILEMGR_MoveFile_Payload_t *) MsgPtr;
+   const FILEMGR_MoveFile_Payload_t *MoveCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILEMGR_MoveFile_t);
    FileUtil_FileInfo_t FileInfo;
    int32  SysStatus;   
    bool   PerformMove = false;
@@ -518,10 +525,10 @@ bool FILE_MoveCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 **   1. FileUtil_GetFileInfo() verifies filename prior to checking state.
 **
 */
-bool FILE_RenameCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool FILE_RenameCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
-   const FILEMGR_RenameFile_Payload_t *RenameCmd = (FILEMGR_RenameFile_Payload_t *) MsgPtr;
+   const FILEMGR_RenameFile_Payload_t *RenameCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILEMGR_RenameFile_t);
    FileUtil_FileInfo_t FileInfo;
    int32  SysStatus;   
    bool   RetStatus = false;
@@ -591,10 +598,10 @@ bool FILE_RenameCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 **      fails and no information telemetry packet is sent. 
 **
 */
-bool FILE_SendInfoTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool FILE_SendInfoTlmCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
-   const FILEMGR_SendFileInfoTlm_Payload_t *SendInfoTlmCmd = (FILEMGR_SendFileInfoTlm_Payload_t *) MsgPtr;
+   const FILEMGR_SendFileInfoTlm_Payload_t *SendInfoTlmCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILEMGR_SendFileInfoTlm_t);
    FileUtil_FileInfo_t FileInfo;
    uint32  Crc;
    bool    RetStatus = false;
@@ -682,10 +689,10 @@ bool FILE_SendInfoTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 **   1. FileUtil_GetFileInfo() verifies filename prior to checking state.
 **
 */
-bool FILE_SetPermissionsCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool FILE_SetPermissionsCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
-   const FILEMGR_SetFilePermissions_Payload_t *SetPermissionsCmd = (FILEMGR_SetFilePermissions_Payload_t *) MsgPtr;
+   const FILEMGR_SetFilePermissions_Payload_t *SetPermissionsCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILEMGR_SetFilePermissions_t);
    FileUtil_FileInfo_t FileInfo;
    int32  SysStatus;   
    bool   RetStatus = false;
