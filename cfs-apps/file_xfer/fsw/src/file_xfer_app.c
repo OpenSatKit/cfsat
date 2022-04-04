@@ -30,7 +30,7 @@
 **    9. TODO: Verify Fotp->NextDataSegmentId managed correctly
 **   10. TODO: The SendFileTransferTlm() function is inconsistent with whether
 **       TODO: the caller loads the telemetry packet prior to calling the function. 
-
+**
 **  References:
 **    1. OpenSatKit Object-based Application Developer's Guide.
 **    2. cFS Application Developer's Guide.

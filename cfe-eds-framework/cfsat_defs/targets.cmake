@@ -104,7 +104,7 @@ SET(MISSION_CPUNAMES cpu1)
 SET(cpu1_PROCESSORID 1)
 SET(cpu1_APPLIST ci_lab to_lab sch_lab osk_c_fw osk_c_demo filemgr file_xfer)
 #HELLO SET(cpu1_APPLIST ci_lab to_lab sch_lab osk_c_fw osk_c_demo filemgr file_xfer hello)
-SET(cpu1_FILELIST cfe_es_startup.scr osk_c_demo_ini.json osk_c_demo_tbl.json filemgr_ini.json file_xfer_ini.json hello_ini.json hello_tbl.json)
+SET(cpu1_FILELIST cfe_es_startup.scr osk_c_demo_ini.json osk_c_demo_tbl.json filemgr_ini.json file_xfer_ini.json)
 
 # CPU2 example.  This is not built by default anymore but
 # serves as an example of how one would configure multiple cpus.
