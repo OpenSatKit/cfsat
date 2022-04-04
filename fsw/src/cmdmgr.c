@@ -1,24 +1,31 @@
-/* 
-** Purpose: Manage command dispatching for an application.
+/*
+**  Copyright 2022 Open STEMware Foundation
+**  All Rights Reserved.
 **
-** Notes:
-**   1. This code must be reentrant so no global data is used. 
+**  This program is free software; you can modify and/or redistribute it under
+**  the terms of the GNU Affero General Public License as published by the Free
+**  Software Foundation; version 3 with attribution addendums as found in the
+**  LICENSE.txt
 **
-** References:
-**   1. OpenSatKit Object-based Application Developer's Guide.
-**   2. cFS Application Developer's Guide.
+**  This program is distributed in the hope that it will be useful, but WITHOUT
+**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
+**  details.
+**  
+**  This program may also be used under the terms of a commercial or enterprise
+**  edition license of cFSAT if purchased from the copyright holder.
 **
-**   Written by David McComas, licensed under the Apache License, Version 2.0
-**   (the "License"); you may not use this file except in compliance with the
-**   License. You may obtain a copy of the License at
+**  Purpose:
+**    Manage command dispatching for an application
 **
-**      http://www.apache.org/licenses/LICENSE-2.0
+**  Notes:
+**    1. 'Command' does not necessarily mean a ground command. 
+**    2. This code must be reentrant so no global data is used.  
 **
-**   Unless required by applicable law or agreed to in writing, software
-**   distributed under the License is distributed on an "AS IS" BASIS,
-**   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-**   See the License for the specific language governing permissions and
-**   limitations under the License.
+**  References:
+**    1. OpenSatKit Object-based Application Developer's Guide.
+**    2. cFS Application Developer's Guide.
+**
 */
 
 /*
@@ -32,7 +39,6 @@
 /** Macro Definitions **/
 /***********************/
 
-///#define DBG_CMDMGR
 
 
 /**********************/
@@ -50,7 +56,8 @@ static const char* BoolStr[] = {
 /** File Function Prototypes **/
 /******************************/
 
-static bool UnusedFuncCode(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
+static void LogMsgBytes(uint8* MsgPtr, size_t PayloadLen, CFE_MSG_FcnCode_t FuncCode);
+static bool UnusedFuncCode(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
 
 
 /******************************************************************************
@@ -174,7 +181,7 @@ void CMDMGR_ResetStatus(CMDMGR_Class_t* CmdMgr)
 **      if an app wants a message response then it should publish the format. 
 **
 */
-bool CMDMGR_DispatchFunc(CMDMGR_Class_t* CmdMgr, const CFE_MSG_Message_t *MsgPtr)
+bool CMDMGR_DispatchFunc(CMDMGR_Class_t* CmdMgr, const CFE_SB_Buffer_t *SbBufPtr)
 {
 
    bool   ValidCmd = false;
@@ -183,17 +190,13 @@ bool CMDMGR_DispatchFunc(CMDMGR_Class_t* CmdMgr, const CFE_MSG_Message_t *MsgPtr
    CFE_MSG_Size_t    MsgSize;
    CFE_MSG_FcnCode_t FuncCode;
 
-   UserDataLen = CFE_SB_GetUserDataLength(MsgPtr);
+   UserDataLen = CFE_SB_GetUserDataLength(&SbBufPtr->Msg);
 
-   CFE_MSG_GetSize(MsgPtr, &MsgSize);
-   CFE_MSG_GetFcnCode(MsgPtr, &FuncCode);
-   CFE_MSG_ValidateChecksum(MsgPtr, &ChecksumValid);
+   CFE_MSG_GetSize(&SbBufPtr->Msg, &MsgSize);
+   CFE_MSG_GetFcnCode(&SbBufPtr->Msg, &FuncCode);
+   CFE_MSG_ValidateChecksum(&SbBufPtr->Msg, &ChecksumValid);
 
-   if (DBG_CMDMGR) OS_printf("CMDMGR_DispatchFunc(): MsgSize %d, DataLen %ld FuncCode %d\n", (int)MsgSize,UserDataLen,FuncCode);
-   if (DBG_CMDMGR) OS_printf("CMDMGR_DispatchFunc(): [0]=0x%02X, [1]=0x%02X, [2]=0x%02X, [3]=0x%02X\n",
-                             ((uint8*)MsgPtr)[0],((uint8*)MsgPtr)[1],((uint8*)MsgPtr)[2],((uint8*)MsgPtr)[3]);
-   if (DBG_CMDMGR) OS_printf("CMDMGR_DispatchFunc(): [4]=0x%02X, [5]=0x%02X, [6]=0x%02X, [7]=0x%02X\n",
-                             ((uint8*)MsgPtr)[4],((uint8*)MsgPtr)[5],((uint8*)MsgPtr)[6],((uint8*)MsgPtr)[7]);
+   if (DBG_CMDMGR) LogMsgBytes((uint8*) &SbBufPtr->Msg, UserDataLen, FuncCode);
 
    if (FuncCode < CMDMGR_CMD_FUNC_TOTAL)
    {
@@ -204,7 +207,7 @@ bool CMDMGR_DispatchFunc(CMDMGR_Class_t* CmdMgr, const CFE_MSG_Message_t *MsgPtr
          if (ChecksumValid)
          {
 
-            ValidCmd = (CmdMgr->Cmd[FuncCode].FuncPtr)(CmdMgr->Cmd[FuncCode].DataPtr, MsgPtr);
+            ValidCmd = (CmdMgr->Cmd[FuncCode].FuncPtr)(CmdMgr->Cmd[FuncCode].DataPtr, SbBufPtr);
 
          } /* End if valid checksum */
          else
@@ -219,8 +222,8 @@ bool CMDMGR_DispatchFunc(CMDMGR_Class_t* CmdMgr, const CFE_MSG_Message_t *MsgPtr
       {
 
          CFE_EVS_SendEvent (CMDMGR_DISPATCH_INVALID_LEN_ERR_EID, CFE_EVS_EventType_ERROR,
-                            "Invalid command user data length %ld, expected %d",
-                            UserDataLen, CmdMgr->Cmd[FuncCode].UserDataLen);
+                            "Invalid command user data length %ld, expected %d for function code %d",
+                            UserDataLen, CmdMgr->Cmd[FuncCode].UserDataLen, FuncCode);
 
       }
 
@@ -250,24 +253,6 @@ bool CMDMGR_DispatchFunc(CMDMGR_Class_t* CmdMgr, const CFE_MSG_Message_t *MsgPtr
    return ValidCmd;
 
 } /* End CMDMGR_DispatchFunc() */
-
-
-/******************************************************************************
-** Function: UnusedFuncCode
-**
-*/
-static bool UnusedFuncCode(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
-{
-
-   CFE_MSG_FcnCode_t FuncCode;
-   
-   CFE_MSG_GetFcnCode(MsgPtr, &FuncCode);
-   CFE_EVS_SendEvent (CMDMGR_DISPATCH_UNUSED_FUNC_CODE_ERR_EID, CFE_EVS_EventType_ERROR,
-                      "Unused command function code %d received",FuncCode);
-
-   return false;
-
-} /* End UnusedFuncCode() */
 
 
 /******************************************************************************
@@ -304,3 +289,79 @@ const char* CMDMGR_BoolStr(bool BoolArg)
    return BoolStr[i];
 
 } /* End CMDMGR_BoolStr() */
+
+
+/******************************************************************************
+** Function: LogMsgBytes
+**
+** Print message header on title line followed by payload data rows
+*/
+static void LogMsgBytes(uint8* MsgPtr, size_t PayloadLen, CFE_MSG_FcnCode_t FuncCode)
+{
+
+   int    i, row_byte;
+   uint16 HeaderLen = sizeof(CFE_MSG_CommandHeader_t);
+   
+   
+   OS_printf("Command function %d - %ld byte header: ", FuncCode, sizeof(CFE_MSG_CommandHeader_t));
+   
+   for (i=0; i < HeaderLen; i++)
+   {
+
+      if (i%2 == 0)
+      {
+         OS_printf("0x%02X", MsgPtr[i]);
+      }
+      else
+      {
+         OS_printf("%02X ", MsgPtr[i]);
+      } 
+   
+   } /* End header loop */
+   OS_printf("\n");
+             
+   for (i=HeaderLen, row_byte=0; i < (HeaderLen+PayloadLen); i++, row_byte++)
+   {
+
+      if (row_byte !=0 && row_byte%16 == 0)
+      {
+         OS_printf("\n");
+      }
+
+      if (i%2 == 0)
+      {
+         OS_printf("0x%02X", MsgPtr[i]);
+      }
+      else
+      {
+         OS_printf("%02X ", MsgPtr[i]);
+      } 
+   
+   } /* End msg loop */
+   if (i != HeaderLen)
+   {
+      OS_printf("\n");
+   }
+   
+} /* End LogMsgBytes() */
+
+
+/******************************************************************************
+** Function: UnusedFuncCode
+**
+*/
+static bool UnusedFuncCode(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
+{
+
+   CFE_MSG_FcnCode_t FuncCode;
+   
+   CFE_MSG_GetFcnCode(&SbBufPtr->Msg, &FuncCode);
+   CFE_EVS_SendEvent (CMDMGR_DISPATCH_UNUSED_FUNC_CODE_ERR_EID, CFE_EVS_EventType_ERROR,
+                      "Unused command function code %d received",FuncCode);
+
+   return false;
+
+} /* End UnusedFuncCode() */
+
+
+

@@ -1,25 +1,31 @@
 /*
-** Purpose: Manage tables for an application
+**  Copyright 2022 Open STEMware Foundation
+**  All Rights Reserved.
 **
-** Notes:
-**   1. This utility does not dictate a specific table format. It 
-**      only specifies an API for managing an application's table.
+**  This program is free software; you can modify and/or redistribute it under
+**  the terms of the GNU Affero General Public License as published by the Free
+**  Software Foundation; version 3 with attribution addendums as found in the
+**  LICENSE.txt
 **
-** References:
-**   1. OpenSatKit Object-based Application Developer's Guide.
-**   2. cFS Application Developer's Guide.
+**  This program is distributed in the hope that it will be useful, but WITHOUT
+**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
+**  details.
+**  
+**  This program may also be used under the terms of a commercial or enterprise
+**  edition license of cFSAT if purchased from the copyright holder.
 **
-**   Written by David McComas, licensed under the Apache License, Version 2.0
-**   (the "License"); you may not use this file except in compliance with the
-**   License. You may obtain a copy of the License at
+**  Purpose:
+**    Manage tables for an application
 **
-**      http://www.apache.org/licenses/LICENSE-2.0
+**  Notes:
+**    1. This utility does not dictate a specific table format. It 
+**       only specifies an API for managing an application's table.
 **
-**   Unless required by applicable law or agreed to in writing, software
-**   distributed under the License is distributed on an "AS IS" BASIS,
-**   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-**   See the License for the specific language governing permissions and
-**   limitations under the License.
+**  References:
+**    1. OpenSatKit Object-based Application Developer's Guide.
+**    2. cFS Application Developer's Guide.
+**
 */
 
 #ifndef _tblmgr_
@@ -93,12 +99,20 @@
 ** Identifer is assigned at the time of table registration
 */
 
+
 typedef struct
 {
-   CFE_MSG_CommandHeader_t  CmdHeader;
-   uint8   Id;                             /* Table identifier                            */
-   uint8   LoadType;                       /* Replace or update table records             */
-   char    Filename[OS_MAX_PATH_LEN];      /* ASCII text string of full path and filename */
+
+   uint8   Id;                         /* Table identifier                                    */
+   uint8   Type;                       /* 0=Replace, 1=Update table records, Unused for dumps */
+   char    Filename[OS_MAX_PATH_LEN];  /* ASCII text string of full path and filename         */
+
+} TBLMGR_TblCmdMsg_Payload_t;
+
+typedef struct
+{
+   CFE_MSG_CommandHeader_t    CmdHeader;
+   TBLMGR_TblCmdMsg_Payload_t Payload;
 
 } TBLMGR_LoadTblCmdMsg_t;
 #define TBLMGR_LOAD_TBL_CMD_DATA_LEN  (sizeof(TBLMGR_LoadTblCmdMsg_t) - sizeof(CFE_MSG_CommandHeader_t))
@@ -106,9 +120,7 @@ typedef struct
 typedef struct
 {
    CFE_MSG_CommandHeader_t  CmdHeader;
-   uint8   Id;                             /* Table identifier                            */
-   uint8   DumpType;                       /* Placeholder for user defined qualifier      */
-   char    Filename[OS_MAX_PATH_LEN];      /* ASCII text string of full path and filename */
+   TBLMGR_TblCmdMsg_Payload_t Payload;
 
 } TBLMGR_DumpTblCmdMsg_t;
 #define TBLMGR_DUMP_TBL_CMD_DATA_LEN  (sizeof(TBLMGR_DumpTblCmdMsg_t) - sizeof(CFE_MSG_CommandHeader_t))
@@ -222,7 +234,7 @@ const TBLMGR_Tbl_t* TBLMGR_GetTblStatus(TBLMGR_Class_t* TblMgr, uint8 TblId);
 **     during registration 
 ** 
 */
-bool TBLMGR_LoadTblCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
+bool TBLMGR_LoadTblCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
 
 
 /******************************************************************************
@@ -234,7 +246,7 @@ bool TBLMGR_LoadTblCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 **     during registration 
 ** 
 */
-bool TBLMGR_DumpTblCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
+bool TBLMGR_DumpTblCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
 
 
 /******************************************************************************

@@ -1,28 +1,34 @@
 /*
-** Purpose: Define configurations for the application framework
+**  Copyright 2022 Open STEMware Foundation
+**  All Rights Reserved.
 **
-** Notes:
-**   1. These definitions are intrinsic to the framework and should not
-**      change across platform deployments. They should be fixed between
-**      framework releases but may need to can during framework development
-**      and for a release. See osk_c_fw_platform.h and osk_c_fw_mission.h
-**      for parameters that can be configured for a deployment.
+**  This program is free software; you can modify and/or redistribute it under
+**  the terms of the GNU Affero General Public License as published by the Free
+**  Software Foundation; version 3 with attribution addendums as found in the
+**  LICENSE.txt
 **
-** References:
-**   1. OpenSatKit Object-based Application Developer's Guide.
-**   2. cFS Application Developer's Guide.
+**  This program is distributed in the hope that it will be useful, but WITHOUT
+**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
+**  details.
+**  
+**  This program may also be used under the terms of a commercial or enterprise
+**  edition license of cFSAT if purchased from the copyright holder.
 **
-**   Written by David McComas, licensed under the Apache License, Version 2.0
-**   (the "License"); you may not use this file except in compliance with the
-**   License. You may obtain a copy of the License at
+**  Purpose:
+**    Define configurations for the application framework
 **
-**      http://www.apache.org/licenses/LICENSE-2.0
+**  Notes:
+**    1. These definitions are intrinsic to the framework and should not
+**       change across platform deployments. They should be fixed between
+**       framework releases but may need to can during framework development
+**       and for a release. See osk_c_fw_platform.h and osk_c_fw_mission.h
+**       for parameters that can be configured for a deployment.
 **
-**   Unless required by applicable law or agreed to in writing, software
-**   distributed under the License is distributed on an "AS IS" BASIS,
-**   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-**   See the License for the specific language governing permissions and
-**   limitations under the License.
+**  References:
+**    1. OpenSatKit Object-based Application Developer's Guide.
+**    2. cFS Application Developer's Guide.
+**
 */
 
 #ifndef _osk_c_fw_cfg_
@@ -46,7 +52,9 @@
 
 #define CMDMGR_NOOP_CMD_FC      0  
 #define CMDMGR_RESET_CMD_FC     1
-#define CMDMGR_APP_START_FC     2  /* First FC available for app */
+#define CMDMGR_LOAD_TBL_CMD_FC  2
+#define CMDMGR_DUMP_TBL_CMD_FC  3
+#define CMDMGR_APP_START_FC    10  /* First FC available for app */
 
 
 /******************************************************************************
@@ -76,12 +84,12 @@
 */
 
 
-#define DBG_INITBL    0
-#define DBG_CMDMGR    0
-#define DBG_TBLMGR    0
-#define DBG_JSON      0
-#define DBG_FAULTREP  0
-#define DBG_CHILDMGR  0
+#define DBG_INITBL      0
+#define DBG_CMDMGR      0
+#define DBG_TBLMGR      0
+#define DBG_JSON        0
+#define DBG_FAULTREP    0
+#define DBG_CHILDMGR    0
 
 
 #endif /* _osk_c_fw_cfg_ */

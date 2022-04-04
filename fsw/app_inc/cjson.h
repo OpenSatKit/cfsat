@@ -1,39 +1,46 @@
 /*
-** Purpose: Define a coreJSON adapter for JSON table management
+**  Copyright 2022 Open STEMware Foundation
+**  All Rights Reserved.
 **
-** Notes:
-**   1. Provide an interface to the FreeRTOS coreJSON library that simplifies
-**      app JSON table management and makes the usage consistent.
-**   2. The JSON table is a stream of characters so string terminators are not
-**      part of length definitions 
-**   3. This is designed as a functional library rather than an object-based
-**      service for a couple of reasons. 
-**      - Users can write custom code for table loads. A general purpose load
-**        could be provided with a table validation callback but when I looked
-**        into the user table-to-CJSON interface it got more complex. The
-**        amount of code a user needs to write with the current design is 
-**        trivial and it allows more control especially for partial table load
-**        situations.
-**   4. Supported JSON types as defined by core_json
-**      - JSONNumber
-**      - JSONString
+**  This program is free software; you can modify and/or redistribute it under
+**  the terms of the GNU Affero General Public License as published by the Free
+**  Software Foundation; version 3 with attribution addendums as found in the
+**  LICENSE.txt
 **
-** References:
-**   1. OpenSatKit Object-based Application Developer's Guide.
-**   2. cFS Application Developer's Guide.
+**  This program is distributed in the hope that it will be useful, but WITHOUT
+**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
+**  details.
+**  
+**  This program may also be used under the terms of a commercial or enterprise
+**  edition license of cFSAT if purchased from the copyright holder.
 **
-**   Written by David McComas, licensed under the Apache License, Version 2.0
-**   (the "License"); you may not use this file except in compliance with the
-**   License. You may obtain a copy of the License at
+**  Purpose:
+**    Define a coreJSON adapter for JSON table management
 **
-**      http://www.apache.org/licenses/LICENSE-2.0
+**  Notes:
+**    1. Provide an interface to the FreeRTOS coreJSON library that simplifies
+**       app JSON table management and makes the usage consistent.
+**    2. The JSON table is a stream of characters so string terminators are not
+**       part of length definitions 
+**    3. This is designed as a functional library rather than an object-based
+**       service for a couple of reasons. 
+**       - Users can write custom code for table loads. A general purpose load
+**         could be provided with a table validation callback but when I looked
+**         into the user table-to-CJSON interface it got more complex. The
+**         amount of code a user needs to write with the current design is 
+**         trivial and it allows more control especially for partial table load
+**         situations.
+**    4. Supported JSON types as defined by core_json
+**       - JSONNumber
+**       - JSONString
 **
-**   Unless required by applicable law or agreed to in writing, software
-**   distributed under the License is distributed on an "AS IS" BASIS,
-**   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-**   See the License for the specific language governing permissions and
-**   limitations under the License.
+**  References:
+**    1. OpenSatKit Object-based Application Developer's Guide.
+**    2. cFS Application Developer's Guide.
+**
 */
+
 #ifndef _cjson_
 #define _cjson_
 

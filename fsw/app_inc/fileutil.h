@@ -1,24 +1,30 @@
-/* 
-** Purpose: C App Framework file utilities
+/*
+**  Copyright 2022 Open STEMware Foundation
+**  All Rights Reserved.
 **
-** Notes:
-**   None
+**  This program is free software; you can modify and/or redistribute it under
+**  the terms of the GNU Affero General Public License as published by the Free
+**  Software Foundation; version 3 with attribution addendums as found in the
+**  LICENSE.txt
 **
-** References:
-**   1. OpenSatKit Object-based Application Developer's Guide.
-**   2. cFS Application Developer's Guide.
+**  This program is distributed in the hope that it will be useful, but WITHOUT
+**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
+**  details.
+**  
+**  This program may also be used under the terms of a commercial or enterprise
+**  edition license of cFSAT if purchased from the copyright holder.
 **
-**   Written by David McComas, licensed under the Apache License, Version 2.0
-**   (the "License"); you may not use this file except in compliance with the
-**   License. You may obtain a copy of the License at
+**  Purpose:
+**    Provide general file management utilties
 **
-**      http://www.apache.org/licenses/LICENSE-2.0
+**  Notes:
+**    None
 **
-**   Unless required by applicable law or agreed to in writing, software
-**   distributed under the License is distributed on an "AS IS" BASIS,
-**   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-**   See the License for the specific language governing permissions and
-**   limitations under the License.
+**  References:
+**    1. OpenSatKit Object-based Application Developer's Guide.
+**    2. cFS Application Developer's Guide.
+**
 */
 
 #ifndef _file_util_
@@ -50,6 +56,7 @@
 #define FILEUTIL_INVLD_FILENAME_CHR_EID     (OSK_C_FW_UTILS_BASE_EID + 2)
 #define FILEUTIL_FILE_READ_OPEN_ERR_EID     (OSK_C_FW_UTILS_BASE_EID + 3)
 #define FILEUTIL_MAX_PATH_LEN_CONFLICT_EID  (OSK_C_FW_UTILS_BASE_EID + 4)
+#define FILEUTIL_MAX_OPEN_FILE_LIST_EID     (OSK_C_FW_UTILS_BASE_EID + 5)
 
 /**********************/
 /** Type Definitions **/
@@ -145,6 +152,14 @@ bool FileUtil_AppendPathSep(char *DirName, uint16 BufferLen);
 ** and time for existing files.
 */
 FileUtil_FileInfo_t FileUtil_GetFileInfo(const char *Filename, uint16 FilenameBufLen, bool IncludeSizeTime);
+
+
+/******************************************************************************
+** Function: FileUtil_GetOpenFileCount
+**
+** Returns the number of open files. 
+*/
+uint16 FileUtil_GetOpenFileCount(void);
 
 
 /******************************************************************************

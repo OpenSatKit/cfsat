@@ -1,24 +1,30 @@
-/* 
-** Purpose: OSK App C Framework Library file utilities
+/*
+**  Copyright 2022 Open STEMware Foundation
+**  All Rights Reserved.
 **
-** Notes:
-**   1. LoadOpenFileData() callback is not reentrant and needs to be fixed
+**  This program is free software; you can modify and/or redistribute it under
+**  the terms of the GNU Affero General Public License as published by the Free
+**  Software Foundation; version 3 with attribution addendums as found in the
+**  LICENSE.txt
 **
-** References:
-**   1. OpenSatKit Object-based Application Developer's Guide.
-**   2. cFS Application Developer's Guide.
+**  This program is distributed in the hope that it will be useful, but WITHOUT
+**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
+**  details.
+**  
+**  This program may also be used under the terms of a commercial or enterprise
+**  edition license of cFSAT if purchased from the copyright holder.
 **
-**   Written by David McComas, licensed under the Apache License, Version 2.0
-**   (the "License"); you may not use this file except in compliance with the
-**   License. You may obtain a copy of the License at
+**  Purpose:
+**    Provide general file management utilties
 **
-**      http://www.apache.org/licenses/LICENSE-2.0
+**  Notes:
+**    None
 **
-**   Unless required by applicable law or agreed to in writing, software
-**   distributed under the License is distributed on an "AS IS" BASIS,
-**   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-**   See the License for the specific language governing permissions and
-**   limitations under the License.
+**  References:
+**    1. OpenSatKit Object-based Application Developer's Guide.
+**    2. cFS Application Developer's Guide.
+**
 */
 
 /*
@@ -35,9 +41,9 @@
 /** Local Functions **/
 /*********************/
 
+static void CountOpenFiles(osal_id_t ObjId, void* CallbackArg);
 static bool IsValidFilename(const char *Filename, uint32 Length);
 static void LoadOpenFileData(osal_id_t ObjId, void* CallbackArg);
-
 
 /************************/
 /** Exported Functions **/
@@ -195,6 +201,22 @@ const char* FileUtil_FileStateStr(FileUtil_FileState_t  FileState)
 
 
 /******************************************************************************
+** Function: FileUtil_GetOpenFileCount
+**
+*/
+
+uint16 FileUtil_GetOpenFileCount(void)
+{
+    uint16 OpenFileCount = 0;
+    
+    OS_ForEachObject(OS_OBJECT_CREATOR_ANY, CountOpenFiles, (void*)&OpenFileCount);
+
+    return OpenFileCount;
+
+} /* End FileUtil_GetOpenFileCount() */
+
+
+/******************************************************************************
 ** Function: FileUtil_GetOpenFileList
 **
 ** Type checking should enforce valid parameter but check just to be safe.
@@ -204,7 +226,7 @@ uint16 FileUtil_GetOpenFileList(FileUtil_OpenFileList_t *OpenFileList)
 {
     OpenFileList->OpenCount = 0;
     
-    OS_ForEachObject(0, LoadOpenFileData, (void*)OpenFileList);
+    OS_ForEachObject(OS_OBJECT_CREATOR_ANY, LoadOpenFileData, (void*)OpenFileList);
 
     return (OpenFileList->OpenCount);
 
@@ -377,8 +399,8 @@ static bool IsValidFilename(const char *Filename, uint32 Length)
    int32  i;
    
    /* Test for a NUL string */
-   if(Filename[0] == '\0')
-   {
+   if (Filename[0] == '\0')
+   { 
       Valid = false;
    }
    else
@@ -386,7 +408,7 @@ static bool IsValidFilename(const char *Filename, uint32 Length)
       
       /* Scan string for disallowed characters */
       
-      for(i=0; i < Length; i++)
+      for (i=0; i < Length; i++)
       {
           
          if ( !(isalnum((int)Filename[i]) ||
@@ -416,7 +438,7 @@ static bool IsValidFilename(const char *Filename, uint32 Length)
    
    } /* End if not null */
    
-   return(Valid);
+   return (Valid);
    
 } /* End IsValidFilename */
 
@@ -443,6 +465,27 @@ static CFE_ES_TaskId_t TaskId_FromOSAL(osal_id_t id)
 }
 
 /******************************************************************************
+** Function: CountOpenFiles
+**
+** Notes:
+**  1. Callback function for OS_ForEachObject()
+*/
+static void CountOpenFiles(osal_id_t ObjId, void* CallbackArg)
+{
+
+   uint16* OpenFileCount = (uint16*)CallbackArg;
+
+   if (OS_IdentifyObject(ObjId) == OS_OBJECT_TYPE_OS_STREAM)
+   {
+      (*OpenFileCount)++;
+   }
+
+   return;
+
+} /* End CountOpenFiles() */
+
+
+/******************************************************************************
 ** Function: LoadOpenFileData
 **
 ** Notes:
@@ -456,33 +499,41 @@ static void LoadOpenFileData(osal_id_t ObjId, void* CallbackArg)
    OS_file_prop_t           FdProp;
 
 
-   if(OS_IdentifyObject(ObjId) == OS_OBJECT_TYPE_OS_STREAM)
+   if (OS_IdentifyObject(ObjId) == OS_OBJECT_TYPE_OS_STREAM)
    {
-      
-      if(OpenFileList != (FileUtil_OpenFileList_t*) NULL) 
+   
+      if (OpenFileList != (FileUtil_OpenFileList_t*) NULL) 
       {
          
-         if(OS_FDGetInfo(ObjId, &FdProp) == OS_SUCCESS)
+         if (OS_FDGetInfo(ObjId, &FdProp) == OS_SUCCESS)
          {
             
-            strncpy(OpenFileList->Entry[OpenFileList->OpenCount].Filename,
-                    FdProp.Path, OS_MAX_PATH_LEN);
-
-            // Get the name of the application that opened the file
-            memset(&TaskInfo, 0, sizeof(CFE_ES_TaskInfo_t));
-
-            if(CFE_ES_GetTaskInfo(&TaskInfo, TaskId_FromOSAL(FdProp.User)) == CFE_SUCCESS)
+            if (OpenFileList->OpenCount < OS_MAX_NUM_OPEN_FILES)
             {
-               
-               strncpy(OpenFileList->Entry[OpenFileList->OpenCount].AppName,
-                       (char*)TaskInfo.AppName, OS_MAX_API_NAME);
+               strncpy(OpenFileList->Entry[OpenFileList->OpenCount].Filename,
+                       FdProp.Path, OS_MAX_PATH_LEN);
+
+               // Get the name of the application that opened the file
+               memset(&TaskInfo, 0, sizeof(CFE_ES_TaskInfo_t));
+
+               if (CFE_ES_GetTaskInfo(&TaskInfo, TaskId_FromOSAL(FdProp.User)) == CFE_SUCCESS)
+               {
+                  strncpy(OpenFileList->Entry[OpenFileList->OpenCount].AppName,
+                          (char*)TaskInfo.AppName, OS_MAX_API_NAME);
+               }
+            
+               ++OpenFileList->OpenCount;
             }
-         }
-      } 
+            else
+            {
+               CFE_EVS_SendEvent(FILEUTIL_FILE_READ_OPEN_ERR_EID, CFE_EVS_EventType_INFORMATION, 
+                                 "Load open file data reached maximum open files of %d", OS_MAX_NUM_OPEN_FILES);
+            }
+            
+         } /* End OS_FDGetInfo() */
+      } /* End if valid OpenFileList arg */
+   } /* End if OS_OBJECT_TYPE_OS_STREAM */
 
-      ++OpenFileList->OpenCount;
-   }
+   return;
 
-return;
- 
 } /* End LoadOpenFileData() */
