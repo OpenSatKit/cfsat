@@ -113,7 +113,7 @@ typedef struct
    ** Telemetry Packets
    */
    
-   FILEMGR_FileInfoTlm_t  InfoTlm;
+   FILE_MGR_FileInfoTlm_t  InfoTlm;
 
    /*
    ** File State Data
@@ -121,7 +121,7 @@ typedef struct
 
    uint16  CmdWarningCnt;
 
-   char FileTaskBuf[FILEMGR_TASK_FILE_BLOCK_SIZE];
+   char FileTaskBuf[FILE_MGR_TASK_FILE_BLOCK_SIZE];
    
 } FILE_Class_t;
 

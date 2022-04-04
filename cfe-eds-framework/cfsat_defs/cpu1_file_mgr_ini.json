@@ -15,17 +15,17 @@
       "APP_MAIN_PERF_ID":   39,
       "CHILD_TASK_PERF_ID": 44,
       
-      "CMD_MID"     : 6237,
-      "SEND_HK_MID" : 6238,
-
-      "HK_TLM_MID"         : 2135,
-      "FILE_INFO_TLM_MID"  : 2136,
-      "DIR_LIST_TLM_MID"   : 2137,
-      "OPEN_FILE_TLM_MID"  : 2138,
-      "FILESYS_TLM_MID"    : 2139,
+      "APP_CMD_PIPE_DEPTH": 10,
+      "APP_CMD_PIPE_NAME":  "FILEMGR_CMD_PIPE",
       
-      "CMD_PIPE_DEPTH": 10,
-      "CMD_PIPE_NAME":  "FILEMGR_CMD_PIPE",
+      "APP_CMD_MID"     : 6237,
+      "APP_SEND_HK_MID" : 6238,
+
+      "APP_HK_TLM_MID"            : 2135,
+      "FILE_INFO_TLM_MID"         : 2136,
+      "DIR_LIST_TLM_MID"          : 2137,
+      "FILESYS_OPEN_FILE_TLM_MID" : 2138,
+      "FILESYS_TLM_MID"           : 2139,
       
       "TBL_CFE_NAME": "FileSysTbl",
       "TBL_DEF_FILENAME": "/cf/filesys_tbl.tbl",

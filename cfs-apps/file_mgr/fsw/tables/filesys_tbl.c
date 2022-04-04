@@ -89,7 +89,7 @@ FILESYS_TblData_t FILESYS_Tbl =
 /*
 ** cFE Table header
 */
-CFE_TBL_FILEDEF(FILESYS_Tbl, FILEMGR.FileSysTbl, File system volumes, filesys_tbl.tbl)
+CFE_TBL_FILEDEF(FILESYS_Tbl, FILE_MGR.FileSysTbl, File system volumes, filesys_tbl.tbl)
 
 /*
 static CFE_TBL_FileDef_t CFE_TBL_FileDef __attribute__((__used__)) =

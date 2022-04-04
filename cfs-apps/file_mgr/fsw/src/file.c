@@ -71,7 +71,7 @@ void FILE_Constructor(FILE_Class_t*  FilePtr, const INITBL_Class_t* IniTbl)
    
    CFE_MSG_Init(CFE_MSG_PTR(File->InfoTlm.TelemetryHeader), 
                 CFE_SB_ValueToMsgId(INITBL_GetIntConfig(File->IniTbl, CFG_FILE_INFO_TLM_MID)), 
-                sizeof(FILEMGR_FileInfoTlm_t));
+                sizeof(FILE_MGR_FileInfoTlm_t));
 
 } /* End FILE_Constructor */
 
@@ -98,7 +98,7 @@ void FILE_ResetStatus()
 bool FILE_ConcatenateCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
-   const FILEMGR_ConcatenateFile_Payload_t *ConcatenateCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILEMGR_ConcatenateFile_t);
+   const FILE_MGR_ConcatenateFile_Payload_t *ConcatenateCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_MGR_ConcatenateFile_t);
    FileUtil_FileInfo_t FileInfo;
    char  EventErrStr[256] = "\0";
    
@@ -183,7 +183,7 @@ bool FILE_ConcatenateCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 bool FILE_CopyCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
-   const FILEMGR_CopyFile_Payload_t *CopyCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILEMGR_CopyFile_t);
+   const FILE_MGR_CopyFile_Payload_t *CopyCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_MGR_CopyFile_t);
    FileUtil_FileInfo_t FileInfo;
    int32  SysStatus;   
    bool   PerformCopy = false;
@@ -293,7 +293,7 @@ bool FILE_DecompressCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
    /* Can't uses const because CFE_PSP_Decompress() */
-   const FILEMGR_DecompressFile_Payload_t *DecompressCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILEMGR_DecompressFile_t);
+   const FILE_MGR_DecompressFile_Payload_t *DecompressCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_MGR_DecompressFile_t);
    bool   RetStatus = false;
 
    int32  CfeStatus;
@@ -365,7 +365,7 @@ bool FILE_DecompressCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 bool FILE_DeleteCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
-   const FILEMGR_DeleteFile_Payload_t *DeleteCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILEMGR_DeleteFile_t);
+   const FILE_MGR_DeleteFile_Payload_t *DeleteCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_MGR_DeleteFile_t);
    FileUtil_FileInfo_t FileInfo;
    int32  SysStatus;
    bool   RetStatus = false;
@@ -418,7 +418,7 @@ bool FILE_DeleteCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 bool FILE_MoveCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
-   const FILEMGR_MoveFile_Payload_t *MoveCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILEMGR_MoveFile_t);
+   const FILE_MGR_MoveFile_Payload_t *MoveCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_MGR_MoveFile_t);
    FileUtil_FileInfo_t FileInfo;
    int32  SysStatus;   
    bool   PerformMove = false;
@@ -528,7 +528,7 @@ bool FILE_MoveCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 bool FILE_RenameCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
-   const FILEMGR_RenameFile_Payload_t *RenameCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILEMGR_RenameFile_t);
+   const FILE_MGR_RenameFile_Payload_t *RenameCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_MGR_RenameFile_t);
    FileUtil_FileInfo_t FileInfo;
    int32  SysStatus;   
    bool   RetStatus = false;
@@ -601,7 +601,7 @@ bool FILE_RenameCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 bool FILE_SendInfoTlmCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
-   const FILEMGR_SendFileInfoTlm_Payload_t *SendInfoTlmCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILEMGR_SendFileInfoTlm_t);
+   const FILE_MGR_SendFileInfoTlm_Payload_t *SendInfoTlmCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_MGR_SendFileInfoTlm_t);
    FileUtil_FileInfo_t FileInfo;
    uint32  Crc;
    bool    RetStatus = false;
@@ -692,7 +692,7 @@ bool FILE_SendInfoTlmCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 bool FILE_SetPermissionsCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
-   const FILEMGR_SetFilePermissions_Payload_t *SetPermissionsCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILEMGR_SetFilePermissions_t);
+   const FILE_MGR_SetFilePermissions_Payload_t *SetPermissionsCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_MGR_SetFilePermissions_t);
    FileUtil_FileInfo_t FileInfo;
    int32  SysStatus;   
    bool   RetStatus = false;
@@ -788,7 +788,7 @@ static bool ConcatenateFiles(const char* SrcFile1, const char* SrcFile2, const c
             while (PerformingCatenation)
             {
                
-               BytesRead = OS_read(SourceFileHandle, File->FileTaskBuf, FILEMGR_TASK_FILE_BLOCK_SIZE);
+               BytesRead = OS_read(SourceFileHandle, File->FileTaskBuf, FILE_MGR_TASK_FILE_BLOCK_SIZE);
                if (BytesRead == 0)
                {
                
@@ -897,7 +897,7 @@ static bool ComputeFileCrc(const char* CmdName, const char* Filename, uint32* Cr
       while (ComputingCrc)
       {
          
-         FileBytesRead = OS_read(FileHandle, File->FileTaskBuf, FILEMGR_TASK_FILE_BLOCK_SIZE);
+         FileBytesRead = OS_read(FileHandle, File->FileTaskBuf, FILE_MGR_TASK_FILE_BLOCK_SIZE);
 
          if (FileBytesRead == 0) /* Successfully finished reading file */ 
          {  

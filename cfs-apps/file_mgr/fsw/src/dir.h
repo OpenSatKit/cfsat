@@ -134,7 +134,7 @@ typedef struct
    ** Telemetry
    */
    
-   FILEMGR_DirListTlm_t  ListTlm;
+   FILE_MGR_DirListTlm_t  ListTlm;
    
    /*
    ** Files

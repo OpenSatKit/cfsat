@@ -44,7 +44,7 @@
 
 #include "sample_app_msgids.h"
 #include "osk_c_demo_msgids.h"
-#include "filemgr_msgids.h"
+#include "file_mgr_msgids.h"
 #include "file_xfer_msgids.h"
 
 #if 0
@@ -63,11 +63,11 @@ TO_LAB_Subs_t TO_LAB_Subs = {.Subs = {/* CFS App Subscriptions */
                                       {CFE_SB_MSGID_WRAP_VALUE(CFSAT_DEV_HK_TLM_MID),      {0, 0}, 4},
                                       {CFE_SB_MSGID_WRAP_VALUE(OSK_C_DEMO_HK_TLM_MID),     {0, 0}, 4},
                                       {CFE_SB_MSGID_WRAP_VALUE(OSK_C_DEMO_PLAYBK_TLM_MID), {0, 0}, 4},
-                                      {CFE_SB_MSGID_WRAP_VALUE(FILEMGR_HK_TLM_MID),           {0, 0}, 4},
-                                      {CFE_SB_MSGID_WRAP_VALUE(FILEMGR_DIR_LIST_TLM_MID),     {0, 0}, 4},
-                                      {CFE_SB_MSGID_WRAP_VALUE(FILEMGR_FILE_INFO_TLM_MID),    {0, 0}, 4},
-                                      {CFE_SB_MSGID_WRAP_VALUE(FILEMGR_OPEN_FILE_TLM_MID),    {0, 0}, 4},
-                                      {CFE_SB_MSGID_WRAP_VALUE(FILEMGR_FILE_SYS_TBL_TLM_MID), {0, 0}, 4},
+                                      {CFE_SB_MSGID_WRAP_VALUE(FILE_MGR_HK_TLM_MID),           {0, 0}, 4},
+                                      {CFE_SB_MSGID_WRAP_VALUE(FILE_MGR_DIR_LIST_TLM_MID),     {0, 0}, 4},
+                                      {CFE_SB_MSGID_WRAP_VALUE(FILE_MGR_FILE_INFO_TLM_MID),    {0, 0}, 4},
+                                      {CFE_SB_MSGID_WRAP_VALUE(FILE_MGR_OPEN_FILE_TLM_MID),    {0, 0}, 4},
+                                      {CFE_SB_MSGID_WRAP_VALUE(FILE_MGR_FILE_SYS_TBL_TLM_MID), {0, 0}, 4},
                                       {CFE_SB_MSGID_WRAP_VALUE(FILE_XFER_HK_TLM_MID),                   {0, 0}, 4},
                                       {CFE_SB_MSGID_WRAP_VALUE(FILE_XFER_FOTP_START_TRANSFER_TLM_MID),  {0, 0}, 2},
                                       {CFE_SB_MSGID_WRAP_VALUE(FILE_XFER_FOTP_DATA_SEGMENT_TLM_MID),    {0, 0}, 8},

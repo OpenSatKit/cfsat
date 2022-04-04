@@ -69,19 +69,19 @@
 
 #define CFG_APP_MAIN_PERF_ID       APP_MAIN_PERF_ID
 #define CFG_CHILD_TASK_PERF_ID     CHILD_TASK_PERF_ID
+      
+#define CFG_CMD_PIPE_DEPTH         APP_CMD_PIPE_DEPTH
+#define CFG_CMD_PIPE_NAME          APP_CMD_PIPE_NAME
+      
+#define CFG_APP_CMD_MID            APP_CMD_MID
+#define CFG_APP_SEND_HK_MID        APP_SEND_HK_MID
 
-#define CFG_CMD_MID                CMD_MID
-#define CFG_SEND_HK_MID            SEND_HK_MID
-
-#define CFG_HK_TLM_MID             HK_TLM_MID
+#define CFG_APP_HK_TLM_MID         APP_HK_TLM_MID
 #define CFG_FILE_INFO_TLM_MID      FILE_INFO_TLM_MID
 #define CFG_DIR_LIST_TLM_MID       DIR_LIST_TLM_MID
-#define CFG_OPEN_FILE_TLM_MID      OPEN_FILE_TLM_MID
+#define CFG_FILESYS_OPEN_FILE_TLM_MID FILESYS_OPEN_FILE_TLM_MID
 #define CFG_FILESYS_TLM_MID        FILESYS_TLM_MID
-      
-#define CFG_CMD_PIPE_DEPTH         CMD_PIPE_DEPTH
-#define CFG_CMD_PIPE_NAME          CMD_PIPE_NAME
-      
+
 #define CFG_TBL_CFE_NAME           TBL_CFE_NAME
 #define CFG_TBL_DEF_FILENAME       TBL_DEF_FILENAME
 #define CFG_TBL_ERR_CODE           TBL_ERR_CODE
@@ -104,15 +104,15 @@
    XX(APP_CFE_NAME,char*) \
    XX(APP_MAIN_PERF_ID,uint32) \
    XX(CHILD_TASK_PERF_ID,uint32) \
-   XX(CMD_MID,uint32) \
-   XX(SEND_HK_MID,uint32) \
-   XX(HK_TLM_MID,uint32) \
+   XX(APP_CMD_PIPE_DEPTH,uint32) \
+   XX(APP_CMD_PIPE_NAME,char*) \
+   XX(APP_CMD_MID,uint32) \
+   XX(APP_SEND_HK_MID,uint32) \
+   XX(APP_HK_TLM_MID,uint32) \
    XX(FILE_INFO_TLM_MID,uint32) \
    XX(DIR_LIST_TLM_MID,uint32) \
-   XX(OPEN_FILE_TLM_MID,uint32) \
+   XX(FILESYS_OPEN_FILE_TLM_MID,uint32) \
    XX(FILESYS_TLM_MID,uint32) \
-   XX(CMD_PIPE_DEPTH,uint32) \
-   XX(CMD_PIPE_NAME,char*) \
    XX(TBL_CFE_NAME,char*) \
    XX(TBL_DEF_FILENAME,char*) \
    XX(TBL_ERR_CODE,uint32) \

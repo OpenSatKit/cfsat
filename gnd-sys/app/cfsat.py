@@ -103,7 +103,7 @@ class TelecommandGui(TelecommandInterface):
            2. display_payload_gui_entries() - Sets gui_value_key as it builds the command's payload screen
            3. load_payload_entry_value()    - Called when a command is being built and sent. Uses gui_value_key to retrieve user input
         
-        Example payload_gui_entries for FILEMGR/SendDirListTlm_Payload:
+        Example payload_gui_entries for FILE_MGR/SendDirListTlm_Payload:
         'DirName': 
         {
             'eds_entry': EdsLib.DatabaseEntry('samplemission','BASE_TYPES/PathName'),
@@ -123,9 +123,9 @@ class TelecommandGui(TelecommandInterface):
          },
          'IncludeSizeTime':
          {
-            'eds_entry': EdsLib.DatabaseEntry('samplemission','FILEMGR/BooleanUint16'),
+            'eds_entry': EdsLib.DatabaseEntry('samplemission','FILE_MGR/BooleanUint16'),
             'eds_name': 'Payload.IncludeSizeTime',
-            'gui_type': 'FILEMGR/BooleanUint16',
+            'gui_type': 'FILE_MGR/BooleanUint16',
             'gui_value': ['FALSE', 'TRUE'],
             'gui_input': 'combo',
             'gui_value_key': '--null--'}}
@@ -368,7 +368,7 @@ class TelecommandGui(TelecommandInterface):
                         logger.debug("payload_entry = " + str(payload_entry))
                         logger.debug("payload = " + str(payload))
 
-                        #payload = EdsLib.DatabaseEntry('samplemission','FILEMGR/SendDirListTlm_Payload')({'DirName': '', 'DirListOffset': 0, 'IncludeSizeTime': 'FALSE'})
+                        #payload = EdsLib.DatabaseEntry('samplemission','FILE_MGR/SendDirListTlm_Payload')({'DirName': '', 'DirListOffset': 0, 'IncludeSizeTime': 'FALSE'})
                         #todo: Check if None? payload_struct = self.get_payload_struct(payload_entry, payload, 'Payload')
                         eds_payload = self.set_payload_values(self.payload_struct)
                         payload = payload_entry(eds_payload)
@@ -583,7 +583,7 @@ class CfsatTelemetryMonitor(TelemetryObserver):
         self.tlm_callback = tlm_callback
         self.event_queue  = event_queue
         
-        self.sys_apps = ['CFE_ES', 'CFE_EVS', 'CFE_SB', 'CFE_TBL', 'CFE_TIME', 'OSK_C_DEMO' 'FILEMGR']
+        self.sys_apps = ['CFE_ES', 'CFE_EVS', 'CFE_SB', 'CFE_TBL', 'CFE_TIME', 'OSK_C_DEMO' 'FILE_MGR']
         
         for msg in self.tlm_server.tlm_messages:
             tlm_msg = self.tlm_server.tlm_messages[msg]
@@ -797,7 +797,7 @@ class App():
         logger.info(sys_target_str)
         logger.info(sys_comm_str)
         
-        self.tlm_monitors = {'CFE_ES': {'HK_TLM': ['Seconds']}, 'FILEMGR': {'DIR_LIST_TLM': ['Seconds']}}
+        self.tlm_monitors = {'CFE_ES': {'HK_TLM': ['Seconds']}, 'FILE_MGR': {'DIR_LIST_TLM': ['Seconds']}}
         
         try:
 

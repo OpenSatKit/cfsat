@@ -89,7 +89,7 @@ typedef struct
 
 typedef struct{
    
-   FILESYS_Volume_t Volume[FILEMGR_FILESYS_TBL_VOL_CNT];
+   FILESYS_Volume_t Volume[FILE_MGR_FILESYS_TBL_VOL_CNT];
 
 } FILESYS_TblData_t;
 
@@ -127,8 +127,8 @@ typedef struct
    ** Telemetry
    */
    
-   FILEMGR_FileSysTblTlm_t  TblTlm;
-   FILEMGR_OpenFileTlm_t    OpenFileTlm;
+   FILE_MGR_FileSysTblTlm_t  TblTlm;
+   FILE_MGR_OpenFileTlm_t    OpenFileTlm;
 
    /*
    ** Class State Data

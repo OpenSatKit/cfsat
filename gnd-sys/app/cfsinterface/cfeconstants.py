@@ -35,4 +35,4 @@ class Cfe():
     EVS_ERROR_MASK    = 0b0100
     EVS_CRITICAL_MASK = 0b1000
                 
-    FILE_XFER_DATA_SEG_LEN = 64
+    FILE_XFER_DATA_SEG_LEN = 512

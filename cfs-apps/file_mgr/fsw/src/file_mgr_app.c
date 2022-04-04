@@ -198,8 +198,8 @@ static int32 InitApp(void)
    {
    
       FileMgr.PerfId    = INITBL_GetIntConfig(INITBL_OBJ, CFG_APP_MAIN_PERF_ID);
-      FileMgr.CmdMid    = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_CMD_MID));
-      FileMgr.SendHkMid = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_SEND_HK_MID));
+      FileMgr.CmdMid    = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_APP_CMD_MID));
+      FileMgr.SendHkMid = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_APP_SEND_HK_MID));
       CFE_ES_PerfLogEntry(FileMgr.PerfId);
 
       /* Constructor sends error events */    
@@ -275,7 +275,7 @@ static int32 InitApp(void)
       CMDMGR_RegisterFunc(CMDMGR_OBJ, FILE_MGR_SEND_FILE_SYS_TBL_TLM_CC,  FILESYS_OBJ, FILESYS_SendTblTlmCmd,      PKTUTIL_NO_PARAM_CMD_DATA_LEN);
       CMDMGR_RegisterFunc(CMDMGR_OBJ, FILE_MGR_SET_FILE_SYS_TBL_STATE_CC, FILESYS_OBJ, FILESYS_SetTblStateCmd,     sizeof(FILE_MGR_SetFileSysTblState_Payload_t));
 
-      CFE_MSG_Init(CFE_MSG_PTR(FileMgr.HkPkt.TelemetryHeader), CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_HK_TLM_MID)), sizeof(FILE_MGR_HkTlm_t));
+      CFE_MSG_Init(CFE_MSG_PTR(FileMgr.HkPkt.TelemetryHeader), CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_APP_HK_TLM_MID)), sizeof(FILE_MGR_HkTlm_t));
 
       TBLMGR_Constructor(TBLMGR_OBJ);
    
@@ -327,7 +327,7 @@ static int32 ProcessCommands(void)
          else if (CFE_SB_MsgId_Equal(MsgId, FileMgr.SendHkMid))
          {  
             FILESYS_ManageTbl();
-            FILE_MGR_SendHousekeepingPkt();
+            SendHousekeepingPkt();
          }
          else
          {

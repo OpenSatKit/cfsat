@@ -103,7 +103,7 @@ void DIR_ResetStatus()
 bool DIR_CreateCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
-   const FILEMGR_CreateDir_Payload_t *CreateCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILEMGR_CreateDir_t);
+   const FILE_MGR_CreateDir_Payload_t *CreateCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_MGR_CreateDir_t);
    bool                RetStatus = false;
    int32               SysStatus;
    os_err_name_t       OsErrStr;   
@@ -150,7 +150,7 @@ bool DIR_CreateCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 bool DIR_DeleteCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
-   const FILEMGR_DeleteDir_Payload_t *DeleteCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILEMGR_DeleteDir_t);
+   const FILE_MGR_DeleteDir_Payload_t *DeleteCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_MGR_DeleteDir_t);
    bool                RetStatus = false;
    int32               SysStatus;
    bool                RemoveDir = true;
@@ -244,7 +244,7 @@ bool DIR_DeleteCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 bool DIR_DeleteAllCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
-   const FILEMGR_DeleteAllDir_Payload_t *DeleteAllCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILEMGR_DeleteAllDir_t);
+   const FILE_MGR_DeleteAllDir_Payload_t *DeleteAllCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_MGR_DeleteAllDir_t);
    bool                RetStatus = false;
    int32               SysStatus;
    os_err_name_t       OsErrStr;   
@@ -401,7 +401,7 @@ bool DIR_DeleteAllCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 bool DIR_SendDirListTlmCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
 
-   const FILEMGR_SendDirListTlm_Payload_t *SendDirListTlmCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILEMGR_SendDirListTlm_t);      
+   const FILE_MGR_SendDirListTlm_Payload_t *SendDirListTlmCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_MGR_SendDirListTlm_t);      
    bool  RetStatus;
 
    RetStatus = SendDirListTlm(SendDirListTlmCmd->DirName, SendDirListTlmCmd->DirListOffset, 
@@ -423,7 +423,7 @@ bool DIR_SendDirListTlmCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 bool DIR_SendDirTlmCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
-   const FILEMGR_SendDirTlm_Payload_t *SendDirTlmCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILEMGR_SendDirTlm_t);
+   const FILE_MGR_SendDirTlm_Payload_t *SendDirTlmCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_MGR_SendDirTlm_t);
    
    bool  RetStatus;
 
@@ -445,7 +445,7 @@ bool DIR_SendDirTlmCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 bool DIR_WriteListFileCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
-   const FILEMGR_WriteDirListFile_Payload_t *WriteDirListFileCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILEMGR_WriteDirListFile_t);
+   const FILE_MGR_WriteDirListFile_Payload_t *WriteDirListFileCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_MGR_WriteDirListFile_t);
    bool RetStatus = false;
       
    int32         SysStatus;
@@ -655,7 +655,7 @@ bool SendDirListTlm(const char *DirName, uint16 DirListOffset, bool IncludeSizeT
       /* Clears counters and nulls strings */
       CFE_MSG_Init(CFE_MSG_PTR(Dir->ListTlm.TelemetryHeader), 
                    CFE_SB_ValueToMsgId(INITBL_GetIntConfig(Dir->IniTbl,CFG_DIR_LIST_TLM_MID)),
-                   sizeof(FILEMGR_DirListTlm_t));
+                   sizeof(FILE_MGR_DirListTlm_t));
       
       strcpy(DirWithSep, DirName);
       if (FileUtil_AppendPathSep(DirWithSep, OS_MAX_PATH_LEN))
@@ -695,7 +695,7 @@ bool SendDirListTlm(const char *DirName, uint16 DirListOffset, bool IncludeSizeT
                      if (Dir->ListTlm.Payload.DirFileCnt > Dir->ListTlm.Payload.DirListOffset)
                      {
                 
-                        FILEMGR_DirListFileEntry_t* TlmFileEntry = &Dir->ListTlm.Payload.FileList[Dir->ListTlm.Payload.PktFileCnt];
+                        FILE_MGR_DirListFileEntry_t* TlmFileEntry = &Dir->ListTlm.Payload.FileList[Dir->ListTlm.Payload.PktFileCnt];
 
                         FilenameLen = strlen(OS_DIRENTRY_NAME(DirEntry));
 
@@ -730,7 +730,7 @@ bool SendDirListTlm(const char *DirName, uint16 DirListOffset, bool IncludeSizeT
                         } /* End if valid pah/filename length */
                      
                      } /* End if in range to fill packet */
-                     if (Dir->ListTlm.Payload.PktFileCnt >= FILEMGR_DIR_LIST_PKT_ENTRIES)
+                     if (Dir->ListTlm.Payload.PktFileCnt >= FILE_MGR_DIR_LIST_PKT_ENTRIES)
                      {
                         /* If sending one pkt, continue counting directory entries and send pkt when done */
                         if (SendOpt == SEND_ONE_DIR_TLM_PKT)
@@ -749,7 +749,7 @@ bool SendDirListTlm(const char *DirName, uint16 DirListOffset, bool IncludeSizeT
                                              (int)Dir->ListTlm.Payload.PktFileCnt);
                         
                            Dir->ListTlm.Payload.PktFileCnt = 0;
-                           Dir->ListTlm.Payload.DirListOffset += FILEMGR_DIR_LIST_PKT_ENTRIES;
+                           Dir->ListTlm.Payload.DirListOffset += FILE_MGR_DIR_LIST_PKT_ENTRIES;
                            memset(Dir->ListTlm.Payload.FileList, 0, sizeof(Dir->ListTlm.Payload.FileList));                              
                         }
                      } /* End if filled tlm packet */         
@@ -905,7 +905,7 @@ static bool WriteDirListToFile(const char* DirNameWithSep, osal_id_t DirId, int3
                /* 
                ** General logic 
                ** - Do not count the "." and ".." directory entries 
-               ** - Count all files, but limit file to FILEMGR_INI_DIR_LIST_FILE_ENTRIES
+               ** - Count all files, but limit file to FILE_MGR_INI_DIR_LIST_FILE_ENTRIES
                */      
                   
                ++DirEntryCnt;

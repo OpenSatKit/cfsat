@@ -10,22 +10,23 @@
                     "TASK_FILE_STAT_DELAY: Delay (in MS) between task stat blocks of execution"],
    "config": {
       
-      "APP_CFE_NAME": "FILEMGR",
-      
+      "APP_CFE_NAME": "FILE_MGR",
+
       "APP_MAIN_PERF_ID":   39,
       "CHILD_TASK_PERF_ID": 44,
       
-      "CMD_MID"     : 6540,
-      "SEND_HK_MID" : 6541,
+      "APP_CMD_PIPE_DEPTH": 10,
+      "APP_CMD_PIPE_NAME":  "FILE_MGR_CMD_PIPE",
 
-      "HK_TLM_MID"         : 2442,
-      "FILE_INFO_TLM_MID"  : 2443,
-      "DIR_LIST_TLM_MID"   : 2444,
-      "OPEN_FILES_TLM_MID" : 2445,
-      "FILESYS_TLM_MID"    : 2446,
+      "APP_CMD_MID"     : 6540,
+      "APP_SEND_HK_MID" : 6541,
+
+      "APP_HK_TLM_MID"             : 2442,
+      "FILE_INFO_TLM_MID"          : 2443,
+      "DIR_LIST_TLM_MID"           : 2444,
+      "FILESYS_OPEN_FILES_TLM_MID" : 2445,
+      "FILESYS_TLM_MID"            : 2446,
       
-      "CMD_PIPE_DEPTH": 10,
-      "CMD_PIPE_NAME":  "FILEMGR_CMD_PIPE",
       
       "TBL_CFE_NAME": "FileSysTbl",
       "TBL_DEF_FILENAME": "/cf/filesys_tbl.tbl",

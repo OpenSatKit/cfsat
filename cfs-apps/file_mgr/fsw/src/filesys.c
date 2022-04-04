@@ -94,11 +94,11 @@ void FILESYS_Constructor(FILESYS_Class_t*  FileSysPtr, const INITBL_Class_t* Ini
 
    CFE_MSG_Init(CFE_MSG_PTR(FileSys->TblTlm.TelemetryHeader), 
                 CFE_SB_ValueToMsgId(INITBL_GetIntConfig(FileSys->IniTbl, CFG_FILESYS_TLM_MID)),
-                sizeof(FILEMGR_FileSysTblTlm_t));
+                sizeof(FILE_MGR_FileSysTblTlm_t));
    
    CFE_MSG_Init(CFE_MSG_PTR(FileSys->OpenFileTlm.TelemetryHeader),
-                CFE_SB_ValueToMsgId(INITBL_GetIntConfig(FileSys->IniTbl, CFG_OPEN_FILE_TLM_MID)),
-                sizeof(FILEMGR_OpenFileTlm_t));
+                CFE_SB_ValueToMsgId(INITBL_GetIntConfig(FileSys->IniTbl, CFG_FILESYS_OPEN_FILE_TLM_MID)),
+                sizeof(FILE_MGR_OpenFileTlm_t));
 
 } /* End FILESYS_Constructor() */
 
@@ -177,7 +177,7 @@ static int32 ValidateTbl(void* VoidTblPtr)
    ** done first to separate it from an invalid character error. 
    */
 
-   for (i = 0; i < FILEMGR_FILESYS_TBL_VOL_CNT; i++)
+   for (i = 0; i < FILE_MGR_FILESYS_TBL_VOL_CNT; i++)
    {
 
       /* Validate file system name if state is enabled or disabled */
@@ -297,12 +297,12 @@ bool FILESYS_SendOpenFileTlmCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPt
    FileUtil_OpenFileList_t  OpenFileList;
 
    /* Don't assume utility will null char strings */
-   memset(&FileSys->OpenFileTlm.Payload,0,sizeof(FILEMGR_OpenFileTlm_Payload_t));
+   memset(&FileSys->OpenFileTlm.Payload,0,sizeof(FILE_MGR_OpenFileTlm_Payload_t));
    
    /* EDS is not coupled with FileUtil, so kept it safe an didn't cast */
    FileUtil_GetOpenFileList(&OpenFileList);
    FileSys->OpenFileTlm.Payload.OpenCount = OpenFileList.OpenCount;
-   for (i=0; i < FILEMGR_OS_MAX_NUM_OPEN_FILES; i++)
+   for (i=0; i < FILE_MGR_OS_MAX_NUM_OPEN_FILES; i++)
    {
        strncpy(FileSys->OpenFileTlm.Payload.OpenFile[i].AppName,  OpenFileList.Entry[i].AppName,  OS_MAX_API_NAME);
        strncpy(FileSys->OpenFileTlm.Payload.OpenFile[i].Filename, OpenFileList.Entry[i].Filename, OS_MAX_API_NAME);
@@ -347,7 +347,7 @@ bool FILESYS_SendTblTlmCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 
       memset (FileSys->TblTlm.Payload, 0, sizeof(FileSys->TblTlm.Payload));
       
-      for (i=0; i < FILEMGR_FILESYS_TBL_VOL_CNT; i++)
+      for (i=0; i < FILE_MGR_FILESYS_TBL_VOL_CNT; i++)
       {
 
          if (FileSys->CfeTbl.DataPtr->Volume[i].State == FILESYS_TBL_ENTRY_ENABLED)
@@ -400,7 +400,7 @@ bool FILESYS_SendTblTlmCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 bool FILESYS_SetTblStateCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 {
    
-   const FILEMGR_SetFileSysTblState_Payload_t *SetFileSysTblStateCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILEMGR_SetFileSysTblState_t);   
+   const FILE_MGR_SetFileSysTblState_Payload_t *SetFileSysTblStateCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_MGR_SetFileSysTblState_t);   
    bool   RetStatus = false;
    uint16 CmdVolumeIndex = SetFileSysTblStateCmd->TblVolumeIndex;
    uint16 CmdVolumeState = SetFileSysTblStateCmd->TblVolumeState;
@@ -413,12 +413,12 @@ bool FILESYS_SetTblStateCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
          FileSys->CfeTblName);
    
    }
-   else if (CmdVolumeIndex >= FILEMGR_FILESYS_TBL_VOL_CNT)
+   else if (CmdVolumeIndex >= FILE_MGR_FILESYS_TBL_VOL_CNT)
    {
       
       CFE_EVS_SendEvent(FILESYS_SET_TBL_STATE_ARG_ERR_EID, CFE_EVS_EventType_ERROR,
          "Set %s Table State Command Error: Commanded index %d is not in valid range of 0..%d",
-         FileSys->CfeTblName, CmdVolumeIndex, (FILEMGR_FILESYS_TBL_VOL_CNT-1));
+         FileSys->CfeTblName, CmdVolumeIndex, (FILE_MGR_FILESYS_TBL_VOL_CNT-1));
         
    }
    else if ((CmdVolumeState != FILESYS_TBL_ENTRY_ENABLED) &&

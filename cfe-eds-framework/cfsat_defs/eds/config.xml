@@ -68,14 +68,14 @@
   <!--**** OSK App Definitions ****-->
   <!--*****************************-->
 
-  <Package name="FILEMGR" shortDescription="FILEMGR configurable items">
+  <Package name="FILE_MGR" shortDescription="FILE_MGR configurable items">
     <Define name="FILESYS_TBL_VOL_CNT" value="8" />
     <Define name="OS_MAX_NUM_OPEN_FILES" value="8"  shortDescription="Placeholder until find the correct way to define it"/>
     <Define name="DIR_LIST_FILE_ENTRIES" value="20" shortDescription="Number of files in each directory listing telemetry packet" />
   </Package>
 
   <Package name="FILE_XFER" shortDescription="FILE_XFER configurable items">
-    <Define name="FITP_DATA_SEG_MAX_LEN" value="64"   shortDescription="" />
+    <Define name="FITP_DATA_SEG_MAX_LEN" value="512"  shortDescription="Must be less than CI UDP input read size" />
     <Define name="FOTP_DATA_SEG_MAX_LEN" value="1024" shortDescription="" />
   </Package>
 

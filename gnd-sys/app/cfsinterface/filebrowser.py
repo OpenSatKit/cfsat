@@ -163,7 +163,7 @@ class FlightDir():
         if path is not None:
             self.path = path
         self.file_list = []
-        self.cmd_tlm_process.send_cfs_cmd('FILEMGR', 'SendDirTlm',  {'DirName': self.path, 'IncludeSizeTime': 0})
+        self.cmd_tlm_process.send_cfs_cmd('FILE_MGR', 'SendDirTlm',  {'DirName': self.path, 'IncludeSizeTime': 0})
         time.sleep(1.5) # Give time for telemetry
         if len(self.file_list) == 0:
             self.sg_window.update(['Empty or Nonexistent directory'])
@@ -192,23 +192,23 @@ class FlightDir():
         print('self.path = ' +  self.path)        
         dir_path = self.path_filename(dir_name)
         print('dir_path = ' +  dir_path)
-        self.cmd_tlm_process.send_cfs_cmd('FILEMGR', 'CreateDir',  {'DirName': dir_path})
+        self.cmd_tlm_process.send_cfs_cmd('FILE_MGR', 'CreateDir',  {'DirName': dir_path})
         self.create_file_list(dir_path)
 
     def delete_dir(self, dir_name):
         dir_name = self.path_filename(dir_name)
-        self.cmd_tlm_process.send_cfs_cmd('FILEMGR', 'DeleteDir',  {'DirName': dir_name})
+        self.cmd_tlm_process.send_cfs_cmd('FILE_MGR', 'DeleteDir',  {'DirName': dir_name})
         self.create_file_list(self.path)
 
     def delete_file(self, filename):
         filename = self.path_filename(filename)
-        self.cmd_tlm_process.send_cfs_cmd('FILEMGR', 'DeleteFile',  {'Filename': filename})
+        self.cmd_tlm_process.send_cfs_cmd('FILE_MGR', 'DeleteFile',  {'Filename': filename})
         self.create_file_list(self.path)
 
     def rename_file(self, src_file, dst_file):
         src_file =  self.path_filename(src_file)
         dst_file =  self.path_filename(dst_file)
-        self.cmd_tlm_process.send_cfs_cmd('FILEMGR', 'RenameFile',  {'SourceFilename': src_file, 'TargetFilename': dst_file})
+        self.cmd_tlm_process.send_cfs_cmd('FILE_MGR', 'RenameFile',  {'SourceFilename': src_file, 'TargetFilename': dst_file})
         self.create_file_list(self.path)
 
     def filemgr_dir_list_callback(self, time, payload):
@@ -256,7 +256,7 @@ class FileXfer():
         # self.sock.sendall(os.stat(gnd_file).st_size.tobytes(8,'big'))
         with open(gnd_file,'r') as f: 
             while True:
-                data_segment = f.read(64) #bytearray(f.read(64))
+                data_segment = f.read(Cfe.FILE_XFER_DATA_SEG_LEN) #bytearray(f.read(64))
                 if not data_segment: # Null indicates EOF
                     break
                 
@@ -323,7 +323,7 @@ class FileBrowserTelemetryMonitor(TelemetryObserver):
         self.filemgr_callback = filemgr_callback
         self.filexfer_callback = filexfer_callback
         
-        self.sys_apps = ['CFE_ES', 'CFE_EVS', 'FILEMGR', 'FILE_XFER']
+        self.sys_apps = ['CFE_ES', 'CFE_EVS', 'FILE_MGR', 'FILE_XFER']
         
         for msg in self.tlm_server.tlm_messages:
             tlm_msg = self.tlm_server.tlm_messages[msg]
@@ -339,7 +339,7 @@ class FileBrowserTelemetryMonitor(TelemetryObserver):
         """
         #todo: Determine best tlm identification method: if int(tlm_msg.app_id) == int(self.cfe_es_hk.app_id):
         
-        if tlm_msg.app_name == 'FILEMGR':
+        if tlm_msg.app_name == 'FILE_MGR':
             if tlm_msg.msg_name == 'DIR_LIST_TLM':
                 payload = tlm_msg.payload()
                 self.filemgr_callback(str(tlm_msg.sec_hdr().Seconds), payload)
@@ -415,7 +415,7 @@ class FileBrowser(CmdTlmProcess):
         self.gnd_dir   = GroundDir(self.default_gnd_path, self.window['-GND_FILE_LIST-'])
         self.file_xfer = FileXfer(self)
 
-        self.tlm_monitors = {'CFE_ES': {'HK_TLM': ['Seconds']}, 'FILEMGR': {'DIR_LIST_TLM': ['Seconds']}}        
+        self.tlm_monitors = {'CFE_ES': {'HK_TLM': ['Seconds']}, 'FILE_MGR': {'DIR_LIST_TLM': ['Seconds']}}        
         self.tlm_monitor = FileBrowserTelemetryMonitor(self.tlm_server, self.tlm_monitors, self.event_callback, self.flt_dir.filemgr_dir_list_callback, self.file_xfer.tlm_callback)
         self.tlm_server.execute()
 

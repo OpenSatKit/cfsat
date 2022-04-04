@@ -130,9 +130,9 @@ DECLARE_ENUM(Config,APP_CONFIG)
 */
 
 #define FITP_FILENAME_LEN       (OS_MAX_PATH_LEN)
-#define FITP_DATA_SEG_MAX_LEN   64   /* Must be an even number since it is used in word-aligned commands */
-#define FITP_DATA_SEG_ID_NULL    0
-#define FITP_DATA_SEG_ID_START   1 
+#define FITP_DATA_SEG_MAX_LEN    512   /* Must be an even number since it is used in word-aligned commands */
+#define FITP_DATA_SEG_ID_NULL      0
+#define FITP_DATA_SEG_ID_START     1 
 
 
 /******************************************************************************

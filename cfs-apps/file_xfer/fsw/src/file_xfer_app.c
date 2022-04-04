@@ -170,8 +170,8 @@ bool FILE_XFER_ResetAppCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
 ** Function: SendHousekeepingPkt
 **
 ** Notes:
-**   1. At a minimum all FileIn/FileOut variables effected by a reset must be
-**      included in HL telemetry
+**   1. At a minimum all FITP/FOTP variables affected by a reset must be
+**      included in HK telemetry
 */
 static void SendHousekeepingPkt(void)
 {
