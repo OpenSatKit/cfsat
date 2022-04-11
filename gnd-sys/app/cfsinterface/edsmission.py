@@ -83,14 +83,18 @@ class EdsMission:
         
         self.mission_name = mission_name
         self.interface_type = interface_type
-        
+        self.load_eds_database()
+
+    def load_eds_database(self):
         try:
-            self.lib_db     = EdsLib.Database(mission_name)
-            self.cfe_db     = CFE_MissionLib.Database(mission_name, self.lib_db)  #cfe_db => CFE_MissionLib.Database('samplemission'), type => CFE_MissionLib.Database
-            self.interface  = self.cfe_db.Interface(interface_type)
+            self.lib_db     = EdsLib.Database(self.mission_name)
+            self.cfe_db     = CFE_MissionLib.Database(self.mission_name, self.lib_db)  #cfe_db => CFE_MissionLib.Database('samplemission'), type => CFE_MissionLib.Database
+            self.interface  = self.cfe_db.Interface(self.interface_type)
         except RuntimeError:
             print("Error accessing EDS libraries. Verify your LD_LIBRARY_PATH and PYTHONPATH environment variable settings and mission name")
             logger.error("Error accessing EDS libraries. Verify your LD_LIBRARY_PATH and PYTHONPATH environment variable settings and mission name")
+
+    
     
     def get_target_dict(self):
         """
@@ -201,21 +205,25 @@ class CfeEdsTarget:
             
         self.mission_name = mission_name
         self.eds_mission  = EdsMission(mission_name, interface)
-        
-        self.target_name    = target_name
-        self.valid, self.id = self.eds_mission.has_target(target_name)
-        
+        self.target_name  = target_name
+
+        self.reload_edS_database(False)
+ 
+     
+    def reload_edS_database(self, load_database=True):
+        if load_database:
+            self.eds_mission.load_eds_database()
+
         self.topic_dict = {}
         self.topic_id   = EdsMission.NULL_ID
         
+        self.valid, self.id = self.eds_mission.has_target(self.target_name)        
         if self.valid:
-
             self.topic_dict = self.eds_mission.get_topic_dict()
-
         else:
             #todo: Invalid target error case. Can python constructor return a value?
             raise RuntimeError
-            
+    
     
     def get_topics(self):
         return self.topic_dict

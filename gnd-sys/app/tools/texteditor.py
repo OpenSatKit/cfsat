@@ -72,12 +72,19 @@ class HelpText():
                 "  '*.py'               - User test scripts\n"
                 "  '*.json'             - cFS application initialization and table files\n"
                 "  'targets.cmake'      - Define cFS build target apps and files\n"
-                "  'cfe_es_startup.scr' - Define apps and libraries loaded during cFS initialization\n"),
-         
-            'CMAKE':  ("TODO - CMAKE"),
+                "  'cfe_es_startup.scr' - Define apps and libraries loaded during cFS initialization\n\n"),
+
+            'CMAKE':  ("targets.cmake is the top-level cmake cFS target configration file. The following\n"
+                       "variables are used to add an app to a target:\n\n"
+                       "  cpu1_APPLIST  - List of apps to be included in CPU1 target\n"
+                       "  cpu1_FILELIST - List of files to copy from cfsat_defs to the '/cf' directory\n"),
+                       
             'SCR':    ("TODO - SCR"),
+            
             'JSON':   ("TODO - JSON"),
+            
             'PYTHON': ("TODO - PYTHON"),
+            
             'OTHER':  ("No guidance for this file type")
                 
             }
@@ -85,9 +92,16 @@ class HelpText():
     def display(self, filename):
         file_type = 'NEW_FILE'
         if filename not in (None, ''):
-            file_ext = filename.split('.')[-1]
-            print('file_ext = ' + file_ext)
             file_type = 'OTHER'
+            file_ext = filename.split('.')[-1]
+            if file_ext == 'cmake':
+                file_type = 'CMAKE'
+            elif file_ext == 'scr':
+                file_type = 'SCR' 
+            elif file_ext == 'json':
+                file_type = 'JSON'
+            elif file_ext == 'py':
+                file_type = 'PYTHON'
             
         sg.popup(self.text[file_type], line_width=85, font=('Courier',12), title='File Guidance', grab_anywhere=True)
 
@@ -102,8 +116,11 @@ class TextEditor():
     
     NEW_FILE_STR = '-- New File --'
     
-    def __init__(self, filename=None):        
+    def __init__(self, filename=None, build_cfs_callback=None, run_script_callback=None):        
       
+        self.build_cfs_callback  = build_cfs_callback
+        self.run_script_callback = run_script_callback
+        
         self.filename = None
         if filename not in (None, ''):
            if os.path.isfile(filename):
@@ -251,10 +268,16 @@ class TextEditor():
             ### Execute ###
 
             elif self.event in  ('Build cFS',):
-                sg.popup("<Build cFS> not implemented", title='TODO', grab_anywhere=True, modal=False)
-
+                if self.build_cfs_callback is None:
+                    sg.popup("<Build cFS> is not supported in this context", title='Information', grab_anywhere=True, modal=False)
+                else:
+                    self.self.build_cfs_callback
+                    
             elif self.event in  ('Run Script',):
-                sg.popup("<Run Script> not implemented", title='TODO', grab_anywhere=True, modal=False)
+                if self.run_script_callback is None:
+                    sg.popup("<Run Script> is not supported in this context", title='Information', grab_anywhere=True, modal=False)
+                else:
+                    self.run_script_callback(self.values['-FILE_TEXT-'])
 
             
         window.close()

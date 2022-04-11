@@ -166,8 +166,7 @@ class TelemetryServer(CfeEdsTarget):
                 app_id = self.get_app_id(app_name,tlm_msg_name)
                 logger.info("TelemetryServer constructor adding App: %s, Msg %s, Id: %d" % (app_name, tlm_msg_name, app_id))
                 self.tlm_messages[app_id] = TelemetryMessage(app_name, tlm_msg_name, app_id)
-        
-        
+                    
     def parse_topic(self, topic_name):
         """
         Assumes the following syntax for a telemetry topic: APP_NAME/Application/TLM_NAME

@@ -16,7 +16,7 @@
 **  edition license of cFSAT if purchased from the copyright holder.
 **
 **  Purpose:
-**    Define messages IDs for the File Manager application
+**    Define messages IDs for the OSK C Demo application
 **
 **  Notes:
 **    1. The Topic IDs are defined in the mission's EDS specs
