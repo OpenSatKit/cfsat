@@ -43,6 +43,7 @@ import socket
 import time
 import threading
 import traceback
+import inspect
 from typing import List
 from datetime import datetime
 
@@ -90,8 +91,8 @@ class TelemetryMessage:
     def detach(self, observer: TelemetryObserver) -> None:
         self.observers.remove(observer)
 
-    def eds_obj(self):
-        return (self.eds_obj, update_time)
+    def get_eds_obj(self):
+        return self.eds_obj  #Using a tuple tried to iterate over the eds_obj: [self.eds_obj, self.update_time]
 
     def pri_hdr(self):
         return self.eds_obj.CCSDS
@@ -158,7 +159,8 @@ class TelemetryServer(CfeEdsTarget):
         self._recv_tlm_thread = None
         self.server_observer = None
 
-        self.tlm_messages = {}
+        self.lookup_appid = {} # Used 'app_name-tlm_msg_name' to retrieve app_id
+        self.tlm_messages = {} # The eds_obj in a tlm msg holds the most recent values
 
         for topic in self.topic_dict:
             if topic != EdsMission.TOPIC_TLM_TITLE_KEY:
@@ -166,6 +168,71 @@ class TelemetryServer(CfeEdsTarget):
                 app_id = self.get_app_id(app_name,tlm_msg_name)
                 logger.info("TelemetryServer constructor adding App: %s, Msg %s, Id: %d" % (app_name, tlm_msg_name, app_id))
                 self.tlm_messages[app_id] = TelemetryMessage(app_name, tlm_msg_name, app_id)
+                self.lookup_appid[self.join_app_msg(app_name, tlm_msg_name)] = app_id
+          
+
+    def get_tlm_param_val(self, base_object, parameter, obj_name):
+        """
+        Recursive function that iterates over an EDS object to locate the
+        parameter and return its value.
+        Inputs:
+        base_object - The EDS object to iterate over
+        parameter   - Name of the parameter to locate
+        obj_name    - Name of EDS object currently being processed. Initially None
+                      and gets filled in by the recursive calls. Assumes top-level 
+                      object is a container.
+        """
+        #TODO: print("\n\n***get_tlm_param_val()***")
+        if obj_name is None:
+            return_value = None
+        # Array
+        if (self.eds_mission.lib_db.IsArray(base_object)):
+            #TODO: print("[[[[[[[[[[[[[Array base_object inspect = " + str(inspect.getmembers(base_object))+"\n")
+            #TODO: print("[[[[[[[[[[[[[Array base_object dir = " + str(base_object())+"\n")
+            #TODO: if obj_name is not None:
+                #TODO: print('array obj_name = ' + str(obj_name))
+            for i in range(len(base_object)):
+                return_value = self.get_tlm_param_val(base_object[i], parameter, obj_name)
+                if return_value is not None:
+                    return return_value
+                #TODO: print("base_object[i] = " + str(base_object[i]))
+        # Container
+        elif (self.eds_mission.lib_db.IsContainer(base_object)):
+            #TODO: print("{{{{{{{{{{{{{Container base_object= " + str(base_object)+"\n")
+            for item in base_object:
+                return_value = self.get_tlm_param_val(item[1], parameter, item[0])
+                if return_value is not None:
+                    return return_value
+        # Everything else (number, enumeration, string, etc.)
+        else: 
+            #print(">>>>base_object value " + str(base_object)+"\n")
+            return_value = None
+            if obj_name is not None:           
+                #print(">>>>%s = " % obj_name)
+                if obj_name == parameter:
+                    print("********* FOUND OBJECT *************")
+                    return_value = base_object
+            return return_value
+            
+            
+            
+    def get_tlm_val(self, app_name, tlm_msg_name, parameter):
+        """
+        todo: This is limited to uniquely named parameters
+        """
+        value = None
+        app_id = self.lookup_appid[self.join_app_msg(app_name, tlm_msg_name)] 
+        tlm_msg = self.tlm_messages[app_id]
+        print("***tlm_msg: %s %s %s" % (tlm_msg.app_name, tlm_msg.msg_name, parameter)) 
+        eds_obj = tlm_msg.get_eds_obj()
+        if eds_obj is not None:
+            value = self.get_tlm_param_val(eds_obj, parameter, None)
+            print("***value = " + str(value))
+        return value
+          
+    def join_app_msg(self, app_name, tlm_msg_name):
+        return app_name+'-'+tlm_msg_name
+                    
                     
     def parse_topic(self, topic_name):
         """
@@ -184,8 +251,8 @@ class TelemetryServer(CfeEdsTarget):
             tlm_msg = self.tlm_messages[app_id]
         return tlm_msg
             
+ 
     def add_tlm_messages(self, tlm_msg_dict):
-    
         for msg in tlm_msg_dict:
             self.tlm_messages[tlm_msg_dict[msg].app_id] = tlm_msg_dict[msg]
             
@@ -212,6 +279,7 @@ class TelemetryServer(CfeEdsTarget):
         """
         #todo: Define a  global invalid app ID value 
         #todo: Where should XML dependencies be defined?
+        #todo: Can self.lookup_appid replace this?
         """
         topic_name = app_name.upper() + '/Application/' + tlm_msg_name.upper()
         app_id = -1 
@@ -241,7 +309,7 @@ class TelemetryServer(CfeEdsTarget):
         self._recv_tlm_thread.kill = False
 
         self._recv_tlm_thread.start()
-
+        self._recv_tlm_thread.join()
 
     def shutdown(self):
         self._recv_tlm_thread.kill = True
@@ -292,6 +360,7 @@ class TelemetrySocketServer(TelemetryServer):
                     try:
                         eds_entry, eds_obj = self.eds_mission.decode_message(datagram)
                     
+                        #self.eds_objects[eds_entry.Name] = eds_obj
                         app_id = int(eds_obj.CCSDS.AppId)
                         logger.debug("Msg name: %s, Msg Id: %d " % (eds_entry.Name,app_id))
                         if app_id in self.tlm_messages:
@@ -335,7 +404,7 @@ class TelemetrySocketServer(TelemetryServer):
 
 class TelemetryQueueServer(TelemetryServer):
     """
-    Manage a socket-based telemetry server.
+    Manage a queue-based telemetry server.
     """
     
     def __init__(self, mission, target, tlm_router_queue):

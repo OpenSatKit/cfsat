@@ -305,7 +305,7 @@ if __name__ == '__main__':
     config = configparser.ConfigParser()
     config.read('../cfsat.ini')
 
-    TUTORIALS_PATH = config.get('TOOLS','TUTORIALS_PATH')
+    TUTORIALS_PATH = config.get('PATHS','TUTORIALS_PATH')
 
     tutorial_dir = os.path.join(os.getcwd(),'..', TUTORIALS_PATH, 'hello-app') 
     print ("tutorial_dir = " + tutorial_dir)

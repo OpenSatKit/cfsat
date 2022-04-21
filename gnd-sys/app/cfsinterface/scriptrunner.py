@@ -31,6 +31,7 @@ import time
 import os
 import socket
 import configparser
+import PySimpleGUI as sg
 
 if __name__ == '__main__':
     sys.path.append('..')
@@ -49,8 +50,9 @@ CCSDS   = 0
 TIME    = 1
 PAYLOAD = 2
 
+#print("tlm_cvt_proto['CFE_ES'][CCSDS]['Sequence'] = " + str(tlm_cvt_proto['CFE_ES'][CCSDS]['Sequence']))
 # TODO - Temorary structure to try different script telemetry interfaces 
-tlm_cvt = {
+tlm_cvt_proto = {
 
     'CFE_ES' : [ { 'AppId': 0,   'Sequence': 0   },
                  { 'Seconds': 0, 'Subseconds': 0 },
@@ -115,12 +117,12 @@ class TelemetryCurrentValue(TelemetryObserver):
 
         elif tlm_msg.app_name == 'CFE_ES':
             payload = tlm_msg.payload()
-            tlm_cvt['CFE_ES'][CCSDS]['AppId']     = tlm_msg.pri_hdr().AppId
-            tlm_cvt['CFE_ES'][CCSDS]['Sequence']  = tlm_msg.pri_hdr().Sequence
-            tlm_cvt['CFE_ES'][TIME]['Seconds']    = tlm_msg.sec_hdr().Seconds
-            tlm_cvt['CFE_ES'][TIME]['Subseconds'] = tlm_msg.sec_hdr().Subseconds
-            tlm_cvt['CFE_ES'][PAYLOAD]['CommandCounter']      = payload.CommandCounter
-            tlm_cvt['CFE_ES'][PAYLOAD]['CommandErrorCounter'] = payload.CommandErrorCounter
+            tlm_cvt_proto['CFE_ES'][CCSDS]['AppId']     = tlm_msg.pri_hdr().AppId
+            tlm_cvt_proto['CFE_ES'][CCSDS]['Sequence']  = tlm_msg.pri_hdr().Sequence
+            tlm_cvt_proto['CFE_ES'][TIME]['Seconds']    = tlm_msg.sec_hdr().Seconds
+            tlm_cvt_proto['CFE_ES'][TIME]['Subseconds'] = tlm_msg.sec_hdr().Subseconds
+            tlm_cvt_proto['CFE_ES'][PAYLOAD]['CommandCounter']      = payload.CommandCounter
+            tlm_cvt_proto['CFE_ES'][PAYLOAD]['CommandErrorCounter'] = payload.CommandErrorCounter
 
           
 ###############################################################################
@@ -137,9 +139,12 @@ class ScriptRunner(CmdTlmProcess):
     def event_msg(self, event_text):
         print('ScriptRunner received event: ' + event_text)
         
-    def tlm_val(self):
-        print("tlm_cvt['CFE_ES'][CCSDS]['Sequence'] = " + str(tlm_cvt['CFE_ES'][CCSDS]['Sequence']))
-              
+    def get_tlm_val(self, app_name, tlm_msg_name, parameter):
+        """
+        Example usage: get_tlm_val("CFE_ES", "HK_TLM", "Sequence")
+        """
+        return self.tlm_server.get_tlm_val(app_name, tlm_msg_name, parameter)
+            
     def tlm_wait_thread(self, tlm_msg: TelemetryMessage) -> None:
         pass
         
@@ -168,7 +173,10 @@ if __name__ == '__main__':
     demo_script_path = compress_abs_path(os.path.join(os.getcwd(), '..',SCRIPT_PATH))
     demo_script = os.path.join(demo_script_path, 'demo_script.py') 
 
-    script_runner = ScriptRunner('127.0.0.1', 8000, 9000, 1.0)
+    cmd_port = config.getint('APP','SCRIPT_RUNNER_CMD_PORT')
+    tlm_port = config.getint('APP','SCRIPT_RUNNER_TLM_PORT')
+
+    script_runner = ScriptRunner('127.0.0.1', cmd_port, tlm_port, 1.0)
     
     text_editor = TextEditor(demo_script, run_script_callback=script_runner.run_script)
     text_editor.execute()

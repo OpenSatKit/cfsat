@@ -65,25 +65,44 @@ class HelpText():
         self.text = {
 
             'NEW_FILE': 
-               ("This is a simple text file editor intended to help with quick edits to assist users\n"
-                "with their app development workflows. The 'Execute' menu provides quick access to\n"
-                "common activities like building the cFS. The following file types are recognized by\n"
-                "the editor and the lower GUI pane provides file specific guidance.\n\n"
-                "  '*.py'               - User test scripts\n"
-                "  '*.json'             - cFS application initialization and table files\n"
-                "  'targets.cmake'      - Define cFS build target apps and files\n"
-                "  'cfe_es_startup.scr' - Define apps and libraries loaded during cFS initialization\n\n"),
+                ("This is a simple text file editor intended to help with quick edits to assist users\n"
+                 "with their app development workflows. The 'Execute' menu provides quick access to\n"
+                 "common activities like building the cFS. The following file types are recognized by\n"
+                 "the editor and the lower GUI pane provides file specific guidance.\n\n"
+                 "  '*.py'               - User test scripts\n"
+                 "  '*.json'             - cFS application initialization and table files\n"
+                 "  'targets.cmake'      - Define cFS build target apps and files\n"
+                 "  'cfe_es_startup.scr' - Define apps and libraries loaded during cFS initialization\n\n"),
 
-            'CMAKE':  ("targets.cmake is the top-level cmake cFS target configration file. The following\n"
-                       "variables are used to add an app to a target:\n\n"
-                       "  cpu1_APPLIST  - List of apps to be included in CPU1 target\n"
-                       "  cpu1_FILELIST - List of files to copy from cfsat_defs to the '/cf' directory\n"),
+            'CMAKE':
+                ("targets.cmake is the top-level cmake cFS target configration file. The following\n"
+                 "variables are used to add an app to a target:\n\n"
+                 "  cpu1_APPLIST  - List of apps to be included in CPU1 target\n"
+                 "  cpu1_FILELIST - List of files to copy from cfsat_defs to the '/cf' directory\n"),
                        
-            'SCR':    ("TODO - SCR"),
-            
-            'JSON':   ("TODO - JSON"),
-            
-            'PYTHON': ("TODO - PYTHON"),
+            'PYTHON':
+                ("User python scripts are executed within the context of the ScriptRunner class that\n"
+                 "provides a simple command and telemetry API. ScriptRunner is not designed to provide\n"
+                 "a comprehensive test and operational environment. See scriptrunner.py for a \n"
+                 "description of the API and demo_script.py for an example script\n"),
+
+            'SCR':
+                ("cfe_es_startup.scr defines which cFS libraries and apps are loaded during startup. The\n"
+                "file's comment describe how to format/defince script entries. The following libraries\n"
+                "and apps must be loaded:\n\n"
+                "cfe_assert  - Provides unit test runtime framework, only required unit tests\n"
+                "osk_c_fw    - OpenSatKit app framework. Required by all OSK apps and mustbe loaded priori to apps\n"
+                "ci_lab      - Command Ingest app receives commands from cfsat.py and transmits them on the software bus\n"
+                "to_lab      - Telemetry Output app reads messages from software bus and transmits them to cfsat.py\n"
+                "sch_lab     - Scheduler app periodically sends software bus message to trigger app functions\n"
+                "file_mgr    - File Manager app provides basic directory and file management services\n"
+                "file_xfer   - File Transfer app trasnfers files between cfsat.py and a cFS target\n"),       
+
+            'JSON':
+                ("JSON files are used by apps using the OpenSatKit app framework to define app initialization\n"
+                "configuration parameters. They are also used for app 'tables' that are used to define parameters\n"
+                "that can be changed during runtime using table loads. JSON tables can be written to a file,\n"
+                "transferred to the ground using FILE_XFER, and displayed in a text editor"),
             
             'OTHER':  ("No guidance for this file type")
                 

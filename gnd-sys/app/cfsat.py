@@ -424,7 +424,7 @@ class TelemetryGuiClient(TelemetryObserver):
         
         self.gui_thread = threading.Thread(target=self.gui)
         self.gui_thread.kill = False
- 
+        
     def update(self, tlm_msg: TelemetryMessage) -> None:
         """
         Receive telemetry updates
@@ -491,7 +491,7 @@ class TelemetryGuiClient(TelemetryObserver):
                
 
     def gui(self):
-
+        print("TelemetryGuiClient() starting gui")
         thread = threading.currentThread()
         
         hdr_label_font = ('Arial bold',12)
@@ -554,16 +554,15 @@ class TelemetryGuiClient(TelemetryObserver):
                 """
         self.tlm_server.remove_msg_observer(self.tlm_msg, self)
         self.window.close()
-        #thread.join()
 
 
     def execute(self):
         self.gui_thread.start()
-        #self.gui()
-
+ 
              
     def shutdown(self):
         self.gui_thread.kill = True
+        self.gui_thread.join()  #TODO: Is this correct?
         logger.info("%s GUI shutting down" % self.topic_name)
 
 
@@ -733,8 +732,9 @@ class App():
         self.manage_tutorials = ManageTutorials(self.config.get('PATHS', 'TUTORIALS_PATH'))
         self.create_app       = CreateApp(self.config.get('PATHS', 'APP_TEMPLATES_PATH'))
         
-        self.filebrowser = None
-        self.tutorial = None
+        self.file_browser  = None
+        self.script_runner = None
+        self.tutorial      = None
 
     def update_event_history_str(self, new_event_text):
         time = datetime.now().strftime("%H:%M:%S")
@@ -791,6 +791,7 @@ class App():
                  self.tlm_gui_clients[tlm_topic].shutdown()
         time.sleep(self.CFS_TARGET_TLM_TIMEOUT)
         self.window.close()
+        logger.info("Completed app shutdown sequence")
 
     def execute(self):
     
@@ -819,8 +820,7 @@ class App():
              
              self.tlm_server  = TelemetryQueueServer(self.EDS_MISSION_NAME, self.EDS_CFS_TARGET_NAME, self.cmd_tlm_router.get_gnd_tlm_queue())
              self.tlm_monitor = CfsatTelemetryMonitor(self.tlm_server, self.tlm_monitors, self.display_tlm_monitor, self.event_queue)
-             self.tlm_server.execute()
-         
+             self.tlm_server.execute()      
              self.cmd_tlm_router.start()
              
              logger.info("Successfully created application objects")
@@ -835,8 +835,8 @@ class App():
     
         menu_def = [
                        ['System', ['Options', 'About', 'Exit']],
-                       ['cFS Developer', ['Create App', 'Manage cFS', 'Run Perf Monitor', 'Run Dev Demo']],
-                       ['cFS Operator', ['Write Script', 'Run Script', 'File Browser', 'Manage Tables', 'Run Ops Demo']],
+                       ['Developer', ['Create App', 'Manage cFS', 'Run Perf Monitor', 'Run Dev Demo']],
+                       ['Operator', ['Script Runner', 'File Browser', 'Manage Tables', 'Run Ops Demo']],
                        ['Documents', ['cFS Overview', 'cFE Overview', 'OSK App Dev']],
                        ['Tutorials', self.manage_tutorials.tutorial_titles]
                    ]
@@ -996,23 +996,24 @@ class App():
                 self.ComingSoonPopup("Run a developer demo")
             
 
-            ### CFS OPERATOR ###
+            ### OPERATOR ###
 
             elif self.event == '-ENA_TLM-':
                 self.enable_telemetry()
 
-            elif self.event == 'Write Script':
-                self.ComingSoonPopup("Write an opertional script")
-
-            elif self.event == 'Run Script':
-                self.ComingSoonPopup("Run an opertional script")
+            elif self.event == 'Script Runner':
+                self.cmd_tlm_router.add_cmd_source(self.config.getint('APP','SCRIPT_RUNNER_CMD_PORT'))
+                self.cmd_tlm_router.add_tlm_dest(self.config.getint('APP','SCRIPT_RUNNER_TLM_PORT'))
+                cfs_interface_dir = os.path.join(self.path, "cfsinterface")
+                print("cfs_interface_dir = " + cfs_interface_dir)
+                self.script_runner = sg.execute_py_file("scriptrunner.py", cwd=cfs_interface_dir)
 
             elif self.event == 'File Browser' or self.event == '-FILE_BROWSER-':
-                self.cmd_tlm_router.add_cmd_source(8000)   #TODO - Add port number management 
-                self.cmd_tlm_router.add_tlm_dest(9000)     #TODO - Add port number management
+                self.cmd_tlm_router.add_cmd_source(self.config.getint('APP','FILE_BROWSER_CMD_PORT'))
+                self.cmd_tlm_router.add_tlm_dest(self.config.getint('APP','FILE_BROWSER_TLM_PORT'))
                 cfs_interface_dir = os.path.join(self.path, "cfsinterface")
-                print('cfs_interface_dir = ' + cfs_interface_dir)
-                self.filebrowser = sg.execute_py_file("filebrowser.py", cwd=cfs_interface_dir)
+                print("cfs_interface_dir = " + cfs_interface_dir)
+                self.file_browser = sg.execute_py_file("filebrowser.py", cwd=cfs_interface_dir)
 
             elif self.event == 'Manage Tables':
                 self.ComingSoonPopup("Manage cFS app JSON tables")
@@ -1121,9 +1122,8 @@ class App():
                 self.display_event(cmd_text)
             
             elif self.event == '-TLM_TOPICS-':
-                print("View TLM")
                 tlm_topic = self.values['-TLM_TOPICS-']
-                print("tlm_topic = " + tlm_topic)
+                self.display_event("Created telemetry screen for %s" % tlm_topic)
                 if tlm_topic != EdsMission.TOPIC_TLM_TITLE_KEY:
                     """
                     The thread start() nevers returns and I don't know why. Guessing underlying GUI control issue.
@@ -1158,5 +1158,6 @@ if __name__ == '__main__':
    
     app = App('cfsat.ini')
     app.execute()    
-    
+    logger.info("Exiting app")
+
 

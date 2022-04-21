@@ -117,7 +117,7 @@ class FlightDir():
         self.cmd_tlm_process.send_cfs_cmd('FILE_MGR', 'SendDirTlm',  {'DirName': self.path, 'IncludeSizeTime': 0})
         time.sleep(1.5) # Give time for telemetry
         if len(self.file_list) == 0:
-            self.sg_window.update(['Empty or Nonexistent directory'])
+            self.sg_window.update(['Check cfS connection or empty/nonexistent directory'])
 
     def move_up(self):
         """
@@ -518,8 +518,10 @@ if __name__ == '__main__':
     #tlm_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     #tlm_socket.sendto("127.0.0.1,1234".encode(),("127.0.0.1",8888))
 
-    gnd_path = os.path.join(os.getcwd(), '..', FLT_SERVER_PATH) 
-    file_browser = FileBrowser(gnd_path, '/cf', '127.0.0.1', 8000, 9000, 1.0)
+    gnd_path = compress_abs_path(os.path.join(os.getcwd(), '..', FLT_SERVER_PATH))
+    cmd_port = config.getint('APP','FILE_BROWSER_CMD_PORT')
+    tlm_port = config.getint('APP','FILE_BROWSER_TLM_PORT')
+    file_browser = FileBrowser(gnd_path, '/cf', '127.0.0.1', cmd_port, tlm_port, 1.0)
     file_browser.execute()
     
     
