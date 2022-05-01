@@ -149,10 +149,10 @@ class Lesson():
         self.json.update()
         self.window.close()       
 
-        return self.json.lesson_complete()
-
+        
     def execute(self):
         self.gui()
+        return self.json.lesson_complete()
         
     def reset(self):
         self.json.reset()
@@ -191,14 +191,11 @@ class Tutorial():
         self.display = True
         self.reset   = False
 
-
-    def gui(self):
+    def create_window(self):
         """
-        Navigating through lessons is not strictly enforced.  The goal is to keep the user
-        interface very simple so the algotihm to determine which lesson to resume is simplistic
-        and its up to the user whether they select lessons as completed.
+        Create the main window. Non-class variables are used so it can be refreshed, PySimpleGui
+        layouts can't be shared.
         """
-        
         hdr_label_font = ('Arial bold',12)
         hdr_value_font = ('Arial',12)
         
@@ -222,19 +219,30 @@ class Tutorial():
             lesson_layout.append([sg.Radio(title, "LESSONS", default=radio_state, font=hdr_value_font, size=(30,0), key='-LESSON%d-'%lesson.number), sg.Text(complete_state, key='-COMPLETE%d-'%lesson.number)])
         
         
+        # Layouts can't be reused/shared so if someone does a tutorial reset it casues issues if layout is a class variable
+        layout = [
+                  [sg.Text('Objectives', font=hdr_label_font)],
+                  [sg.MLine(default_text=objective_text, font = hdr_value_font, size=(40, 4))],
+                  # Lesson size less than lesson layout so complete status will appear centered 
+                  [sg.Text('Lesson', font=hdr_label_font, size=(28,0)),sg.Text('Complete', font=hdr_label_font, size=(10,0))],  
+                  lesson_layout, 
+                  [sg.Button('Start'), sg.Button('Reset'), sg.Button('Exit')]
+                 ]
+
+        window = sg.Window(self.json.title(), layout, modal=True)
+        return window
+        
+        
+    def gui(self):
+        """
+        Navigating through lessons is not strictly enforced.  The goal is to keep the user
+        interface very simple so the algotihm to determine which lesson to resume is simplistic
+        and it's up to the user whether they select lessons as completed.
+        """
+                
         while self.display:
 
-            # Layouts can't be reused/shared so if someone does a tutorial reset it casues issues if layout is a class variable
-            layout = [
-                      [sg.Text('Objectives', font=hdr_label_font)],
-                      [sg.MLine(default_text=objective_text, font = hdr_value_font, size=(40, 4))],
-                      # Lesson size less than lesson layout so complete status will appear centered 
-                      [sg.Text('Lesson', font=hdr_label_font, size=(28,0)),sg.Text('Complete', font=hdr_label_font, size=(10,0))],  
-                      lesson_layout, 
-                      [sg.Button('Start'), sg.Button('Reset'), sg.Button('Exit')]
-                     ]
-
-            window = sg.Window(self.json.title(), layout, modal=True)
+            window = self.create_window()
 
             while True: # Event Loop
 
