@@ -208,9 +208,9 @@ class TelemetryServer(CfeEdsTarget):
             #print(">>>>base_object value " + str(base_object)+"\n")
             return_value = None
             if obj_name is not None:           
-                #print(">>>>%s = " % obj_name)
+                #TODO: print(">>>>%s = " % obj_name)
                 if obj_name == parameter:
-                    print("********* FOUND OBJECT *************")
+                    #TODO: print("********* FOUND OBJECT *************")
                     return_value = base_object
             return return_value
             
@@ -223,11 +223,11 @@ class TelemetryServer(CfeEdsTarget):
         value = None
         app_id = self.lookup_appid[self.join_app_msg(app_name, tlm_msg_name)] 
         tlm_msg = self.tlm_messages[app_id]
-        print("***tlm_msg: %s %s %s" % (tlm_msg.app_name, tlm_msg.msg_name, parameter)) 
+        #TODO: print("***tlm_msg: %s %s %s" % (tlm_msg.app_name, tlm_msg.msg_name, parameter)) 
         eds_obj = tlm_msg.get_eds_obj()
         if eds_obj is not None:
             value = self.get_tlm_param_val(eds_obj, parameter, None)
-            print("***value = " + str(value))
+            #TODO: print("***value = " + str(value))
         return value
           
     def join_app_msg(self, app_name, tlm_msg_name):

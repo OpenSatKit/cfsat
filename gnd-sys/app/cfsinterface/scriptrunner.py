@@ -31,6 +31,8 @@ import time
 import os
 import socket
 import configparser
+import io
+from contextlib import redirect_stdout
 import PySimpleGUI as sg
 
 if __name__ == '__main__':
@@ -135,6 +137,7 @@ class ScriptRunner(CmdTlmProcess):
 
         self.tlm_current_value = TelemetryCurrentValue(self.tlm_server, self.event_msg)
         self.tlm_server.execute()
+        self.scrit = None
     
     def event_msg(self, event_text):
         print('ScriptRunner received event: ' + event_text)
@@ -150,11 +153,21 @@ class ScriptRunner(CmdTlmProcess):
         
     def run_script(self, script):
         """
-        User script passed as a string parameter and it execute within the context of
-        a ScriptRUnner object so it can access all of the methods 
+        User script passed as a string parameter and it executes within the context of
+        a ScriptRunner object so it can access all of the methods 
+        Design Note: I tried saving script to a file and then passing it to
+        sg.execute_py_file(). A standlone script loses the ScriptRUnner context and this
+        method would require a new ScriptRunner main file to be generated with the script.  
         """
-        exec(script)
-
+        with redirect_stdout(io.StringIO()) as output:
+            try:
+                exec(script)
+            except:
+                pass
+        output_str = output.getvalue()
+        
+        if output_str is not None:
+             sg.popup(output_str,title="Script Status")
     
 ###############################################################################
 

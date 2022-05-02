@@ -22,6 +22,7 @@
 """
 import os
 import sys
+
 #sys.path.append(r'../../cfe-eds-framework/build/exe/lib/python')
 if 'LD_LIBRARY_PATH' not in os.environ:
     print("LD_LIBRARY_PATH not defined. Run setvars.sh to corrrect the problem")
@@ -48,6 +49,8 @@ import queue
 import json
 import signal
 import webbrowser
+import io
+from contextlib import redirect_stdout
 from datetime import datetime
 
 import logging
@@ -698,6 +701,7 @@ class ManageCfs():
 class App():
 
     GUI_NO_IMAGE_TXT = '--None Selected--'
+    GUI_NULL_TXT     = 'Null'
 
     def __init__(self, ini_file):
 
@@ -705,9 +709,12 @@ class App():
         self.config = configparser.ConfigParser()
         self.config.read(ini_file)
 
-        self.cfs_exe_file = 'core-cpu1'
-        self.cfs_abs_base_path = compress_abs_path(os.path.join(self.path, self.config.get('CFS_TARGET','BASE_PATH')))
-        self.cfs_subprocess = None
+        self.cfs_exe_file       = 'core-cpu1'
+        self.cfs_abs_base_path  = compress_abs_path(os.path.join(self.path, self.config.get('CFS_TARGET','BASE_PATH')))
+        self.cfs_subprocess     = None
+        self.cfs_subprocess_log = ""
+        self.cfs_stdout_thread  = None
+        self.cfe_time_event_filter = False  #todo: Retaining the state here doesn't work if user starts and stops the cFS and doesn't restart cFSAT
 
         self.APP_VERSION = self.config.get('APP','VERSION')
 
@@ -721,9 +728,7 @@ class App():
         
         self.GUI_CMD_PAYLOAD_TABLE_ROWS = self.config.getint('GUI','CMD_PAYLOAD_TABLE_ROWS')
 
-        self.event_history = ""
-        self.cfe_time_event_filter = False  #todo: Retaining the state here doesn't work if user starts and stops the cFS and doesn't restart cFSAT
-        
+        self.event_log   = ""        
         self.event_queue = queue.Queue()
         self.tlm_gui_clients = {}
         self.tlm_gui_threads = {}
@@ -736,24 +741,62 @@ class App():
         self.script_runner = None
         self.tutorial      = None
 
+    def display_cfs_stdout(self):
+        """
+        This function is invoked after a cFS process is started and it's design depends on how Popen is
+        configured when the cFS process is started. I've tried lots of different designs to make this 
+        non-blocking and easay to terminate. It assumes the the Popen parameters bufsize=1 and
+        universal_newlines=True (text output). A binary stdout would need line.decode('utf-8'). Some loop
+        design options:
+            for line in io.TextIOWrapper(self.cfs_subprocess.stdout, encoding="utf-8"):
+                self.cfs_subprocess_log += line
+            while True:
+                line = self.cfs_subprocess.stdout.readline()
+                if not line:
+                    break
+                self.cfs_subprocess_log += line
+
+            for line in iter(self.cfs_subprocess.stdout.readline, ''):
+                print(">>Line: " + line)
+                self.cfs_subprocess_log += line
+
+        Reading stdout is a blocking function. The current design does not let the process get killed and I
+        think it's because the read function is always active. I put the try block there becuase I'd like to
+        add an exception mechanism to allow the thread to be terminated. Subprocess communiate with a timeout
+        i not an option becuase the child process is terminated if a tomeout occurs.I tried the psuedo terminal
+        module as an intermediator between the cFS process and stdout thinking it may have a non-blocking but
+         it still blocked. 
+        
+        """
+        if self.cfs_subprocess is not None:
+            try:
+                logger.info("Starting cFS terminal window stdout display")
+                for line in iter(self.cfs_subprocess.stdout.readline, ''):
+                    print(">>Line: " + line)
+                    self.cfs_subprocess_log += line
+                    self.window["-CFS_PROCESS_TEXT-"].update(self.cfs_subprocess_log)
+                    self.window["-CFS_PROCESS_TEXT-"].set_vscroll_position(1.0)  # Scroll to bottom (most recent entry)
+            finally:
+                logger.info("Stopping cFS terminal window stdout display")
+                
+
     def update_event_history_str(self, new_event_text):
         time = datetime.now().strftime("%H:%M:%S")
         event_str = time + " - " + new_event_text + "\n"        
-        self.event_history += event_str
-    
-    
+        self.event_log += event_str
+     
     def display_event(self, new_event_text):
         self.update_event_history_str(new_event_text)
-        self.window["-EVENT_TEXT-"].update(self.event_history)
+        self.window["-EVENT_TEXT-"].update(self.event_log)
 
     def display_tlm_monitor(self, app_name, tlm_msg, tlm_item, tlm_text):
-        print("Received [%s, %s, %s] %s" % (app_name, tlm_msg, tlm_item, tlm_text))
-        
+        #TODO: print("Received [%s, %s, %s] %s" % (app_name, tlm_msg, tlm_item, tlm_text))
+        self.window["-CFS_TIME-"].update(tlm_text)
 
     def send_cfs_cmd(self, app_name, cmd_name, cmd_payload):
         (cmd_sent, cmd_text, cmd_status) = self.telecommand_script.send_cfs_cmd(app_name, cmd_name, cmd_payload)
         self.display_event(cmd_status)
-
+        
 
     def enable_telemetry(self):
         """
@@ -886,10 +929,11 @@ class App():
                       sg.Combo(cmd_topics, enable_events=True, key="-CMD_TOPICS-", default_value=cmd_topics[0], pad=((0,5),(12,12))),
                       sg.Text('View Tlm:', font=sec_hdr_font, pad=((5,0),(12,12))),
                       sg.Combo(tlm_topics, enable_events=True, key="-TLM_TOPICS-", default_value=tlm_topics[0], pad=((0,5),(12,12))),]], pad=((0,0),(15,15)))],
-                     [sg.Text('FSW Status', font=pri_hdr_font), sg.Text('(Placeholder for cFE and runtime app status)', pad=(2,1))],
-                     [sg.Output(font=log_font, size=(125, 10))],
+                     [sg.Text('cFS Process Window', font=pri_hdr_font), sg.Text('Time: ', font=sec_hdr_font, pad=(2,1)), sg.Text(self.GUI_NULL_TXT, key='-CFS_TIME-', font=sec_hdr_font, text_color='blue')],
+                     #[sg.Output(font=log_font, size=(125, 10))],
+                     [sg.MLine(default_text=self.cfs_subprocess_log, font=log_font, enable_events=True, size=(125, 15), key='-CFS_PROCESS_TEXT-')],
                      [sg.Text('Ground & Flight Events', font=pri_hdr_font), sg.Button('Clear', enable_events=True, key='-CLEAR_EVENTS-', pad=(5,1))],
-                     [sg.MLine(default_text=self.event_history, font=log_font, enable_events=True, size=(125, 20), key='-EVENT_TEXT-')]
+                     [sg.MLine(default_text=self.event_log, font=log_font, enable_events=True, size=(125, 15), key='-EVENT_TEXT-')]
                  ]
 
         #sg.Button('Send Cmd', enable_events=True, key='-SEND_CMD-', pad=(10,1)),
@@ -919,6 +963,7 @@ class App():
                 self.display_event("Sent remote process command: " + datagram_to_str(datagram))
                 print("Sent remote process command: " + datagram_to_str(datagram))
             
+
             #######################
             ##### MENU EVENTS #####
             #######################
@@ -948,16 +993,29 @@ class App():
                 manage_cfs.execute()
                                   
             elif self.event == '-START_CFS-':
+                """
+                
+                """
                 start_cfs_sh     = os.path.join(self.path, 'start_cfs.sh')
                 cfs_abs_exe_path = os.path.join(self.cfs_abs_base_path, "build/exe/cpu1") 
-                self.cfs_subprocess = subprocess.Popen('%s %s %s' % (start_cfs_sh, cfs_abs_exe_path, self.cfs_exe_file), shell=True)
-                self.window["-CFS_IMAGE-"].update(os.path.join(cfs_abs_exe_path, self.cfs_exe_file))
-                time.sleep(3.0)
-                self.enable_telemetry()
-
+                #self.cfs_subprocess = subprocess.Popen('%s %s %s' % (start_cfs_sh, cfs_abs_exe_path, self.cfs_exe_file), shell=True)
+                #self.cfs_subprocess = subprocess.Popen('%s %s %s' % (start_cfs_sh, cfs_abs_exe_path, self.cfs_exe_file),
+                #                                       stdout=self.cfs_pty_slave, stderr=self.cfs_pty_slave, close_fds=True,
+                #                                       shell=True) #, bufsize=1, universal_newlines=True)
+                self.cfs_subprocess = subprocess.Popen('%s %s %s' % (start_cfs_sh, cfs_abs_exe_path, self.cfs_exe_file),
+                                                       stdout=subprocess.PIPE, shell=True, bufsize=1, universal_newlines=True)
+                if self.cfs_subprocess is not None:
+                    self.window["-CFS_IMAGE-"].update(os.path.join(cfs_abs_exe_path, self.cfs_exe_file))
+                    time.sleep(3.0)
+                    self.enable_telemetry()
+                    
+                    self.cfs_stdout_thread = threading.Thread(target=self.display_cfs_stdout)
+                    self.cfs_stdout_thread.kill = False
+                    self.cfs_stdout_thread.start()
+                    
                 """ 
                 #todo: Kill current thread if running
-                #todo: history_setting_filename doesn't seem to do anything. My goal is to save cFS imagelocations across app invocations 
+                #todo: history_setting_filename doesn't seem to do anything. My goal is to save cFS image locations across app invocations 
                 self.cfs_exe_str = sg.popup_get_file('Please select your cFS executable image', title='cFS Executable Dialog',
                                        default_path = self.cfs_exe_path, history = True, history_setting_filename = 'cfs_exe.log')
                 
@@ -988,6 +1046,7 @@ class App():
                     sg.popup("cFS failed to terminate.\nUse another terminal to kill the process.", title='Warning', grab_anywhere=True, modal=False)
                 else:
                     self.window["-CFS_IMAGE-"].update(self.GUI_NO_IMAGE_TXT)
+                    self.window["-CFS_TIME-"].update(self.GUI_NULL_TXT)
         
             elif self.event == 'Run Perf Monitor':
                 subprocess.Popen("java -jar ../perf-monitor/CPM.jar",shell=True)  #TODO - Use ini file path definition
@@ -1142,7 +1201,7 @@ class App():
                     sg.popup('Please select a telemetry topic from the dropdown list', title='Telemetry Topic')
                 
             elif self.event == '-CLEAR_EVENTS-':
-                self.event_history = ""
+                self.event_log = ""
                 self.display_event("Cleared event display")
 
         self.shutdown()
