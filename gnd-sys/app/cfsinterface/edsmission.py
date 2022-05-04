@@ -46,7 +46,6 @@
 """
 
 from abc import ABC, abstractmethod
-import configparser
 import time
 import logging
 logger = logging.getLogger(__name__)

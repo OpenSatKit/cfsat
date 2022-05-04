@@ -506,12 +506,12 @@ def main():
     
     config = configparser.ConfigParser()
     config.read('../cfsat.ini')
-    MISSION     = config.get('MISSION','EDS_NAME')
-    CFS_TARGET  = config.get('CFS_TARGET','EDS_NAME')
-    HOST_ADDR   = config.get('CFS_TARGET','HOST_ADDR')
-    CMD_PORT    = config.getint('CFS_TARGET','SEND_CMD_PORT')
-    TLM_PORT    = config.getint('CFS_TARGET','RECV_TLM_PORT')
-    TLM_TIMEOUT = float(config.getint('CFS_TARGET','RECV_TLM_TIMEOUT'))/1000.0
+    MISSION     = config.get('CFS_TARGET', 'MISSION_EDS_NAME')
+    CFS_TARGET  = config.get('CFS_TARGET', 'CPU_EDS_NAME')
+    HOST_ADDR   = config.get('NETWORK', 'CFS_HOST_ADDR')
+    CMD_PORT    = config.getint('NETWORK', 'CFS_SEND_CMD_PORT')
+    TLM_PORT    = config.getint('NETWORK', 'CFS_RECV_TLM_PORT')
+    TLM_TIMEOUT = float(config.getint('CFS_TARGET', 'RECV_TLM_TIMEOUT'))/1000.0
 
 
     system_string = "Mission: %s, Target: %s, Host: %s, Command Port %d" % (MISSION, CFS_TARGET, HOST_ADDR, CMD_PORT)

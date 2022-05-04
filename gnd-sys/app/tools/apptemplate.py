@@ -208,10 +208,9 @@ class CreateApp():
         self.window  = None
         self.selected_app = None
         
-    def execute(self):
+    def create_window(self):
         """
         """
-        
         hdr_label_font = ('Arial bold',12)
         hdr_value_font = ('Arial',12)
         
@@ -226,8 +225,15 @@ class CreateApp():
                   [sg.Button('Description'), sg.Button('Create App'), sg.Button('Cancel')]
                  ]
         
-        self.window = sg.Window('Create Application', layout, modal=False)
+        window = sg.Window('Create Application', layout, modal=False)
+        return window
 
+
+    def execute(self):
+        """
+        """        
+        self.window = self.create_window() 
+        
         while True: # Event Loop
             
             self.event, self.values = self.window.read()
@@ -281,7 +287,7 @@ if __name__ == '__main__':
     config = configparser.ConfigParser()
     config.read('../cfsat.ini')
 
-    APP_TEMPLATES_PATH = config.get('TOOLS','APP_TEMPLATES_PATH')
+    APP_TEMPLATES_PATH = config.get('PATHS','APP_TEMPLATES_PATH')
 
     templates_dir = os.path.join(os.getcwd(),'..', APP_TEMPLATES_PATH) 
     print ("templates_dir = " + templates_dir)

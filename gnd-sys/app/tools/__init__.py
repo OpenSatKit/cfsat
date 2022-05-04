@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
 from .apptemplate import CreateApp
+from .appstore import AppStore
 from .tutorial import ManageTutorials
 from .texteditor import TextEditor
 from .utils import *

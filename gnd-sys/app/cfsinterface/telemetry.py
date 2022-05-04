@@ -562,10 +562,10 @@ def main():
     
     config = configparser.ConfigParser()
     config.read('../cfsat.ini')
-    MISSION    = config.get('MISSION','EDS_NAME')
-    CFS_TARGET = config.get('CFS_TARGET','EDS_NAME')
-    HOST_ADDR  = config.get('CFS_TARGET','HOST_ADDR')
-    TLM_PORT   = config.getint('CFS_TARGET','RECV_TLM_PORT')
+    MISSION    = config.get('CFS_TARGET', 'MISSION_EDS_NAME')
+    CFS_TARGET = config.get('CFS_TARGET', 'CPU_EDS_NAME')
+    HOST_ADDR  = config.get('NETWORK','CFS_HOST_ADDR')
+    TLM_PORT   = config.getint('NETWORK','CFS_RECV_TLM_PORT')
     CFS_TARGET_TLM_TIMEOUT = config.getint('CFS_TARGET','RECV_TLM_TIMEOUT')
     
     system_string = "Mission: %s, Target: %s, Host: %s, Telemetry Port %d" % (MISSION, CFS_TARGET, HOST_ADDR, TLM_PORT)

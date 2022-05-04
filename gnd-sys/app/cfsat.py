@@ -38,7 +38,7 @@ if 'LD_LIBRARY_PATH' not in os.environ:
         print("Auto define LD_LIBRARY_PATH failed")
         sys.exit(1)
     """
-
+import ctypes
 import time
 import socket
 import configparser
@@ -64,7 +64,7 @@ from cfsinterface import CmdTlmRouter
 from cfsinterface import Cfe, EdsMission
 from cfsinterface import TelecommandInterface, TelecommandScript
 from cfsinterface import TelemetryMessage, TelemetryObserver, TelemetryQueueServer
-from tools import CreateApp, ManageTutorials, crc_32c, datagram_to_str, compress_abs_path, TextEditor
+from tools import CreateApp, ManageTutorials, crc_32c, datagram_to_str, compress_abs_path, TextEditor, AppStore
 
 
 ###############################################################################
@@ -696,52 +696,17 @@ class ManageCfs():
         self.gui()
         
 
-###############################################################################
-
-class App():
-
-    GUI_NO_IMAGE_TXT = '--None Selected--'
-    GUI_NULL_TXT     = 'Null'
-
-    def __init__(self, ini_file):
-
-        self.path = os.getcwd()
-        self.config = configparser.ConfigParser()
-        self.config.read(ini_file)
-
-        self.cfs_exe_file       = 'core-cpu1'
-        self.cfs_abs_base_path  = compress_abs_path(os.path.join(self.path, self.config.get('CFS_TARGET','BASE_PATH')))
-        self.cfs_subprocess     = None
+  
+class CfsStdout(threading.Thread):
+    """
+    """
+    def __init__(self, cfs_subprocess, window):
+        threading.Thread.__init__(self)
+        self.cfs_subprocess = cfs_subprocess
+        self.window = window
         self.cfs_subprocess_log = ""
-        self.cfs_stdout_thread  = None
-        self.cfe_time_event_filter = False  #todo: Retaining the state here doesn't work if user starts and stops the cFS and doesn't restart cFSAT
-
-        self.APP_VERSION = self.config.get('APP','VERSION')
-
-        self.EDS_MISSION_NAME    = self.config.get('MISSION','EDS_NAME')
-        self.EDS_CFS_TARGET_NAME = self.config.get('CFS_TARGET','EDS_NAME')
-
-        self.CFS_TARGET_HOST_ADDR   = self.config.get('CFS_TARGET','HOST_ADDR')
-        self.CFS_TARGET_CMD_PORT    = self.config.getint('CFS_TARGET','SEND_CMD_PORT')
-        self.CFS_TARGET_TLM_PORT    = self.config.getint('CFS_TARGET','RECV_TLM_PORT')
-        self.CFS_TARGET_TLM_TIMEOUT = float(self.config.getint('CFS_TARGET','RECV_TLM_TIMEOUT'))/1000.0
         
-        self.GUI_CMD_PAYLOAD_TABLE_ROWS = self.config.getint('GUI','CMD_PAYLOAD_TABLE_ROWS')
-
-        self.event_log   = ""        
-        self.event_queue = queue.Queue()
-        self.tlm_gui_clients = {}
-        self.tlm_gui_threads = {}
-        self.window = None
-                
-        self.manage_tutorials = ManageTutorials(self.config.get('PATHS', 'TUTORIALS_PATH'))
-        self.create_app       = CreateApp(self.config.get('PATHS', 'APP_TEMPLATES_PATH'))
-        
-        self.file_browser  = None
-        self.script_runner = None
-        self.tutorial      = None
-
-    def display_cfs_stdout(self):
+    def run(self):
         """
         This function is invoked after a cFS process is started and it's design depends on how Popen is
         configured when the cFS process is started. I've tried lots of different designs to make this 
@@ -768,17 +733,83 @@ class App():
          it still blocked. 
         
         """
-        if self.cfs_subprocess is not None:
-            try:
-                logger.info("Starting cFS terminal window stdout display")
-                for line in iter(self.cfs_subprocess.stdout.readline, ''):
-                    print(">>Line: " + line)
-                    self.cfs_subprocess_log += line
-                    self.window["-CFS_PROCESS_TEXT-"].update(self.cfs_subprocess_log)
-                    self.window["-CFS_PROCESS_TEXT-"].set_vscroll_position(1.0)  # Scroll to bottom (most recent entry)
-            finally:
-                logger.info("Stopping cFS terminal window stdout display")
+ 
+        try:
+            logger.info("Starting cFS terminal window stdout display")
+            for line in iter(self.cfs_subprocess.stdout.readline, ''):
+                #print(">>Line: " + line)
+                self.cfs_subprocess_log += line
+                self.window["-CFS_PROCESS_TEXT-"].update(self.cfs_subprocess_log)
+                self.window["-CFS_PROCESS_TEXT-"].set_vscroll_position(1.0)  # Scroll to bottom (most recent entry)
+        finally:
+            logger.info("Stopping cFS terminal window stdout display")
+            
+    def get_id(self):
+ 
+        # returns id of the respective thread
+        if hasattr(self, '_thread_id'):
+            return self._thread_id
+        for id, thread in threading._active.items():
+            if thread is self:
+                return id
+  
+    def terminate(self):
+        """
+        Terminate the thread by rasing an exception
+        """
+        logger.info("Raising CfsStdout exception to terminate thread")
+        thread_id = self.get_id()
+        res = ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id,
+              ctypes.py_object(SystemExit))
+        if res > 1:
+            ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, 0)
+            print('Exception raise failure')
+
+ 
+###############################################################################
+
+class App():
+
+    GUI_NO_IMAGE_TXT = '--None Selected--'
+    GUI_NULL_TXT     = 'Null'
+
+    def __init__(self, ini_file):
+
+        self.path = os.getcwd()
+        self.config = configparser.ConfigParser()
+        self.config.read(ini_file)
+
+        self.cfs_exe_file       = 'core-cpu1'
+        self.cfs_abs_base_path  = compress_abs_path(os.path.join(self.path, self.config.get('CFS_TARGET','BASE_PATH')))
+        self.cfs_subprocess     = None
+        self.cfs_subprocess_log = ""
+        self.cfs_stdout         = None
+        self.cfe_time_event_filter = False  #todo: Retaining the state here doesn't work if user starts and stops the cFS and doesn't restart cFSAT
+
+        self.APP_VERSION = self.config.get('APP','VERSION')
+
+        self.EDS_MISSION_NAME    = self.config.get('CFS_TARGET','MISSION_EDS_NAME')
+        self.EDS_CFS_TARGET_NAME = self.config.get('CFS_TARGET','CPU_EDS_NAME')
+
+        self.CFS_TARGET_HOST_ADDR   = self.config.get('NETWORK','CFS_HOST_ADDR')
+        self.CFS_TARGET_CMD_PORT    = self.config.getint('NETWORK','CFS_SEND_CMD_PORT')
+        self.CFS_TARGET_TLM_PORT    = self.config.getint('NETWORK','CFS_RECV_TLM_PORT')
+        self.CFS_TARGET_TLM_TIMEOUT = float(self.config.getint('CFS_TARGET','RECV_TLM_TIMEOUT'))/1000.0
+        
+        self.GUI_CMD_PAYLOAD_TABLE_ROWS = self.config.getint('GUI','CMD_PAYLOAD_TABLE_ROWS')
+
+        self.event_log   = ""        
+        self.event_queue = queue.Queue()
+        self.tlm_gui_clients = {}
+        self.tlm_gui_threads = {}
+        self.window = None
                 
+        self.manage_tutorials = ManageTutorials(self.config.get('PATHS', 'TUTORIALS_PATH'))
+        self.create_app       = CreateApp(self.config.get('PATHS', 'APP_TEMPLATES_PATH'))
+        
+        self.file_browser  = None
+        self.script_runner = None
+        self.tutorial      = None
 
     def update_event_history_str(self, new_event_text):
         time = datetime.now().strftime("%H:%M:%S")
@@ -836,6 +867,79 @@ class App():
         self.window.close()
         logger.info("Completed app shutdown sequence")
 
+    def create_window(self, sys_target_str, sys_comm_str):
+        """
+        Create the main window. Non-class variables are used so it can be refreshed, PySimpleGui
+        layouts can't be shared.
+        """
+        sg.theme('LightGreen')
+        sg.set_options(element_padding=(0, 0))
+    
+        menu_def = [
+                       ['System', ['Options', 'About', 'Exit']],
+                       ['Developer', ['Create App', 'Download App','Add App to cFS', 'Run Perf Monitor', 'Run Dev Demo']],
+                       ['Operator', ['Script Runner', 'File Browser', 'Manage Tables', 'Run Ops Demo']],
+                       ['Documents', ['cFS Overview', 'cFE Overview', 'OSK App Dev']],
+                       ['Tutorials', self.manage_tutorials.tutorial_titles]
+                   ]
+
+        self.cfs_config_cmds = ['-- cFS Configuration--', 'Enable Telemetry', 'cFE Version', 'Reset Time', 'Configure Events', 'Ena/Dis Flywheel']
+
+
+        # Events can't be posted until after first window.read() so initialization string is format here and used as the default string
+        
+        self.update_event_history_str(sys_target_str)
+        self.update_event_history_str(sys_comm_str)
+            
+        cmd_topics = []
+        cmd_topic_list = list(self.telecommand_gui.get_topics().keys())
+        all_cmd_topics = self.config.getboolean('GUI','CMD_TOPICS_ALL')
+        for topic in cmd_topic_list:
+            if 'Application/CMD' in topic:
+                cmd_topics.append(topic)
+            else:
+                if all_cmd_topics:
+                    cmd_topics.append(topic)
+            
+        logger.debug("cmd_topics = " + str(cmd_topics))
+
+        tlm_topics = list(self.tlm_server.get_topics().keys())
+        logger.debug("tlm_topics = " + str(tlm_topics))
+            
+        pri_hdr_font = ('Arial bold',14)
+        sec_hdr_font = ('Arial',12)
+        log_font = ('Courier',12)
+        layout = [
+                     [sg.Menu(menu_def, tearoff=False, pad=(50, 50))],
+                     [sg.Button('Build cFS', key='-BUILD_CFS-', image_data=image_grey1, font='Helvetica 12 bold italic', button_color=('black', sg.theme_background_color()), border_width=0, ),
+                      sg.Button('Start cFS', enable_events=True, key='-START_CFS-',  image_data=green, image_subsample=2, button_color=('black', sg.theme_background_color()), border_width=0),
+                      sg.Button('Stop cFS', enable_events=True, key='-STOP_CFS-', image_data=red, image_subsample=2, button_color=('black', sg.theme_background_color()), border_width=0),
+                      sg.Text('Mission:', font=pri_hdr_font),
+                      sg.Text(self.EDS_MISSION_NAME, font=sec_hdr_font, text_color='blue'),
+                      sg.Text('Target:', font=pri_hdr_font, pad=(10,1)),
+                      sg.Text(self.telecommand_gui.target_name, font=sec_hdr_font, text_color='blue'),
+                      sg.Text('Image', font=pri_hdr_font, pad=(10,1)),
+                      sg.Text(self.GUI_NO_IMAGE_TXT, key='-CFS_IMAGE-', font=sec_hdr_font, text_color='blue')],
+                     [sg.Frame('', [[sg.Button('Ena Tlm', enable_events=True, key='-ENA_TLM-', pad=((10,5),(12,12))),
+                      sg.Button('Files...', enable_events=True, key='-FILE_BROWSER-', pad=((5,5),(12,12))),
+                      sg.Text('cFS Config:', font=sec_hdr_font, pad=((0,0),(12,12))),
+                      sg.Combo(self.cfs_config_cmds, enable_events=True, key="-CFS_CONFIG_CMD-", default_value=self.cfs_config_cmds[0], pad=((0,5),(12,12))),
+                      sg.Text('Send Cmd:', font=sec_hdr_font, pad=((5,0),(12,12))),
+                      sg.Combo(cmd_topics, enable_events=True, key="-CMD_TOPICS-", default_value=cmd_topics[0], pad=((0,5),(12,12))),
+                      sg.Text('View Tlm:', font=sec_hdr_font, pad=((5,0),(12,12))),
+                      sg.Combo(tlm_topics, enable_events=True, key="-TLM_TOPICS-", default_value=tlm_topics[0], pad=((0,5),(12,12))),]], pad=((0,0),(15,15)))],
+                     [sg.Text('cFS Process Window', font=pri_hdr_font), sg.Text('Time: ', font=sec_hdr_font, pad=(2,1)), sg.Text(self.GUI_NULL_TXT, key='-CFS_TIME-', font=sec_hdr_font, text_color='blue')],
+                     #[sg.Output(font=log_font, size=(125, 10))],
+                     [sg.MLine(default_text=self.cfs_subprocess_log, font=log_font, enable_events=True, size=(125, 15), key='-CFS_PROCESS_TEXT-')],
+                     [sg.Text('Ground & Flight Events', font=pri_hdr_font), sg.Button('Clear', enable_events=True, key='-CLEAR_EVENTS-', pad=(5,1))],
+                     [sg.MLine(default_text=self.event_log, font=log_font, enable_events=True, size=(125, 15), key='-EVENT_TEXT-')]
+                 ]
+
+        #sg.Button('Send Cmd', enable_events=True, key='-SEND_CMD-', pad=(10,1)),
+        #sg.Button('View Tlm', enable_events=True, key='-VIEW_TLM-', pad=(10,1)),
+        window = sg.Window('cFS Application Toolkit - Beta', layout, auto_size_text=True, finalize=True)
+        return window
+        
     def execute(self):
     
         sys_target_str = "cFSAT version %s initialized with mission %s, target %s on %s" % (self.APP_VERSION, self.EDS_MISSION_NAME, self.EDS_CFS_TARGET_NAME, datetime.now().strftime("%m/%d/%Y"))
@@ -873,72 +977,7 @@ class App():
             logger.error("Error creating application objects")
             sys.exit(2)
 
-        sg.theme('LightGreen')
-        sg.set_options(element_padding=(0, 0))
-    
-        menu_def = [
-                       ['System', ['Options', 'About', 'Exit']],
-                       ['Developer', ['Create App', 'Manage cFS', 'Run Perf Monitor', 'Run Dev Demo']],
-                       ['Operator', ['Script Runner', 'File Browser', 'Manage Tables', 'Run Ops Demo']],
-                       ['Documents', ['cFS Overview', 'cFE Overview', 'OSK App Dev']],
-                       ['Tutorials', self.manage_tutorials.tutorial_titles]
-                   ]
-
-        cfs_config_cmds = ['-- cFS Configuration--', 'Enable Telemetry', 'cFE Version', 'Reset Time', 'Configure Events', 'Ena/Dis Flywheel']
-
-
-        # Events can't be posted until after first window.read() so initialization string is format here and used as the default string
-        
-        self.update_event_history_str(sys_target_str)
-        self.update_event_history_str(sys_comm_str)
-            
-        cmd_topics = []
-        cmd_topic_list = list(self.telecommand_gui.get_topics().keys())
-        all_cmd_topics = self.config.getboolean('GUI','CMD_TOPICS_ALL')
-        for topic in cmd_topic_list:
-            if 'Application/CMD' in topic:
-                cmd_topics.append(topic)
-            else:
-                if all_cmd_topics:
-                    cmd_topics.append(topic)
-            
-        logger.debug("cmd_topics = " + str(cmd_topics))
-
-        tlm_topics = list(self.tlm_server.get_topics().keys())
-        logger.debug("tlm_topics = " + str(tlm_topics))
-            
-        pri_hdr_font = ('Arial bold',14)
-        sec_hdr_font = ('Arial',12)
-        log_font = ('Courier',12)
-        layout = [
-                     [sg.Menu(menu_def, tearoff=False, pad=(50, 50))],
-                     [sg.Button('Build cFS', key='-MANAGE_CFS-', image_data=image_grey1, font='Helvetica 12 bold italic', button_color=('black', sg.theme_background_color()), border_width=0, ),
-                      sg.Button('Start cFS', enable_events=True, key='-START_CFS-',  image_data=green, image_subsample=2, button_color=('black', sg.theme_background_color()), border_width=0),
-                      sg.Button('Stop cFS', enable_events=True, key='-STOP_CFS-', image_data=red, image_subsample=2, button_color=('black', sg.theme_background_color()), border_width=0),
-                      sg.Text('Mission:', font=pri_hdr_font),
-                      sg.Text(self.EDS_MISSION_NAME, font=sec_hdr_font, text_color='blue'),
-                      sg.Text('Target:', font=pri_hdr_font, pad=(10,1)),
-                      sg.Text(self.telecommand_gui.target_name, font=sec_hdr_font, text_color='blue'),
-                      sg.Text('Image', font=pri_hdr_font, pad=(10,1)),
-                      sg.Text(self.GUI_NO_IMAGE_TXT, key='-CFS_IMAGE-', font=sec_hdr_font, text_color='blue')],
-                     [sg.Frame('', [[sg.Button('Ena Tlm', enable_events=True, key='-ENA_TLM-', pad=((10,5),(12,12))),
-                      sg.Button('Files...', enable_events=True, key='-FILE_BROWSER-', pad=((5,5),(12,12))),
-                      sg.Text('cFS Config:', font=sec_hdr_font, pad=((0,0),(12,12))),
-                      sg.Combo(cfs_config_cmds, enable_events=True, key="-CFS_CONFIG_CMD-", default_value=cfs_config_cmds[0], pad=((0,5),(12,12))),
-                      sg.Text('Send Cmd:', font=sec_hdr_font, pad=((5,0),(12,12))),
-                      sg.Combo(cmd_topics, enable_events=True, key="-CMD_TOPICS-", default_value=cmd_topics[0], pad=((0,5),(12,12))),
-                      sg.Text('View Tlm:', font=sec_hdr_font, pad=((5,0),(12,12))),
-                      sg.Combo(tlm_topics, enable_events=True, key="-TLM_TOPICS-", default_value=tlm_topics[0], pad=((0,5),(12,12))),]], pad=((0,0),(15,15)))],
-                     [sg.Text('cFS Process Window', font=pri_hdr_font), sg.Text('Time: ', font=sec_hdr_font, pad=(2,1)), sg.Text(self.GUI_NULL_TXT, key='-CFS_TIME-', font=sec_hdr_font, text_color='blue')],
-                     #[sg.Output(font=log_font, size=(125, 10))],
-                     [sg.MLine(default_text=self.cfs_subprocess_log, font=log_font, enable_events=True, size=(125, 15), key='-CFS_PROCESS_TEXT-')],
-                     [sg.Text('Ground & Flight Events', font=pri_hdr_font), sg.Button('Clear', enable_events=True, key='-CLEAR_EVENTS-', pad=(5,1))],
-                     [sg.MLine(default_text=self.event_log, font=log_font, enable_events=True, size=(125, 15), key='-EVENT_TEXT-')]
-                 ]
-
-        #sg.Button('Send Cmd', enable_events=True, key='-SEND_CMD-', pad=(10,1)),
-        #sg.Button('View Tlm', enable_events=True, key='-VIEW_TLM-', pad=(10,1)),
-        self.window = sg.Window('cFS Application Toolkit - Beta', layout, auto_size_text=True, finalize=True)
+        self.window = self.create_window(sys_target_str, sys_comm_str)
         # --- Loop taking in user input --- #
         while True:
     
@@ -988,7 +1027,11 @@ class App():
             elif self.event == 'Create App':
                 self.create_app.execute()
 
-            elif self.event == 'Manage cFS' or self.event == '-MANAGE_CFS-':
+            elif self.event == 'Download App':
+                app_store = AppStore(self.config.get('APP','APP_STORE_URL'), self.config.get('PATHS','USR_APP_PATH'))
+                app_store.execute()
+
+            elif self.event == 'Add App to cFS' or self.event == '-BUILD_CFS-':
                 manage_cfs = ManageCfs(self.path, self.cfs_abs_base_path)
                 manage_cfs.execute()
                                   
@@ -1009,9 +1052,8 @@ class App():
                     time.sleep(3.0)
                     self.enable_telemetry()
                     
-                    self.cfs_stdout_thread = threading.Thread(target=self.display_cfs_stdout)
-                    self.cfs_stdout_thread.kill = False
-                    self.cfs_stdout_thread.start()
+                    self.cfs_stdout = CfsStdout(self.cfs_subprocess, self.window)
+                    self.cfs_stdout.start()
                     
                 """ 
                 #todo: Kill current thread if running
@@ -1029,8 +1071,7 @@ class App():
             elif self.event == '-STOP_CFS-':
                 if self.cfs_subprocess is not None:
                     logger.info("Killing cFS Process")
-                    self.cfs_subprocess.kill()
-                    #todo: When process term works, perform: self.cfs_popen = None
+                    #todo: When process term works, perform: self.cfs_subprocess = None
                     if hasattr(signal, 'CTRL_C_EVENT'):
                         self.cfs_subprocess.send_signal(signal.CTRL_C_EVENT)
                         #os.kill(self.cfs_subprocess.pid, signal.CTRL_C_EVENT)
@@ -1042,7 +1083,12 @@ class App():
                         #else:
                         #    os.killpg(os.getpgid(self.cfs_popen.pid), signal.SIGINT) 
                         #os.kill(self.cfs_popen.pid(), signal.SIGINT)
+                    self.cfs_subprocess.kill()
+                    time.sleep(1)
+                                    
                 if self.cfs_subprocess.poll() is not None:
+                    if self.cfs_stdout is not None:
+                        self.cfs_stdout.terminate()  # I tried to join() afterwards and it hangs
                     sg.popup("cFS failed to terminate.\nUse another terminal to kill the process.", title='Warning', grab_anywhere=True, modal=False)
                 else:
                     self.window["-CFS_IMAGE-"].update(self.GUI_NO_IMAGE_TXT)
@@ -1061,15 +1107,15 @@ class App():
                 self.enable_telemetry()
 
             elif self.event == 'Script Runner':
-                self.cmd_tlm_router.add_cmd_source(self.config.getint('APP','SCRIPT_RUNNER_CMD_PORT'))
-                self.cmd_tlm_router.add_tlm_dest(self.config.getint('APP','SCRIPT_RUNNER_TLM_PORT'))
+                self.cmd_tlm_router.add_cmd_source(self.config.getint('NETWORK','SCRIPT_RUNNER_CMD_PORT'))
+                self.cmd_tlm_router.add_tlm_dest(self.config.getint('NETWORK','SCRIPT_RUNNER_TLM_PORT'))
                 cfs_interface_dir = os.path.join(self.path, "cfsinterface")
                 print("cfs_interface_dir = " + cfs_interface_dir)
                 self.script_runner = sg.execute_py_file("scriptrunner.py", cwd=cfs_interface_dir)
 
             elif self.event == 'File Browser' or self.event == '-FILE_BROWSER-':
-                self.cmd_tlm_router.add_cmd_source(self.config.getint('APP','FILE_BROWSER_CMD_PORT'))
-                self.cmd_tlm_router.add_tlm_dest(self.config.getint('APP','FILE_BROWSER_TLM_PORT'))
+                self.cmd_tlm_router.add_cmd_source(self.config.getint('NETWORK','FILE_BROWSER_CMD_PORT'))
+                self.cmd_tlm_router.add_tlm_dest(self.config.getint('NETWORK','FILE_BROWSER_TLM_PORT'))
                 cfs_interface_dir = os.path.join(self.path, "cfsinterface")
                 print("cfs_interface_dir = " + cfs_interface_dir)
                 self.file_browser = sg.execute_py_file("filebrowser.py", cwd=cfs_interface_dir)
@@ -1109,18 +1155,18 @@ class App():
  
             elif self.event == '-CFS_CONFIG_CMD-':
                 cfs_config_cmd = self.values['-CFS_CONFIG_CMD-']
-                if cfs_config_cmd == cfs_config_cmds[1]: # Enable Telemetry
+                if cfs_config_cmd == self.cfs_config_cmds[1]: # Enable Telemetry
                     self.enable_telemetry()
 
-                elif cfs_config_cmd == cfs_config_cmds[2]: # cFE Version (CFE ES Noop)
+                elif cfs_config_cmd == self.cfs_config_cmds[2]: # cFE Version (CFE ES Noop)
                     self.send_cfs_cmd('CFE_ES', 'NoopCmd', {})
             
-                elif cfs_config_cmd == cfs_config_cmds[3]: # Reset Time
+                elif cfs_config_cmd == self.cfs_config_cmds[3]: # Reset Time
                     self.send_cfs_cmd('CFE_TIME', 'SetMETCmd', {'Seconds': 0,'MicroSeconds': 0 })
                     time.sleep(0.5)
                     self.send_cfs_cmd('CFE_TIME', 'SetTimeCmd', {'Seconds': 0,'MicroSeconds': 0 })
             
-                elif cfs_config_cmd == cfs_config_cmds[4]: # Configure Events
+                elif cfs_config_cmd == self.cfs_config_cmds[4]: # Configure Events
                 
                     app_list = ['CFE_ES', 'CFE_EVS', 'CFE_SB', 'CFE_TBL', 'CFE_TIME'] #todo: dynamically create list using topics. Add method to base class
                 
@@ -1149,7 +1195,7 @@ class App():
                     pop_win.close()
                 
             
-                elif cfs_config_cmd == cfs_config_cmds[5]: # Ena/Dis Flywheel
+                elif cfs_config_cmd == self.cfs_config_cmds[5]: # Ena/Dis Flywheel
             
                     pop_text = "cFE TIME outputs an event when it starts/stops flywheel mode\nthat occurs when time can't synch to the 1Hz pulse. Use the\nbuttons to enable/disable the flywheel event messages..."
                     pop_win = sg.Window('Flywheel Message Configuration',

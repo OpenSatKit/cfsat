@@ -181,15 +181,16 @@ if __name__ == '__main__':
 
     config = configparser.ConfigParser()
     config.read('../cfsat.ini')
-    SCRIPT_PATH = config.get('PATHS','SCRIPT_PATH')
+    SCRIPT_PATH = config.get('PATHS', 'SCRIPT_PATH')
     print ("SCRIPT_PATH = " + SCRIPT_PATH)    
     demo_script_path = compress_abs_path(os.path.join(os.getcwd(), '..',SCRIPT_PATH))
     demo_script = os.path.join(demo_script_path, 'demo_script.py') 
 
-    cmd_port = config.getint('APP','SCRIPT_RUNNER_CMD_PORT')
-    tlm_port = config.getint('APP','SCRIPT_RUNNER_TLM_PORT')
+    cfs_host_addr = config.get('NETWORK', 'CFS_HOST_ADDR')
+    cmd_port = config.getint('NETWORK', 'SCRIPT_RUNNER_CMD_PORT')
+    tlm_port = config.getint('NETWORK', 'SCRIPT_RUNNER_TLM_PORT')
 
-    script_runner = ScriptRunner('127.0.0.1', cmd_port, tlm_port, 1.0)
+    script_runner = ScriptRunner(cfs_host_addr, cmd_port, tlm_port, 1.0)
     
     text_editor = TextEditor(demo_script, run_script_callback=script_runner.run_script)
     text_editor.execute()
