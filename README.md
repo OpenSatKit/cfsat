@@ -30,10 +30,11 @@ Package Notes:
 - *build-essential* contains a C developer tool suite including gcc, libc-dev, make, etc.* 
 - *cmake* must be at least v2.8.12
 - *liblua5.3-dev* must be at least v5.1
+- *You can skip installing pip and replace the 'pip3 install' below with 'python3 -m pip install'
 
 The python appplication uses [PySimpleGUI](https://pysimplegui.readthedocs.io/en/latest/) which can be installed with the following command:
 
-    pip3 install PySimpleGUI
+    pip3 install PySimpleGUI requests
 
 ## Clone cFSAT Repository
     git clone https://github.com/OpenSatKit/cfsat.git
