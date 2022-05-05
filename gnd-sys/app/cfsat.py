@@ -877,8 +877,8 @@ class App():
     
         menu_def = [
                        ['System', ['Options', 'About', 'Exit']],
-                       ['Developer', ['Create App', 'Download App','Add App to cFS', 'Run Perf Monitor', 'Run Dev Demo']],
-                       ['Operator', ['Script Runner', 'File Browser', 'Manage Tables', 'Run Ops Demo']],
+                       ['Developer', ['Create App', 'Download App','Add App to cFS', 'Certify App', 'Run Perf Monitor']],
+                       ['Operator', ['Script Runner', 'File Browser', 'Manage Tables']],
                        ['Documents', ['cFS Overview', 'cFE Overview', 'OSK App Dev']],
                        ['Tutorials', self.manage_tutorials.tutorial_titles]
                    ]
@@ -1034,7 +1034,64 @@ class App():
             elif self.event == 'Add App to cFS' or self.event == '-BUILD_CFS-':
                 manage_cfs = ManageCfs(self.path, self.cfs_abs_base_path)
                 manage_cfs.execute()
-                                  
+
+            if self.event == 'Certify App':
+                self.ComingSoonPopup("Certify your app to an OpenSatKit app repo")
+
+            elif self.event == 'Run Perf Monitor':
+                subprocess.Popen("java -jar ../perf-monitor/CPM.jar",shell=True)  #TODO - Use ini file path definition
+
+                                                  
+            ### OPERATOR ###
+
+            elif self.event == '-ENA_TLM-':
+                self.enable_telemetry()
+
+            elif self.event == 'Script Runner':
+                self.cmd_tlm_router.add_cmd_source(self.config.getint('NETWORK','SCRIPT_RUNNER_CMD_PORT'))
+                self.cmd_tlm_router.add_tlm_dest(self.config.getint('NETWORK','SCRIPT_RUNNER_TLM_PORT'))
+                cfs_interface_dir = os.path.join(self.path, "cfsinterface")
+                print("cfs_interface_dir = " + cfs_interface_dir)
+                self.script_runner = sg.execute_py_file("scriptrunner.py", cwd=cfs_interface_dir)
+
+            elif self.event == 'File Browser' or self.event == '-FILE_BROWSER-':
+                self.cmd_tlm_router.add_cmd_source(self.config.getint('NETWORK','FILE_BROWSER_CMD_PORT'))
+                self.cmd_tlm_router.add_tlm_dest(self.config.getint('NETWORK','FILE_BROWSER_TLM_PORT'))
+                cfs_interface_dir = os.path.join(self.path, "cfsinterface")
+                print("cfs_interface_dir = " + cfs_interface_dir)
+                self.file_browser = sg.execute_py_file("filebrowser.py", cwd=cfs_interface_dir)
+
+            elif self.event == 'Manage Tables':
+                self.ComingSoonPopup("Manage cFS app JSON tables")
+
+
+            ### DOCUMENTS ###
+            
+            elif self.event == 'cFS Overview':
+                path_filename = os.path.join(self.path, "../../docs/cFS-Overview.pdf")  #TODO - Ini file
+                webbrowser.open_new(r'file://'+path_filename)
+                #subprocess.Popen([path_filename],shell=True) # Permision Denied
+                #subprocess.call(["xdg-open", path_filename]) # Not portable
+            
+            elif self.event == 'cFE Overview':
+                path_filename = os.path.join(self.path, "../../docs/cFE-Overview.pdf")  #TODO - Ini file
+                webbrowser.open_new(r'file://'+path_filename)
+                
+            elif self.event == 'OSK App Dev':
+                path_filename = os.path.join(self.path, "../../docs/OSK-App-Dev-Guide.pdf")  #TODO - Ini file
+                webbrowser.open_new(r'file://'+path_filename)
+                
+            ### TUTORIALS ###
+                   
+            elif self.event in self.manage_tutorials.tutorial_titles:
+                tutorial_tool_dir = os.path.join(self.path, "tools")
+                tutorial_dir = self.manage_tutorials.tutorial_lookup[self.event].path
+                self.tutorial = sg.execute_py_file("tutorial.py", parms=tutorial_dir, cwd=tutorial_tool_dir)
+                
+            #################################
+            ##### TOP ROW BUTTON EVENTS #####
+            #################################
+ 
             elif self.event == '-START_CFS-':
                 """
                 
@@ -1094,65 +1151,7 @@ class App():
                     self.window["-CFS_IMAGE-"].update(self.GUI_NO_IMAGE_TXT)
                     self.window["-CFS_TIME-"].update(self.GUI_NULL_TXT)
         
-            elif self.event == 'Run Perf Monitor':
-                subprocess.Popen("java -jar ../perf-monitor/CPM.jar",shell=True)  #TODO - Use ini file path definition
 
-            elif self.event == 'Run Dev Demo':
-                self.ComingSoonPopup("Run a developer demo")
-            
-
-            ### OPERATOR ###
-
-            elif self.event == '-ENA_TLM-':
-                self.enable_telemetry()
-
-            elif self.event == 'Script Runner':
-                self.cmd_tlm_router.add_cmd_source(self.config.getint('NETWORK','SCRIPT_RUNNER_CMD_PORT'))
-                self.cmd_tlm_router.add_tlm_dest(self.config.getint('NETWORK','SCRIPT_RUNNER_TLM_PORT'))
-                cfs_interface_dir = os.path.join(self.path, "cfsinterface")
-                print("cfs_interface_dir = " + cfs_interface_dir)
-                self.script_runner = sg.execute_py_file("scriptrunner.py", cwd=cfs_interface_dir)
-
-            elif self.event == 'File Browser' or self.event == '-FILE_BROWSER-':
-                self.cmd_tlm_router.add_cmd_source(self.config.getint('NETWORK','FILE_BROWSER_CMD_PORT'))
-                self.cmd_tlm_router.add_tlm_dest(self.config.getint('NETWORK','FILE_BROWSER_TLM_PORT'))
-                cfs_interface_dir = os.path.join(self.path, "cfsinterface")
-                print("cfs_interface_dir = " + cfs_interface_dir)
-                self.file_browser = sg.execute_py_file("filebrowser.py", cwd=cfs_interface_dir)
-
-            elif self.event == 'Manage Tables':
-                self.ComingSoonPopup("Manage cFS app JSON tables")
-
-            elif self.event == 'Run Ops Demo':
-                self.ComingSoonPopup("Run an opertional demo")
-
-
-            ### DOCUMENTS ###
-            
-            elif self.event == 'cFS Overview':
-                path_filename = os.path.join(self.path, "../../docs/cFS-Overview.pdf")  #TODO - Ini file
-                webbrowser.open_new(r'file://'+path_filename)
-                #subprocess.Popen([path_filename],shell=True) # Permision Denied
-                #subprocess.call(["xdg-open", path_filename]) # Not portable
-            
-            elif self.event == 'cFE Overview':
-                path_filename = os.path.join(self.path, "../../docs/cFE-Overview.pdf")  #TODO - Ini file
-                webbrowser.open_new(r'file://'+path_filename)
-                
-            elif self.event == 'OSK App Dev':
-                path_filename = os.path.join(self.path, "../../docs/OSK-App-Dev-Guide.pdf")  #TODO - Ini file
-                webbrowser.open_new(r'file://'+path_filename)
-                
-            ### TUTORIALS ###
-                   
-            elif self.event in self.manage_tutorials.tutorial_titles:
-                tutorial_dir = os.path.join(self.path, "tools")
-                self.tutorial = sg.execute_py_file("tutorial.py", cwd=tutorial_dir)
-                
-            #################################
-            ##### TOP ROW BUTTON EVENTS #####
-            #################################
- 
             elif self.event == '-CFS_CONFIG_CMD-':
                 cfs_config_cmd = self.values['-CFS_CONFIG_CMD-']
                 if cfs_config_cmd == self.cfs_config_cmds[1]: # Enable Telemetry

@@ -290,7 +290,9 @@ class ManageTutorials():
         self.tutorial_titles = []
         self.tutorial_lookup = {}  # [title]  => Tutorial
         
-        for tutorial_folder in os.listdir(tutorials_path):
+        tutorial_list = os.listdir(tutorials_path)
+        tutorial_list.sort()
+        for tutorial_folder in tutorial_list:
             logger.debug("Tutorial folder: " + tutorial_folder)
             #todo: Tutorial constructor could raise exception if JSON doesn't exist or is malformed
             tutorial_json_file = os.path.join(tutorials_path, tutorial_folder, TUTORIAL_JSON_FILE)
@@ -310,12 +312,17 @@ class ManageTutorials():
 
 if __name__ == '__main__':
 
+    tutorial_rel_dir = None
+    if len(sys.argv) > 1:
+        tutorial_rel_dir = sys.argv[1]
+    else:
+        tutorial_rel_dir = '1-cfsat-overview'
+        
     config = configparser.ConfigParser()
     config.read('../cfsat.ini')
-
     TUTORIALS_PATH = config.get('PATHS','TUTORIALS_PATH')
 
-    tutorial_dir = os.path.join(os.getcwd(),'..', TUTORIALS_PATH, 'hello-app') 
+    tutorial_dir = compress_abs_path(os.path.join(os.getcwd(),'..', TUTORIALS_PATH, tutorial_rel_dir)) 
     print ("tutorial_dir = " + tutorial_dir)
     tutorial = Tutorial(tutorial_dir)
     tutorial.execute()
