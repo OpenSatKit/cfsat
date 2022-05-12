@@ -699,14 +699,12 @@ class ManageCfs():
                 self.text_editor = sg.execute_py_file("texteditor.py", parms=path_filename, cwd=self.cfsat_tools_path)
             
             elif self.event == '-8-': # Build the cfS
-                #subprocess.Popen('./build_cfs.sh', shell=True)
                 build_cfs_sh = os.path.join(self.app_abs_path, 'build_cfs.sh')
                 self.build_subprocess = subprocess.Popen('%s %s' % (build_cfs_sh, self.cfs_abs_base_path),
                                                        stdout=subprocess.PIPE, shell=True, bufsize=1, universal_newlines=True)
                 if self.build_subprocess is not None:
                     self.cfs_stdout = CfsStdout(self.build_subprocess, self.main_window)
                     self.cfs_stdout.start()
-                #TODO join?
                 
             elif self.event == '-9-': # Reload cFS EDS definitions
                 sg.popup('Reload cFS EDS definitions', title='Coming soon...', grab_anywhere=True, modal=True)
@@ -806,6 +804,7 @@ class App():
         self.cfs_subprocess_log = ""
         self.cfs_stdout         = None
         self.cfe_time_event_filter = False  #todo: Retaining the state here doesn't work if user starts and stops the cFS and doesn't restart cFSAT
+        self.cfs_build_subprocess  = None
 
         self.APP_VERSION = self.config.get('APP','VERSION')
 
@@ -958,7 +957,7 @@ class App():
 
         #sg.Button('Send Cmd', enable_events=True, key='-SEND_CMD-', pad=(10,1)),
         #sg.Button('View Tlm', enable_events=True, key='-VIEW_TLM-', pad=(10,1)),
-        window = sg.Window('cFS Application Toolkit - Beta', layout, auto_size_text=True, finalize=True)
+        window = sg.Window('cFS Application Toolkit', layout, auto_size_text=True, finalize=True)
         return window
         
     def execute(self):
@@ -1052,7 +1051,7 @@ class App():
                 app_store = AppStore(self.config.get('APP','APP_STORE_URL'), self.config.get('PATHS','USR_APP_PATH'))
                 app_store.execute()
 
-            elif self.event == 'Add App to cFS' or self.event == '-BUILD_CFS-':
+            elif self.event == 'Add App to cFS':
                 manage_cfs = ManageCfs(self.path, self.cfs_abs_base_path, self.window)
                 manage_cfs.execute()
 
@@ -1113,6 +1112,18 @@ class App():
             ##### TOP ROW BUTTON EVENTS #####
             #################################
  
+            elif self.event == '-BUILD_CFS-':
+            
+                if self.cfs_subprocess is None:
+                    build_cfs_sh = os.path.join(self.path, 'build_cfs.sh')
+                    self.cfs_build_subprocess = subprocess.Popen('%s %s' % (build_cfs_sh, self.cfs_abs_base_path),
+                                                       stdout=subprocess.PIPE, shell=True, bufsize=1, universal_newlines=True)
+                    if self.cfs_build_subprocess is not None:
+                        self.cfs_stdout = CfsStdout(self.cfs_build_subprocess, self.window)
+                        self.cfs_stdout.start()
+                else:
+                    sg.popup("A cFS image is currently running. You must stop the current image prior to building a new image.", title='Warning', grab_anywhere=True, modal=False)
+                
             elif self.event == '-START_CFS-':
                 """
                 
