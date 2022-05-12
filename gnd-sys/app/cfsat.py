@@ -626,12 +626,14 @@ class ManageCfs():
     """
     Manage the display for building and running the cFS.
     """
-    def __init__(self, app_abs_path, cfs_abs_base_path):
+    def __init__(self, app_abs_path, cfs_abs_base_path, main_window):
         self.app_abs_path      = app_abs_path
         self.cfs_abs_base_path = cfs_abs_base_path
         self.cfs_abs_defs_path = os.path.join(self.cfs_abs_base_path, "cfsat_defs")     #TODO - Use constants
         self.cfsat_tools_path  = os.path.join(app_abs_path, "tools")
-                
+        self.main_window       = main_window
+        self.build_subprocess  = None
+    
     def gui(self):
         b_size  = (1,1)
         b_pad   = ((0,2),(2,2))
@@ -646,12 +648,16 @@ class ManageCfs():
                   [sg.Button('3', size=b_size, button_color=b_color, font=b_font, pad=b_pad, enable_events=True, key='-3-'),
                    sg.Text('Edit cpu1_cfe_es_startup.scr', font=t_font)],
                   [sg.Button('4', size=b_size, button_color=b_color, font=b_font, pad=b_pad, enable_events=True, key='-4-'),
-                   sg.Text('Edit scheduler table', font=t_font)],
+                   sg.Text('Edit EDS cfe-topicids.xml', font=t_font)],
                   [sg.Button('5', size=b_size, button_color=b_color, font=b_font, pad=b_pad, enable_events=True, key='-5-'),
-                   sg.Text('Edit telemetry output', font=t_font)],
+                   sg.Text('Edit EDS config.xml', font=t_font)],
                   [sg.Button('6', size=b_size, button_color=b_color, font=b_font, pad=b_pad, enable_events=True, key='-6-'),
-                   sg.Text('Build the cfS', font=t_font)],
+                   sg.Text('Edit scheduler table', font=t_font)],
                   [sg.Button('7', size=b_size, button_color=b_color, font=b_font, pad=b_pad, enable_events=True, key='-7-'),
+                   sg.Text('Edit telemetry output', font=t_font)],
+                  [sg.Button('8', size=b_size, button_color=b_color, font=b_font, pad=b_pad, enable_events=True, key='-8-'),
+                   sg.Text('Build the cfS', font=t_font)],
+                  [sg.Button('9', size=b_size, button_color=b_color, font=b_font, pad=b_pad, enable_events=True, key='-9-'),
                    sg.Text('Reload cFS EDS definitions', font=t_font)],
                   [sg.Button('Exit', enable_events=True, key='-EXIT-', image_data=image_grey1, button_color=('black', sg.theme_background_color()), border_width=0)]
                  ]
@@ -676,18 +682,33 @@ class ManageCfs():
                 path_filename = os.path.join(self.cfs_abs_defs_path, 'cpu1_cfe_es_startup.scr')
                 self.text_editor = sg.execute_py_file("texteditor.py", parms=path_filename, cwd=self.cfsat_tools_path)
             
-            elif self.event == '-4-': # Edit scheduler table
-                path_filename = os.path.join(self.cfs_abs_base_path, "apps/sch_lab/fsw/tables/sch_lab_table.c")
+            elif self.event == '-4-': # Edit EDS cfe-topicids.xml
+                path_filename = os.path.join(self.cfs_abs_base_path, 'eds/cfe-topicids.xml')
                 self.text_editor = sg.execute_py_file("texteditor.py", parms=path_filename, cwd=self.cfsat_tools_path)
             
-            elif self.event == '-5-': # Edit telemetry output
-                path_filename = os.path.join(self.cfs_abs_base_path, "apps/to_lab/fsw/tables/to_lab_sub.c")
+            elif self.event == '-5-': # Edit EDS config.xml
+                path_filename = os.path.join(self.cfs_abs_base_path, 'eds/config.xml')
+                self.text_editor = sg.execute_py_file("texteditor.py", parms=path_filename, cwd=self.cfsat_tools_path)
+
+            elif self.event == '-6-': # Edit scheduler table
+                path_filename = os.path.join(self.cfs_abs_base_path, 'apps/sch_lab/fsw/tables/sch_lab_table.c')
                 self.text_editor = sg.execute_py_file("texteditor.py", parms=path_filename, cwd=self.cfsat_tools_path)
             
-            elif self.event == '-6-': # Build the cfS
-                subprocess.Popen('./build_cfs.sh', shell=True)
+            elif self.event == '-7-': # Edit telemetry output
+                path_filename = os.path.join(self.cfs_abs_base_path, 'apps/to_lab/fsw/tables/to_lab_sub.c')
+                self.text_editor = sg.execute_py_file("texteditor.py", parms=path_filename, cwd=self.cfsat_tools_path)
             
-            elif self.event == '-7-': # Reload cFS EDS definitions
+            elif self.event == '-8-': # Build the cfS
+                #subprocess.Popen('./build_cfs.sh', shell=True)
+                build_cfs_sh = os.path.join(self.app_abs_path, 'build_cfs.sh')
+                self.build_subprocess = subprocess.Popen('%s %s' % (build_cfs_sh, self.cfs_abs_base_path),
+                                                       stdout=subprocess.PIPE, shell=True, bufsize=1, universal_newlines=True)
+                if self.build_subprocess is not None:
+                    self.cfs_stdout = CfsStdout(self.build_subprocess, self.main_window)
+                    self.cfs_stdout.start()
+                #TODO join?
+                
+            elif self.event == '-9-': # Reload cFS EDS definitions
                 sg.popup('Reload cFS EDS definitions', title='Coming soon...', grab_anywhere=True, modal=True)
 
         self.window.close()       
@@ -1032,7 +1053,7 @@ class App():
                 app_store.execute()
 
             elif self.event == 'Add App to cFS' or self.event == '-BUILD_CFS-':
-                manage_cfs = ManageCfs(self.path, self.cfs_abs_base_path)
+                manage_cfs = ManageCfs(self.path, self.cfs_abs_base_path, self.window)
                 manage_cfs.execute()
 
             if self.event == 'Certify App':
@@ -1128,6 +1149,10 @@ class App():
             elif self.event == '-STOP_CFS-':
                 if self.cfs_subprocess is not None:
                     logger.info("Killing cFS Process")
+                    if self.cfs_stdout is not None:
+                        self.cfs_stdout.terminate()  # I tried to join() afterwards and it hangs
+                    subprocess.Popen('./stop_cfs.sh', shell=True)
+                    """
                     #todo: When process term works, perform: self.cfs_subprocess = None
                     if hasattr(signal, 'CTRL_C_EVENT'):
                         self.cfs_subprocess.send_signal(signal.CTRL_C_EVENT)
@@ -1142,10 +1167,13 @@ class App():
                         #os.kill(self.cfs_popen.pid(), signal.SIGINT)
                     self.cfs_subprocess.kill()
                     time.sleep(1)
+                    """
                                     
                 if self.cfs_subprocess.poll() is not None:
+                    logger.info("Killing cFS after subprocess poll")
                     if self.cfs_stdout is not None:
                         self.cfs_stdout.terminate()  # I tried to join() afterwards and it hangs
+                    subprocess.Popen('./stop_cfs.sh', shell=True)
                     sg.popup("cFS failed to terminate.\nUse another terminal to kill the process.", title='Warning', grab_anywhere=True, modal=False)
                 else:
                     self.window["-CFS_IMAGE-"].update(self.GUI_NO_IMAGE_TXT)

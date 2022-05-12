@@ -26,6 +26,9 @@ else()
   set(MISSION_RESOURCEID_MODE "SIMPLE") # less type safe, but more backward compatible
 endif (OMIT_DEPRECATED)
 
+# cfsat is designed to be included in a larger project directory structure tha includes
+# a usr-app directory parallel to the cfsat base directory
 list(APPEND MISSION_MODULE_SEARCH_PATH
-    "../cfs-apps"
+    "../../usr-apps",
+    "../osk-apps"
 )
