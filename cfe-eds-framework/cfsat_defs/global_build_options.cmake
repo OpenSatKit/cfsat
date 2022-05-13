@@ -29,6 +29,6 @@ endif (OMIT_DEPRECATED)
 # cfsat is designed to be included in a larger project directory structure tha includes
 # a usr-app directory parallel to the cfsat base directory
 list(APPEND MISSION_MODULE_SEARCH_PATH
-    "../../usr-apps",
+    "../../usr/apps",
     "../osk-apps"
 )

@@ -312,8 +312,9 @@ if __name__ == '__main__':
     sys.argv[0] - Name of script
     sys.argv[1] - If provided is the filename to be edited
     """
-    print(f"Name of the script      : {sys.argv[0]=}")
-    print(f"Arguments of the script : {sys.argv[1:]=}")
+    #Raspberry Pi Python gave <ftype> error on these lines
+    #print(f"Name of the script      : {sys.argv[0]=}")
+    #print(f"Arguments of the script : {sys.argv[1:]=}")
 
     filename = None
     if len(sys.argv) > 1:
