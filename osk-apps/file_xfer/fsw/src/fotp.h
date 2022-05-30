@@ -269,7 +269,7 @@ void FOTP_Execute(void);
 ** Notes:
 **   1. Must match CMDMGR_CmdFuncPtr_t function signature
 */
-bool FOTP_StartTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool FOTP_StartTransferCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
@@ -278,7 +278,7 @@ bool FOTP_StartTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
 ** Notes:
 **   1. Must match CMDMGR_CmdFuncPtr_t function signature
 */
-bool FOTP_CancelTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool FOTP_CancelTransferCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 /******************************************************************************
 ** Function: FOTP_PauseTransferCmd
@@ -286,7 +286,7 @@ bool FOTP_CancelTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
 ** Notes:
 **   1. Must match CMDMGR_CmdFuncPtr_t function signature
 */
-bool FOTP_PauseTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool FOTP_PauseTransferCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
@@ -295,7 +295,7 @@ bool FOTP_PauseTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
 ** Notes:
 **   1. Must match CMDMGR_CmdFuncPtr_t function signature
 */
-bool FOTP_ResumeTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool FOTP_ResumeTransferCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 

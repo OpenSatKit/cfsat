@@ -92,10 +92,10 @@ void FITP_ResetStatus(void)
 ** Notes:
 **   1. Must match CMDMGR_CmdFuncPtr_t function signature
 */
-bool FITP_StartTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool FITP_StartTransferCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
-   const FILE_XFER_FitpStartTransfer_Payload_t *StartTransferCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_XFER_SendFile_t);
+   const FILE_XFER_FitpStartTransfer_Payload_t *StartTransferCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_XFER_SendFile_t);
    bool RetStatus = false;
    
    uint32         OsStatus;
@@ -170,10 +170,10 @@ bool FITP_StartTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
 **      successful file writes. If a file write fails then the stats are not
 **      updated.
 */
-bool FITP_DataSegmentCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool FITP_DataSegmentCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
-   const FILE_XFER_FitpDataSegment_Payload_t *DataSegmentCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_XFER_SendFitpDataSegment_t);
+   const FILE_XFER_FitpDataSegment_Payload_t *DataSegmentCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_XFER_SendFitpDataSegment_t);
    bool  RetStatus = false;
    int32 BytesWritten;
 
@@ -261,10 +261,10 @@ bool FITP_DataSegmentCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
 **      file length, CRC, and sgement IDs are verified. If the expected values
 **      are not correct then there's a chance the file was transferred.
 */
-bool FITP_FinishTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool FITP_FinishTransferCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
  
-   const FILE_XFER_FitpFinishTransfer_Payload_t *FinishTransferCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_XFER_FinishFitpTransfer_t);
+   const FILE_XFER_FitpFinishTransfer_Payload_t *FinishTransferCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_XFER_FinishFitpTransfer_t);
    bool    RetStatus = false;
    uint16  ValidityFailures = 0;
 
@@ -330,7 +330,7 @@ bool FITP_FinishTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
 **   2. Receiving a cancel command when no transfer is in progress is not
 **      considered an error because this command may be sent in the blind 
 */
-bool FITP_CancelTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool FITP_CancelTransferCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
    bool RetStatus = true;

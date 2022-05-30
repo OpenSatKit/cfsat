@@ -191,7 +191,7 @@ void FITP_ResetStatus(void);
 ** Notes:
 **   1. Must match CMDMGR_CmdFuncPtr_t function signature
 */
-bool FITP_StartTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool FITP_StartTransferCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
@@ -202,7 +202,7 @@ bool FITP_StartTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
 ** Notes:
 **   1. Must match CMDMGR_CmdFuncPtr_t function signature
 */
-bool FITP_DataSegmentCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool FITP_DataSegmentCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
@@ -213,7 +213,7 @@ bool FITP_DataSegmentCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
 ** Notes:
 **   1. Must match CMDMGR_CmdFuncPtr_t function signature
 */
-bool FITP_FinishTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool FITP_FinishTransferCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
@@ -224,7 +224,7 @@ bool FITP_FinishTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
 ** Notes:
 **   1. Must match CMDMGR_CmdFuncPtr_t function signature
 */
-bool FITP_CancelTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool FITP_CancelTransferCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 #endif /* _fitp_ */
