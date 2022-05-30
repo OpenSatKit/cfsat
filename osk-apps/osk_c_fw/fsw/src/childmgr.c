@@ -63,7 +63,7 @@ typedef struct {
 /*******************************/
 
 static void AppendIdToStr(char* NewStr, const char* BaseStr);
-static bool UnusedFuncCode(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
+static bool UnusedFuncCode(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 static void DispatchCmdFunc(CHILDMGR_Class_t* ChildMgr);
 static bool RegChildMgrInstance(CHILDMGR_Class_t* ChildMgr);
 static CHILDMGR_Class_t* GetChildMgrInstance(void);
@@ -244,7 +244,7 @@ void CHILDMGR_ResetStatus(CHILDMGR_Class_t* ChildMgr)
 **      CHILDMGR_RegisterFunc() and the object data pointer must reference
 **      the ChildMgr instance.
 */
-bool CHILDMGR_InvokeChildCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool CHILDMGR_InvokeChildCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
    CHILDMGR_Class_t* ChildMgr = (CHILDMGR_Class_t*)ObjDataPtr;
@@ -256,7 +256,7 @@ bool CHILDMGR_InvokeChildCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
    char EventErrStr[CFE_MISSION_EVS_MAX_MESSAGE_LENGTH] = "\0";
    
    
-   CFE_MSG_GetFcnCode(&SbBufPtr->Msg, &FuncCode);
+   CFE_MSG_GetFcnCode(MsgPtr, &FuncCode);
    
    CFE_EVS_SendEvent(CHILDMGR_DEBUG_EID, CFE_EVS_EventType_DEBUG,
       "CHILDMGR_InvokeChildCmd() Entry: fc=%d, ChildMgr->WakeUpSemaphore=%d,WriteIdx=%d,ReadIdx=%d,Count=%d\n",
@@ -290,12 +290,12 @@ bool CHILDMGR_InvokeChildCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
    else
    {
        
-      CFE_MSG_GetSize(&SbBufPtr->Msg, &MsgSize);
+      CFE_MSG_GetSize(MsgPtr, &MsgSize);
 
       if (MsgSize <= sizeof(CHILDMGR_CmdQEntry_t))
       {
          
-         memcpy(&(ChildMgr->CmdQ.Entry[ChildMgr->CmdQ.WriteIndex]), &SbBufPtr->Msg, (int)MsgSize+2); //todo: Resolve message size issue
+         memcpy(&(ChildMgr->CmdQ.Entry[ChildMgr->CmdQ.WriteIndex]), MsgPtr, (int)MsgSize+2); //todo: Resolve message size issue
 
          ++ChildMgr->CmdQ.WriteIndex;
 
@@ -378,12 +378,12 @@ bool CHILDMGR_PauseTask(uint16* TaskBlockCnt, uint16 TaskBlockLim,
 ** Function: UnusedFuncCode
 **
 */
-static bool UnusedFuncCode(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
+static bool UnusedFuncCode(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
    CFE_MSG_FcnCode_t FuncCode;
 
-   CFE_MSG_GetFcnCode(&SbBufPtr->Msg,&FuncCode);
+   CFE_MSG_GetFcnCode(MsgPtr,&FuncCode);
    CFE_EVS_SendEvent (CHILDMGR_DISPATCH_UNUSED_FUNC_CODE_EID, CFE_EVS_EventType_ERROR,
                       "Unused command function code %d received",FuncCode);
 
@@ -553,13 +553,13 @@ static void DispatchCmdFunc(CHILDMGR_Class_t* ChildMgr)
 {
 
    bool  ValidCmd;
-   const CFE_SB_Buffer_t *SbBufPtr;
+   const CFE_MSG_Message_t *MsgPtr;
 
-   SbBufPtr = (const CFE_SB_Buffer_t *)&(ChildMgr->CmdQ.Entry[ChildMgr->CmdQ.ReadIndex]); 
+   MsgPtr = (const CFE_MSG_Message_t *)&(ChildMgr->CmdQ.Entry[ChildMgr->CmdQ.ReadIndex]); 
 
-   CFE_MSG_GetFcnCode(&SbBufPtr->Msg,&ChildMgr->CurrCmdCode);
+   CFE_MSG_GetFcnCode(MsgPtr,&ChildMgr->CurrCmdCode);
 
-   ValidCmd = (ChildMgr->Cmd[ChildMgr->CurrCmdCode].FuncPtr)(ChildMgr->Cmd[ChildMgr->CurrCmdCode].DataPtr, SbBufPtr);
+   ValidCmd = (ChildMgr->Cmd[ChildMgr->CurrCmdCode].FuncPtr)(ChildMgr->Cmd[ChildMgr->CurrCmdCode].DataPtr, MsgPtr);
 
    if (ValidCmd == true)
    {

@@ -139,7 +139,7 @@ uint8 TBLMGR_RegisterTblWithDef(TBLMGR_Class_t* TblMgr, TBLMGR_LoadTblFuncPtr_t 
       LoadTblCmd.Payload.Id = TblId;
       LoadTblCmd.Payload.Type = TBLMGR_LOAD_TBL_REPLACE;
       strncpy (LoadTblCmd.Payload.Filename,TblFilename,OS_MAX_PATH_LEN);
-      TBLMGR_LoadTblCmd(TblMgr, (CFE_SB_Buffer_t*)&LoadTblCmd);
+      TBLMGR_LoadTblCmd(TblMgr, (CFE_MSG_Message_t *)&LoadTblCmd);
       
    } /* End if TblId valid */
    
@@ -210,13 +210,13 @@ const TBLMGR_Tbl_t* TBLMGR_GetTblStatus(TBLMGR_Class_t* TblMgr, uint8 TblId)
 **     during registration
 ** 
 */
-bool TBLMGR_LoadTblCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool TBLMGR_LoadTblCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
    bool RetStatus = false;
    TBLMGR_Tbl_t*   Tbl;
    TBLMGR_Class_t* TblMgr = (TBLMGR_Class_t *) ObjDataPtr;
-   const  TBLMGR_TblCmdMsg_Payload_t* LoadTblCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, TBLMGR_LoadTblCmdMsg_t);
+   const  TBLMGR_TblCmdMsg_Payload_t* LoadTblCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, TBLMGR_LoadTblCmdMsg_t);
 
    if (DBG_TBLMGR) OS_printf("TBLMGR_LoadTblCmd() Entry\n");
 
@@ -293,13 +293,13 @@ const char* TBLMGR_LoadTypeStr(int8 LoadType)
 **     during registration 
 ** 
 */
-bool TBLMGR_DumpTblCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool TBLMGR_DumpTblCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
    bool RetStatus = false;
    TBLMGR_Tbl_t*   Tbl;
    TBLMGR_Class_t* TblMgr = (TBLMGR_Class_t *) ObjDataPtr;
-   const  TBLMGR_TblCmdMsg_Payload_t *DumpTblCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, TBLMGR_DumpTblCmdMsg_t);
+   const  TBLMGR_TblCmdMsg_Payload_t *DumpTblCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, TBLMGR_DumpTblCmdMsg_t);
       
    if (DumpTblCmd->Id < TblMgr->NextAvailableId)
    {

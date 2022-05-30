@@ -89,7 +89,7 @@
 typedef struct
 {
    
-   const char* TaskName;
+   const char *TaskName;
    uint32 StackSize;
    uint32 Priority;
    uint32 PerfId;
@@ -103,7 +103,7 @@ typedef struct
 typedef struct
 {
 
-   CMDMGR_AlignedCmdHeader_t  CmdHeader;
+   CFE_MSG_CommandHeader_t  CmdHeader;
    char  Payload[CHILDMGR_CMD_PAYLOAD_LEN];
    
 } CHILDMGR_CmdQEntry_t;
@@ -122,7 +122,7 @@ typedef struct
 } CHILDMGR_CmdQ_t;
 
 
-typedef bool (*CHILDMGR_CmdFuncPtr_t) (void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
+typedef bool (*CHILDMGR_CmdFuncPtr_t) (void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 /*
 ** Objects register their command functions so each command structure
@@ -232,7 +232,7 @@ void CHILDMGR_ResetStatus(CHILDMGR_Class_t* ChildMgr);
 **   1. This command function is registered with the app's cmdmgr with all of
 **      the function codes that use the child task to process the command.
 */
-bool CHILDMGR_InvokeChildCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool CHILDMGR_InvokeChildCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
