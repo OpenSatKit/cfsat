@@ -165,42 +165,42 @@ void FILE_ResetStatus(void);
 ** Function: FILE_ConcatenateCmd
 **
 */
-bool FILE_ConcatenateCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool FILE_ConcatenateCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
 ** Function: FILE_DecompressCmd
 **
 */
-bool FILE_DecompressCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool FILE_DecompressCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
 ** Function: FILE_CopyCmd
 **
 */
-bool FILE_CopyCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool FILE_CopyCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
 ** Function: FILE_DeleteCmd
 **
 */
-bool FILE_DeleteCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool FILE_DeleteCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
 ** Function: FILE_MoveCmd
 **
 */
-bool FILE_MoveCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool FILE_MoveCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
 ** Function: FILE_RenameCmd
 **
 */
-bool FILE_RenameCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool FILE_RenameCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
@@ -212,14 +212,14 @@ bool FILE_RenameCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
 **      being open
 **
 */
-bool FILE_SendInfoTlmCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool FILE_SendInfoTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
 ** Function: FILE_SetPermissionsCmd
 **
 */
-bool FILE_SetPermissionsCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool FILE_SetPermissionsCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 #endif /* _file_ */

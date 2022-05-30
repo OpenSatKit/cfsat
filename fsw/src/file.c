@@ -95,10 +95,10 @@ void FILE_ResetStatus()
 **   1. FileUtil_GetFileInfo() verifies filename prior to checking state.
 **
 */
-bool FILE_ConcatenateCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool FILE_ConcatenateCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
-   const FILE_MGR_ConcatenateFile_Payload_t *ConcatenateCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_MGR_ConcatenateFile_t);
+   const FILE_MGR_ConcatenateFile_Payload_t *ConcatenateCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_MGR_ConcatenateFile_t);
    FileUtil_FileInfo_t FileInfo;
    char  EventErrStr[256] = "\0";
    
@@ -180,10 +180,10 @@ bool FILE_ConcatenateCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 **   1. FileUtil_GetFileInfo() verifies filename prior to checking state.
 **
 */
-bool FILE_CopyCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool FILE_CopyCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
-   const FILE_MGR_CopyFile_Payload_t *CopyCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_MGR_CopyFile_t);
+   const FILE_MGR_CopyFile_Payload_t *CopyCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_MGR_CopyFile_t);
    FileUtil_FileInfo_t FileInfo;
    int32  SysStatus;   
    bool   PerformCopy = false;
@@ -289,11 +289,11 @@ bool FILE_CopyCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 ** Notes:
 **    1. FileUtil_GetFileInfo() verifies filename prior to checking state
 */
-bool FILE_DecompressCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool FILE_DecompressCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
    /* Can't uses const because CFE_PSP_Decompress() */
-   const FILE_MGR_DecompressFile_Payload_t *DecompressCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_MGR_DecompressFile_t);
+   const FILE_MGR_DecompressFile_Payload_t *DecompressCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_MGR_DecompressFile_t);
    bool   RetStatus = false;
 
    int32  CfeStatus;
@@ -362,10 +362,10 @@ bool FILE_DecompressCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 **   1. FileUtil_GetFileInfo() verifies filename prior to checking state.
 **
 */
-bool FILE_DeleteCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool FILE_DeleteCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
-   const FILE_MGR_DeleteFile_Payload_t *DeleteCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_MGR_DeleteFile_t);
+   const FILE_MGR_DeleteFile_Payload_t *DeleteCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_MGR_DeleteFile_t);
    FileUtil_FileInfo_t FileInfo;
    int32  SysStatus;
    bool   RetStatus = false;
@@ -415,10 +415,10 @@ bool FILE_DeleteCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 **   1. FileUtil_GetFileInfo() verifies filename prior to checking state.
 **
 */
-bool FILE_MoveCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool FILE_MoveCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
-   const FILE_MGR_MoveFile_Payload_t *MoveCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_MGR_MoveFile_t);
+   const FILE_MGR_MoveFile_Payload_t *MoveCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_MGR_MoveFile_t);
    FileUtil_FileInfo_t FileInfo;
    int32  SysStatus;   
    bool   PerformMove = false;
@@ -525,10 +525,10 @@ bool FILE_MoveCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 **   1. FileUtil_GetFileInfo() verifies filename prior to checking state.
 **
 */
-bool FILE_RenameCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool FILE_RenameCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
-   const FILE_MGR_RenameFile_Payload_t *RenameCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_MGR_RenameFile_t);
+   const FILE_MGR_RenameFile_Payload_t *RenameCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_MGR_RenameFile_t);
    FileUtil_FileInfo_t FileInfo;
    int32  SysStatus;   
    bool   RetStatus = false;
@@ -598,10 +598,10 @@ bool FILE_RenameCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 **      fails and no information telemetry packet is sent. 
 **
 */
-bool FILE_SendInfoTlmCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool FILE_SendInfoTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
-   const FILE_MGR_SendFileInfoTlm_Payload_t *SendInfoTlmCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_MGR_SendFileInfoTlm_t);
+   const FILE_MGR_SendFileInfoTlm_Payload_t *SendInfoTlmCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_MGR_SendFileInfoTlm_t);
    FileUtil_FileInfo_t FileInfo;
    uint32  Crc;
    bool    RetStatus = false;
@@ -689,10 +689,10 @@ bool FILE_SendInfoTlmCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 **   1. FileUtil_GetFileInfo() verifies filename prior to checking state.
 **
 */
-bool FILE_SetPermissionsCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool FILE_SetPermissionsCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
-   const FILE_MGR_SetFilePermissions_Payload_t *SetPermissionsCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_MGR_SetFilePermissions_t);
+   const FILE_MGR_SetFilePermissions_Payload_t *SetPermissionsCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_MGR_SetFilePermissions_t);
    FileUtil_FileInfo_t FileInfo;
    int32  SysStatus;   
    bool   RetStatus = false;
