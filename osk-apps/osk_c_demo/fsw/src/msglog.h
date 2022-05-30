@@ -197,35 +197,35 @@ void MSGLOG_ResetStatus(void);
 **      mechanism for the parent app to periodically call a child task function.
 **
 */
-bool MSGLOG_RunChildFuncCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool MSGLOG_RunChildFuncCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
 ** Function: MSGLOG_StartLogCmd
 **
 */
-bool MSGLOG_StartLogCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool MSGLOG_StartLogCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
 ** Function: MSGLOG_StopLogCmd
 **
 */
-bool MSGLOG_StopLogCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool MSGLOG_StopLogCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
 ** Function: MSGLOG_StartPlaybkCmd
 **
 */
-bool MSGLOG_StartPlaybkCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool MSGLOG_StartPlaybkCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
 ** Function: MSGLOG_StopPlaybkCmd
 **
 */
-bool MSGLOG_StopPlaybkCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool MSGLOG_StopPlaybkCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 #endif /* _msglog_ */
