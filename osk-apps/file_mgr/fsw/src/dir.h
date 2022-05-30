@@ -186,7 +186,7 @@ void DIR_ResetStatus(void);
 **
 ** Create a new directory. 
 */
-bool DIR_CreateCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool DIR_CreateCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
@@ -194,28 +194,28 @@ bool DIR_CreateCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
 **
 ** Delete an existing empty directory.
 */
-bool DIR_DeleteCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool DIR_DeleteCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
 ** Function: DIR_DeleteAllCmd
 **
 */
-bool DIR_DeleteAllCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool DIR_DeleteAllCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
 ** Function: DIR_SendDirListTlmCmd
 **
 */
-bool DIR_SendDirListTlmCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool DIR_SendDirListTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
 ** Function: DIR_SendDirTlmCmd
 **
 */
-bool DIR_SendDirTlmCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool DIR_SendDirTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
@@ -224,6 +224,6 @@ bool DIR_SendDirTlmCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
 ** Notes:
 **   1. Target file will be overwritten if it exists an is closed.
 */
-bool DIR_WriteListFileCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool DIR_WriteListFileCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 #endif /* _dir_ */

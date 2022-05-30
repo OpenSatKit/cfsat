@@ -100,10 +100,10 @@ void DIR_ResetStatus()
 ** Function: DIR_CreateCmd
 **
 */
-bool DIR_CreateCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool DIR_CreateCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
-   const FILE_MGR_CreateDir_Payload_t *CreateCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_MGR_CreateDir_t);
+   const FILE_MGR_CreateDir_Payload_t *CreateCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_MGR_CreateDir_t);
    bool                RetStatus = false;
    int32               SysStatus;
    os_err_name_t       OsErrStr;   
@@ -147,10 +147,10 @@ bool DIR_CreateCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 ** Function: DIR_DeleteCmd
 **
 */
-bool DIR_DeleteCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool DIR_DeleteCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
-   const FILE_MGR_DeleteDir_Payload_t *DeleteCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_MGR_DeleteDir_t);
+   const FILE_MGR_DeleteDir_Payload_t *DeleteCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_MGR_DeleteDir_t);
    bool                RetStatus = false;
    int32               SysStatus;
    bool                RemoveDir = true;
@@ -241,10 +241,10 @@ bool DIR_DeleteCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 ** Function: DIR_DeleteAllCmd
 **
 */
-bool DIR_DeleteAllCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool DIR_DeleteAllCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
-   const FILE_MGR_DeleteAllDir_Payload_t *DeleteAllCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_MGR_DeleteAllDir_t);
+   const FILE_MGR_DeleteAllDir_Payload_t *DeleteAllCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_MGR_DeleteAllDir_t);
    bool                RetStatus = false;
    int32               SysStatus;
    os_err_name_t       OsErrStr;   
@@ -398,10 +398,10 @@ bool DIR_DeleteAllCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 ** Function: DIR_SendDirListTlmCmd
 **
 */
-bool DIR_SendDirListTlmCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool DIR_SendDirListTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
-   const FILE_MGR_SendDirListTlm_Payload_t *SendDirListTlmCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_MGR_SendDirListTlm_t);      
+   const FILE_MGR_SendDirListTlm_Payload_t *SendDirListTlmCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_MGR_SendDirListTlm_t);      
    bool  RetStatus;
 
    RetStatus = SendDirListTlm(SendDirListTlmCmd->DirName, SendDirListTlmCmd->DirListOffset, 
@@ -420,10 +420,10 @@ bool DIR_SendDirListTlmCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 **      DIR_SendDirListTlmCmd() for each sublisting. 
 ** 
 */
-bool DIR_SendDirTlmCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool DIR_SendDirTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
-   const FILE_MGR_SendDirTlm_Payload_t *SendDirTlmCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_MGR_SendDirTlm_t);
+   const FILE_MGR_SendDirTlm_Payload_t *SendDirTlmCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_MGR_SendDirTlm_t);
    
    bool  RetStatus;
 
@@ -442,10 +442,10 @@ bool DIR_SendDirTlmCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 **   1. Target file will be overwritten if it exists and is closed.
 ** 
 */
-bool DIR_WriteListFileCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool DIR_WriteListFileCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
-   const FILE_MGR_WriteDirListFile_Payload_t *WriteDirListFileCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_MGR_WriteDirListFile_t);
+   const FILE_MGR_WriteDirListFile_Payload_t *WriteDirListFileCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_MGR_WriteDirListFile_t);
    bool RetStatus = false;
       
    int32         SysStatus;

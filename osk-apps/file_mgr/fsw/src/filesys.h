@@ -182,7 +182,7 @@ void FILESYS_ManageTbl(void);
 ** Note:
 **  1. This function must comply with the CMDMGR_CmdFuncPtr_t definition
 */
-bool FILESYS_SendOpenFileTlmCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool FILESYS_SendOpenFileTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
@@ -191,7 +191,7 @@ bool FILESYS_SendOpenFileTlmCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPt
 ** Note:
 **  1. This function must comply with the CMDMGR_CmdFuncPtr_t definition
 */
-bool FILESYS_SendTblTlmCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool FILESYS_SendTblTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
@@ -200,7 +200,7 @@ bool FILESYS_SendTblTlmCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
 ** Note:
 **  1. This function must comply with the CMDMGR_CmdFuncPtr_t definition
 */
-bool FILESYS_SetTblStateCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool FILESYS_SetTblStateCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 #endif /* _filesys_ */
