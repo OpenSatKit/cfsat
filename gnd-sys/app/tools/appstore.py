@@ -63,16 +63,20 @@ class GitHubAppProject():
         URL can't be accessed.
         """
         ret_status = False
-        self.app_repo = requests.get(self.git_url)
-        if self.app_repo.status_code == 200:
-            app_repo_list = self.app_repo.json() 
-            # Create a dictionary with app names as the key
-            for repo in app_repo_list:                
-                print(repo['name'])
-                print(repo['git_url'])
-                self.app_dict[repo['name']] = repo
-            #print(self.app_dict['kit_ci'])
-            ret_status = True
+        try:
+            self.app_repo = requests.get(self.git_url)
+            if self.app_repo.status_code == 200:
+                app_repo_list = self.app_repo.json() 
+                # Create a dictionary with app names as the key
+                for repo in app_repo_list:                
+                    print(repo['name'])
+                    print(repo['git_url'])
+                    self.app_dict[repo['name']] = repo
+                #print(self.app_dict['kit_ci'])
+                ret_status = True
+        except ConnectionError:
+            pass
+            
         return ret_status
         
 
