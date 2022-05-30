@@ -126,10 +126,10 @@ void FOTP_ResetStatus(void)
 **   2. All command parameters are validated prior to updating and FOTP state
 **      data.
 */
-bool FOTP_StartTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool FOTP_StartTransferCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
-   const FILE_XFER_FotpStartTransfer_Payload_t *StartTransferCmd = CMDMGR_PAYLOAD_PTR(SbBufPtr, FILE_XFER_StartReceiveFile_t);   
+   const FILE_XFER_FotpStartTransfer_Payload_t *StartTransferCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_XFER_StartReceiveFile_t);   
    
    FileUtil_FileInfo_t  FileInfo;
    os_err_name_t        OsErrStr;
@@ -326,7 +326,7 @@ void FOTP_Execute(void)
 **   2. Receiving a cancel command without a transfer in progress is not
 **      considered an error. A cancel command may be sent in the blind.
 */
-bool FOTP_CancelTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool FOTP_CancelTransferCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
    bool RetStatus = true;
@@ -358,7 +358,7 @@ bool FOTP_CancelTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
 ** Notes:
 **   1. Must match CMDMGR_CmdFuncPtr_t function signature
 */
-bool FOTP_PauseTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool FOTP_PauseTransferCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
    bool RetStatus = false;
@@ -390,7 +390,7 @@ bool FOTP_PauseTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
 ** Notes:
 **   1. Must match CMDMGR_CmdFuncPtr_t function signature
 */
-bool FOTP_ResumeTransferCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool FOTP_ResumeTransferCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
    bool RetStatus = false;

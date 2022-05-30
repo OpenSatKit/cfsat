@@ -132,7 +132,7 @@ void FILE_XFER_AppMain(void)
 **
 */
 
-bool FILE_XFER_NoOpCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool FILE_XFER_NoOpCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
    CFE_EVS_SendEvent (FILE_XFER_NOOP_EID, CFE_EVS_EventType_INFORMATION,
@@ -150,7 +150,7 @@ bool FILE_XFER_NoOpCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
 **
 */
 
-bool FILE_XFER_ResetAppCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool FILE_XFER_ResetAppCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
    CFE_EVS_ResetFilter (FITP_DATA_SEGMENT_CMD_ERR_EID);
@@ -341,7 +341,7 @@ static int32 ProcessCommands(void)
    int32  RetStatus = CFE_ES_RunStatus_APP_RUN;
    int32  SysStatus;
 
-   CFE_SB_Buffer_t* SbBufPtr;
+   CFE_SB_Buffer_t  *SbBufPtr;
    CFE_SB_MsgId_t   MsgId = CFE_SB_INVALID_MSG_ID;
    
 
@@ -360,7 +360,7 @@ static int32 ProcessCommands(void)
          if (CFE_SB_MsgId_Equal(MsgId, FileXfer.CmdMid)) 
          {
             
-            CMDMGR_DispatchFunc(CMDMGR_OBJ, SbBufPtr);
+            CMDMGR_DispatchFunc(CMDMGR_OBJ, &SbBufPtr->Msg);
          
          } 
          else if (CFE_SB_MsgId_Equal(MsgId, FileXfer.ExecuteMid))
