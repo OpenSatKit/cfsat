@@ -173,14 +173,14 @@ void OSK_C_DEMO_AppMain(void);
 ** Function: OSK_C_DEMO_NoOpCmd
 **
 */
-bool OSK_C_DEMO_NoOpCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool OSK_C_DEMO_NoOpCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
 ** Function: OSK_C_DEMO_ResetAppCmd
 **
 */
-bool OSK_C_DEMO_ResetAppCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool OSK_C_DEMO_ResetAppCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 #endif /* _osk_c_demo_ */

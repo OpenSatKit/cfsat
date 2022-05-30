@@ -114,7 +114,7 @@ void MSGLOG_ResetStatus()
 **      mechanism for the parent app to periodically call a child task function.
 **
 */
-bool MSGLOG_RunChildFuncCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool MSGLOG_RunChildFuncCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
    
@@ -153,13 +153,13 @@ bool MSGLOG_RunChildFuncCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 ** Notes:
 **   1. See file prologue for logging/playback logic.
 */
-bool MSGLOG_StartLogCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool MSGLOG_StartLogCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
    bool   RetStatus = false;
    int32  SysStatus;
    os_err_name_t OsErrStr;
-   const MSGLOG_StartLogCmdMsg_Payload_t* StartLog = CMDMGR_PAYLOAD_PTR(SbBufPtr, MSGLOG_StartLogCmdMsg_t);
+   const MSGLOG_StartLogCmdMsg_Payload_t* StartLog = CMDMGR_PAYLOAD_PTR(MsgPtr, MSGLOG_StartLogCmdMsg_t);
       
    if (MsgLog->LogEna)
    {
@@ -224,7 +224,7 @@ bool MSGLOG_StartLogCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 ** Function: MSGLOG_StopLogCmd
 **
 */
-bool MSGLOG_StopLogCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool MSGLOG_StopLogCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
    if (MsgLog->LogEna)
@@ -248,7 +248,7 @@ bool MSGLOG_StopLogCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 ** Notes:
 **   1. See file prologue for logging/playback logic.
 */
-bool MSGLOG_StartPlaybkCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool MSGLOG_StartPlaybkCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
    bool   RetStatus = false;
@@ -327,7 +327,7 @@ bool MSGLOG_StartPlaybkCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
 ** Function: MSGLOG_StopPlaybkCmd
 **
 */
-bool MSGLOG_StopPlaybkCmd(void* DataObjPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool MSGLOG_StopPlaybkCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
    if (MsgLog->PlaybkEna)

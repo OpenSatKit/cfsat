@@ -113,7 +113,7 @@ void OSK_C_DEMO_AppMain(void)
 ** Function: OSK_C_DEMO_NoOpCmd
 **
 */
-bool OSK_C_DEMO_NoOpCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool OSK_C_DEMO_NoOpCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
    CFE_EVS_SendEvent (OSK_C_DEMO_NOOP_EID, CFE_EVS_EventType_INFORMATION,
@@ -134,7 +134,7 @@ bool OSK_C_DEMO_NoOpCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
 **      reentrant. Applications use the singleton pattern and store a
 **      reference pointer to the object data during construction.
 */
-bool OSK_C_DEMO_ResetAppCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool OSK_C_DEMO_ResetAppCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
    CMDMGR_ResetStatus(CMDMGR_OBJ);
@@ -332,11 +332,11 @@ static int32 ProcessCommands(void)
 
          if (CFE_SB_MsgId_Equal(MsgId, OskCDemo.CmdMid))
          {
-            CMDMGR_DispatchFunc(CMDMGR_OBJ, SbBufPtr);
+            CMDMGR_DispatchFunc(CMDMGR_OBJ, &SbBufPtr->Msg);
          } 
          else if (CFE_SB_MsgId_Equal(MsgId, OskCDemo.ExecuteMid))
          {
-            CMDMGR_DispatchFunc(CMDMGR_OBJ, (CFE_SB_Buffer_t *)&OskCDemo.MsgLogRunChildFuncCmd.CmdHeader);
+            CMDMGR_DispatchFunc(CMDMGR_OBJ, (CFE_MSG_Message_t *)&OskCDemo.MsgLogRunChildFuncCmd.CmdHeader);
          }
          else if (CFE_SB_MsgId_Equal(MsgId, OskCDemo.SendHkMid))
          {   
