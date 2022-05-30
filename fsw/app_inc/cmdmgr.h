@@ -74,17 +74,7 @@
 /** Type Definitions **/
 /**********************/
 
-typedef bool (*CMDMGR_CmdFuncPtr_t) (void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
-
-/*
-** Ensure alignment in situation when casting from CFE_MSG_CommandHeader_t to
-** CFE_SB_Buffer_t
-*/
-typedef union
-{
-   CFE_MSG_CommandHeader_t  Msg;
-   CFE_SB_Buffer_t          Buf;
-} CMDMGR_AlignedCmdHeader_t;
+typedef bool (*CMDMGR_CmdFuncPtr_t) (void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /*
@@ -95,7 +85,7 @@ typedef union
 typedef struct
 {
 
-   CMDMGR_AlignedCmdHeader_t  CmdHeader;
+   CFE_MSG_CommandHeader_t  CmdHeader;
 
 } CMDMGR_NoParamCmdMsg_t;
 #define CMDMGR_NO_PARAM_CMD_DATA_LEN  ((sizeof(CMDMGR_NoParamCmdMsg_t) - sizeof(CFE_MSG_CommandHeader_t)))
@@ -185,7 +175,7 @@ void CMDMGR_ResetStatus(CMDMGR_Class_t* CmdMgr);
 ** Function: CMDMGR_DispatchFunc
 **
 */
-bool CMDMGR_DispatchFunc(CMDMGR_Class_t* CmdMgr,  const CFE_SB_Buffer_t *SbBufPtr);
+bool CMDMGR_DispatchFunc(CMDMGR_Class_t* CmdMgr,  const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************

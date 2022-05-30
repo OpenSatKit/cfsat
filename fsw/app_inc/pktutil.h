@@ -121,7 +121,7 @@ typedef struct
 ** Function: PktUtil_IsPacketFiltered
 **
 */
-bool PktUtil_IsPacketFiltered(const CFE_SB_Buffer_t* MessagePtr, const PktUtil_Filter_t *Filter);
+bool PktUtil_IsPacketFiltered(const CFE_MSG_Message_t *MsgPtr, const PktUtil_Filter_t *Filter);
 
 
 /******************************************************************************

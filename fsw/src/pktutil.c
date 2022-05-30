@@ -51,7 +51,7 @@
 **   X = out of every group of this many packets
 **   O = starting at this offset within the group
 */
-bool PktUtil_IsPacketFiltered(const CFE_SB_Buffer_t* SbBufPtr, const PktUtil_Filter_t* Filter)
+bool PktUtil_IsPacketFiltered(const CFE_MSG_Message_t *MsgPtr, const PktUtil_Filter_t *Filter)
 {        
 
    bool PacketIsFiltered = true;
@@ -81,14 +81,14 @@ bool PktUtil_IsPacketFiltered(const CFE_SB_Buffer_t* SbBufPtr, const PktUtil_Fil
 
       if (Filter->Type == PKTUTIL_FILTER_BY_SEQ_CNT) {
       
-         CFE_MSG_GetSequenceCount(&SbBufPtr->Msg, &SeqCnt);
+         CFE_MSG_GetSequenceCount(MsgPtr, &SeqCnt);
          FilterValue = (uint16)SeqCnt; 
 
       }
       else if (Filter->Type == PKTUTIL_FILTER_BY_TIME)
       {
          
-         CFE_MSG_GetMsgTime(&SbBufPtr->Msg, &PacketTime);  
+         CFE_MSG_GetMsgTime(MsgPtr, &PacketTime);  
    
          Seconds = ((uint16)PacketTime.Seconds) & PKTUTIL_11_LSB_SECONDS_MASK;
 

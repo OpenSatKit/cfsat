@@ -110,12 +110,12 @@ void STATEREP_Constructor(STATEREP_Class_t*  StateRep,
 ** Notes:
 **    1. Must clear both the Software Bus report packet and NewReport.
 */
-bool STATEREP_ClearBitCmd(                void*  ObjDataPtr,  /* Pointer to an instance of a STATEREP_Class  */
-                          const CFE_SB_Buffer_t* SbBufPtr)    /* Pointer to STATEREP_ClearBitCmd struct      */
+bool STATEREP_ClearBitCmd(                   void *ObjDataPtr,  /* Pointer to an instance of a STATEREP_Class  */
+                          const CFE_MSG_Message_t *MsgPtr)      /* Pointer to STATEREP_ClearBitCmd struct      */
 {
 
    STATEREP_Class_t*          StateRep    = (STATEREP_Class_t*)ObjDataPtr;
-   STATEREP_ClearBitCmdMsg_t* ClearBitCmd = (STATEREP_ClearBitCmdMsg_t*)SbBufPtr;
+   STATEREP_ClearBitCmdMsg_t* ClearBitCmd = (STATEREP_ClearBitCmdMsg_t*)MsgPtr;
 
 
    bool                 RetStatus = true;
@@ -170,12 +170,12 @@ bool STATEREP_ClearBitCmd(                void*  ObjDataPtr,  /* Pointer to an i
 **    None
 */
 bool STATEREP_ConfigBitCmd(                void*  ObjDataPtr,  /* Pointer to an instance of a STATEREP_Class   */
-                           const CFE_SB_Buffer_t* SbBufPtr)    /* Pointer to STATEREP_ConfigBitCmd struct */
+                           const CFE_MSG_Message_t *MsgPtr)    /* Pointer to STATEREP_ConfigBitCmd struct */
 
 {
 
    STATEREP_Class_t*            StateRep     = (STATEREP_Class_t*)ObjDataPtr;
-   STATEREP_ConfigBitCmdMsg_t*  ConfigBitCmd = (STATEREP_ConfigBitCmdMsg_t*)SbBufPtr;
+   STATEREP_ConfigBitCmdMsg_t*  ConfigBitCmd = (STATEREP_ConfigBitCmdMsg_t*)MsgPtr;
 
    bool RetStatus = true;
 

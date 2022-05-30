@@ -57,7 +57,7 @@ static const char* BoolStr[] = {
 /******************************/
 
 static void LogMsgBytes(uint8* MsgPtr, size_t PayloadLen, CFE_MSG_FcnCode_t FuncCode);
-static bool UnusedFuncCode(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
+static bool UnusedFuncCode(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
@@ -181,7 +181,7 @@ void CMDMGR_ResetStatus(CMDMGR_Class_t* CmdMgr)
 **      if an app wants a message response then it should publish the format. 
 **
 */
-bool CMDMGR_DispatchFunc(CMDMGR_Class_t* CmdMgr, const CFE_SB_Buffer_t *SbBufPtr)
+bool CMDMGR_DispatchFunc(CMDMGR_Class_t* CmdMgr, const CFE_MSG_Message_t *MsgPtr)
 {
 
    bool   ValidCmd = false;
@@ -190,13 +190,13 @@ bool CMDMGR_DispatchFunc(CMDMGR_Class_t* CmdMgr, const CFE_SB_Buffer_t *SbBufPtr
    CFE_MSG_Size_t    MsgSize;
    CFE_MSG_FcnCode_t FuncCode;
 
-   UserDataLen = CFE_SB_GetUserDataLength(&SbBufPtr->Msg);
+   UserDataLen = CFE_SB_GetUserDataLength(MsgPtr);
 
-   CFE_MSG_GetSize(&SbBufPtr->Msg, &MsgSize);
-   CFE_MSG_GetFcnCode(&SbBufPtr->Msg, &FuncCode);
-   CFE_MSG_ValidateChecksum(&SbBufPtr->Msg, &ChecksumValid);
+   CFE_MSG_GetSize(MsgPtr, &MsgSize);
+   CFE_MSG_GetFcnCode(MsgPtr, &FuncCode);
+   CFE_MSG_ValidateChecksum(MsgPtr, &ChecksumValid);
 
-   if (DBG_CMDMGR) LogMsgBytes((uint8*) &SbBufPtr->Msg, UserDataLen, FuncCode);
+   if (DBG_CMDMGR) LogMsgBytes((uint8*) MsgPtr, UserDataLen, FuncCode);
 
    if (FuncCode < CMDMGR_CMD_FUNC_TOTAL)
    {
@@ -207,7 +207,7 @@ bool CMDMGR_DispatchFunc(CMDMGR_Class_t* CmdMgr, const CFE_SB_Buffer_t *SbBufPtr
          if (ChecksumValid)
          {
 
-            ValidCmd = (CmdMgr->Cmd[FuncCode].FuncPtr)(CmdMgr->Cmd[FuncCode].DataPtr, SbBufPtr);
+            ValidCmd = (CmdMgr->Cmd[FuncCode].FuncPtr)(CmdMgr->Cmd[FuncCode].DataPtr, MsgPtr);
 
          } /* End if valid checksum */
          else
@@ -350,12 +350,12 @@ static void LogMsgBytes(uint8* MsgPtr, size_t PayloadLen, CFE_MSG_FcnCode_t Func
 ** Function: UnusedFuncCode
 **
 */
-static bool UnusedFuncCode(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
+static bool UnusedFuncCode(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
    CFE_MSG_FcnCode_t FuncCode;
    
-   CFE_MSG_GetFcnCode(&SbBufPtr->Msg, &FuncCode);
+   CFE_MSG_GetFcnCode(MsgPtr, &FuncCode);
    CFE_EVS_SendEvent (CMDMGR_DISPATCH_UNUSED_FUNC_CODE_ERR_EID, CFE_EVS_EventType_ERROR,
                       "Unused command function code %d received",FuncCode);
 

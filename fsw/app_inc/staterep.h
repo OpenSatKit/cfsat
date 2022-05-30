@@ -153,7 +153,7 @@ typedef struct
    uint16   Id;        /* Single identifier: 0..(STATEREP_BIT_ID_MAX-1) or STATEREP_SELECT_ALL */
 
 } STATEREP_ClearBitCmdMsg_t;
-#define STATEREP_CLEAR_BIT_CMD_DATA_LEN  (sizeof(STATEREP_ClearBitCmdMsg_t) - CFE_SB_CMD_HDR_SIZE)
+#define STATEREP_CLEAR_BIT_CMD_DATA_LEN  (sizeof(STATEREP_ClearBitCmdMsg_t) - sizeof(CFE_MSG_CommandHeader_t))
 
 
 typedef struct
@@ -164,7 +164,7 @@ typedef struct
    uint16   Enable;       /* TRUE - Enable an ID, FALSE - Disable an ID (keep word aligned)       */
 
 } STATEREP_ConfigBitCmdMsg_t;
-#define STATEREP_CONFIG_BIT_CMD_DATA_LEN  (sizeof(STATEREP_ConfigBitCmdMsg_t) - CFE_SB_CMD_HDR_SIZE)
+#define STATEREP_CONFIG_BIT_CMD_DATA_LEN  (sizeof(STATEREP_ConfigBitCmdMsg_t) - sizeof(CFE_MSG_CommandHeader_t))
 
 
 
@@ -249,8 +249,8 @@ void STATEREP_Constructor(STATEREP_Class_t*  StateRep,
 **   FALSE - Command rejected: An event message is issued describing the
 **           cause of the failure.
 */
-bool STATEREP_ClearBitCmd(                 void* ObjDataPtr,  /* Pointer to an instance of a STATEREP_Class */
-                          const CFE_SB_Buffer_t* SbBufPtr);   /* Pointer to STATEREP_ClearBitCmd struct     */
+bool STATEREP_ClearBitCmd(                  void  *ObjDataPtr,  /* Pointer to an instance of a STATEREP_Class */
+                          const CFE_MSG_Message_t *MsgPtr);     /* Pointer to STATEREP_ClearBitCmd struct     */
                                  
 
 
@@ -272,8 +272,8 @@ bool STATEREP_ClearBitCmd(                 void* ObjDataPtr,  /* Pointer to an i
 **   FALSE - Command rejected: An event message is issued describing the
 **           cause of the failure.
 */
-bool STATEREP_ConfigBitCmd(                void*  ObjDataPtr,  /* Pointer to an instance of a STATEREP_Class */
-                           const CFE_SB_Buffer_t* SbBufPtr);   /* Pointer to STATEREP_ConfigBitCmd struct    */
+bool STATEREP_ConfigBitCmd(                void    *ObjDataPtr,  /* Pointer to an instance of a STATEREP_Class */
+                           const CFE_MSG_Message_t *MsgPtr);     /* Pointer to STATEREP_ConfigBitCmd struct    */
                                       
 
 /******************************************************************************
@@ -288,8 +288,8 @@ bool STATEREP_ConfigBitCmd(                void*  ObjDataPtr,  /* Pointer to an 
 **   2. An Applicaton can use STATEREP_SetTlmMode to change the behavior 
 **      of this function. See STATEREP_SetTlmMode prologue.
 */
-void STATEREP_GenTlmMsg(STATEREP_Class_t*  StateRep,
-                        STATEREP_TlmMsg_t* TlmMsg);
+void STATEREP_GenTlmMsg(STATEREP_Class_t  *StateRep,
+                        STATEREP_TlmMsg_t *TlmMsg);
                            
                            
 /******************************************************************************
@@ -302,8 +302,8 @@ void STATEREP_GenTlmMsg(STATEREP_Class_t*  StateRep,
 **      only occur during integration.
 **
 */
-void STATEREP_SetBit(STATEREP_Class_t*  StateRep,
-                     uint16             Id);  /* Integer identifier (not a bit bit mask) */
+void STATEREP_SetBit(STATEREP_Class_t *StateRep,
+                     uint16            Id);  /* Integer identifier (not a bit bit mask) */
 
 
 
@@ -322,7 +322,7 @@ void STATEREP_SetBit(STATEREP_Class_t*  StateRep,
 **      communication.
 **
 */
-void STATEREP_SetTlmMode(STATEREP_Class_t*  StateRep,
+void STATEREP_SetTlmMode(STATEREP_Class_t   *StateRep,
                          STATEREP_TlmMode_t TlmMode);
 
 

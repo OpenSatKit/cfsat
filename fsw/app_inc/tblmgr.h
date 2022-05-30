@@ -111,7 +111,7 @@ typedef struct
 
 typedef struct
 {
-   CMDMGR_AlignedCmdHeader_t  CmdHeader;
+   CFE_MSG_CommandHeader_t    CmdHeader;
    TBLMGR_TblCmdMsg_Payload_t Payload;
 
 } TBLMGR_LoadTblCmdMsg_t;
@@ -234,7 +234,7 @@ const TBLMGR_Tbl_t* TBLMGR_GetTblStatus(TBLMGR_Class_t* TblMgr, uint8 TblId);
 **     during registration 
 ** 
 */
-bool TBLMGR_LoadTblCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool TBLMGR_LoadTblCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
@@ -246,7 +246,7 @@ bool TBLMGR_LoadTblCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
 **     during registration 
 ** 
 */
-bool TBLMGR_DumpTblCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool TBLMGR_DumpTblCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
