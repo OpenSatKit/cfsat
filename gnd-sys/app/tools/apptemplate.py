@@ -222,6 +222,7 @@ class CreateApp():
         layout = [
                   [sg.Text('Select Application Template: ', font=hdr_label_font)],
                   app_template_layout, 
+                  [sg.Text('', font=hdr_label_font)],
                   [sg.Button('Description'), sg.Button('Create App'), sg.Button('Cancel')]
                  ]
         

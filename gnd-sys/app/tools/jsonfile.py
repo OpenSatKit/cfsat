@@ -32,11 +32,10 @@ from datetime import datetime
 
 class JsonFile():
     """
-    Abstract base class for managing JSON files in a consistent manner. This
-    is designed for cfsat as opposed to general utility so it's up to the user
-    to protect against errors.
-    JSON key constants should all be used within the Json classes to
-    localize impacts due to JSON key changes.
+    Abstract base class to manage JSON files used to store state in a consistent
+    manner. This is designed for cfsat as opposed to general utility so it's up
+    to the user to protect against errors. JSON key constants should all be used
+    within the Json classes to localize impacts due to JSON key changes.
     """
     def __init__(self, json_file):
 

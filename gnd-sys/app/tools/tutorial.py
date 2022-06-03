@@ -279,10 +279,11 @@ class Tutorial():
 
 class ManageTutorials():
     """
-    Manage the display for a tutorial. A tutorial folder conatins a
-    tutorial.json that describes the tutorial and a lesson folder that 
-    contains numbered lesson folders. Each lesson folder contains a 
-    lesson.json file.  
+    Discover what tutorials exists (each tutorial in separate directory) and
+    create a 'database' of information about the tutorials based on each 
+    tutorial's JSON spec.
+    User select tutorials based by title so self.tutorial_lookup provides a
+    method to retreive a tutorial given its title
     """
     def __init__(self, tutorials_path):
 
@@ -307,6 +308,7 @@ class ManageTutorials():
     def run_tutorial(self, tutorial_title):
         if tutorial_title in self.tutorial_titles:
             self.tutorial_lookup[tutorial_title].execute()
+
 
 ###############################################################################
 

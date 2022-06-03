@@ -140,6 +140,7 @@ class TextEditor():
         self.build_cfs_callback  = build_cfs_callback
         self.run_script_callback = run_script_callback
         
+        self.text_modified = False
         self.filename = None
         if filename not in (None, ''):
            if os.path.isfile(filename):
@@ -157,11 +158,12 @@ class TextEditor():
                     file_text = f.read()
                 window['-FILE_TEXT-'].update(value=file_text)
                 window['-FILE_TITLE-'].update(value=self.filename)
+        self.text_modified = False
     
     def save_file(self, filename, window):
         """
         This function protects against multiple filename empty types. None
-        amd a string length of 0 are most common, but this could be called 
+        and a string length of 0 are most common, but this could be called 
         with the return value after a cancelled save so filename could be
         a zero length tuple.
         """
@@ -176,6 +178,17 @@ class TextEditor():
                                
         if not updated:
             window['-FILE_TITLE-'].update(value = self.NEW_FILE_STR)
+        self.text_modified = False
+
+    def save_filename(self, window):
+        if self.filename in (None,''):
+            try: # Some platforms may raise exceptions on cancel
+                filename = sg.popup_get_file('Save File', save_as=True, no_window=True)
+                self.save_file(filename, window)
+            except:
+                pass
+        else:
+            self.save_file(self.filename, window)
 
     def text_left_click(self):
         print('text_left_click')
@@ -189,12 +202,12 @@ class TextEditor():
         """
         window_width = 100
         menu_layout = [
-                ['File',['New','Open','Save','Save As','---','Exit']],
-                ['Edit',['Select All','Cut','Copy','Paste','Undo','---','Find...','Replace...']],
+                ['File',['New','Open','&Save','Save As','---','Exit']],
+                ['Edit',['Select &All','Cut','&Copy','Paste','Undo','---','&Find...','Replace...']],
                 ['Execute',['Build cFS', 'Run Script']],
             ]
 
-        self.file_text = sg.Multiline(default_text='', font=self.config.get('font'), key='-FILE_TEXT-', size=(window_width,30))
+        self.file_text = sg.Multiline(default_text='', font=self.config.get('font'), enable_events=True, key='-FILE_TEXT-', size=(window_width,30))
         
         window_layout = [
             [sg.Menu(menu_layout)],
@@ -219,40 +232,59 @@ class TextEditor():
         if self.filename is not None:
             self.open_file(self.filename, window)
         
+        prev_encoded_event = None
+        
         while True:
 
-            self.event, self.values = window.read(timeout=100)
-        
+            self.event, self.values = window.read() # (timeout=50) - Using a timeout causes the ctrl scheme below to crash but not sure why 
+            
             if self.event in (sg.WIN_CLOSED, 'Exit') or self.event is None:
+                if self.text_modified:
+                   save_file = sg.popup_yes_no('The text has been modified.\nDo you want to save it?', title='TODO', grab_anywhere=True, modal=False)
+                   if save_file == 'Yes':
+                       self.save_filename(window)
                 break
 
-            elif self.event in ('-FILE_HELP-'):
+            # The goal is to capture control-key events in a portable way so I avoided the tkinter event
+            # binding method. However, I've only tested this on tkinter so it may not be portable.
+            # When a control-key sequence is pressed two events are generated. key followed by a delayed
+            # Control_L:37. This logic saves the key and creates a new encoded string.
+            # Seems like a hack, but it works!
+            
+            encoded_event = str(str(self.event).encode('utf-8'))  
+                        
+            if encoded_event in ("b'Control_L:37'"):
+                if prev_encoded_event is not None:
+                    encoded_event = encoded_event.split(':')[0] + ':' + prev_encoded_event.split(':')[1]
+                    prev_encoded_event = None
+            
+            if encoded_event in ("b'-FILE_HELP-'"):
                 self.help_text.display(self.filename)
-
+           
+            elif encoded_event in ("b'-FILE_TEXT-'",):
+                if not self.text_modified: 
+                    self.text_modified = True
+                    new_title = '*' + window['-FILE_TITLE-'].get()
+                    window['-FILE_TITLE-'].update(value=new_title)
+                
             ### File Menu ###
 
-            elif self.event in ('New',):
+            elif encoded_event in ("b'New'",):
                 self.filename = None
                 window['-FILE_TEXT-'].update(value = '')
                 window['-FILE_TITLE-'].update(value = self.NEW_FILE_STR)
                 
-            elif self.event in ('Open',):
+            elif encoded_event in ("b'Open'",):
                 try: # Some platforms may raise exceptions
                     filename = sg.popup_get_file('File Name:', title='Open', no_window=True)
                     self.open_file(filename, window)
                 except:
                     pass
               
-            elif self.event in ('Save',):
-
-                if self.filename in (None,''):
-                    try: # Some platforms may raise exceptions on cancel
-                        filename = sg.popup_get_file('Save File', save_as=True, no_window=True)
-                        self.save_file(filename, window)
-                    except:
-                        pass
+            elif encoded_event in ("b'Save'","b'Control_L:39'"): # s=39
+                self.save_filename(window)
                 
-            elif self.event in ('Save As',):
+            elif encoded_event in (b'Save As',):
                 try: # Some platforms may raise exceptions on cancel
                     filename = sg.popup_get_file('Save File', save_as=True, no_window=True)
                     self.save_file(filename, window)
@@ -261,43 +293,44 @@ class TextEditor():
             
             ### Edit Menu ###
                 
-            elif self.event in ('Select All',):
+            elif encoded_event in ("b'Select All'", "b'Control_L:38'"): # a=38
                 sg.popup("<Select All> not implemented", title='TODO', grab_anywhere=True, modal=False)
 
-            elif self.event in ('Cut',):
+            elif encoded_event in ("b'Cut'", "b'Control_L:53'"): # x=53
                 sg.popup("<Cut> not implemented", title='TODO', grab_anywhere=True, modal=False)
 
-            elif self.event in ('Copy',):
+            elif encoded_event in ("b'Copy'", "b'Control_L:54'"): # c=54
                 selection = window['-FILE_TEXT-'].Widget.selection_get()
                 sg.clipboard_set(selection)
                 
-            elif self.event in ('Paste',):
+            elif encoded_event in ("b'Paste'", "b'Control_L:55'"): # v=55
                 sg.popup("<Paste> not implemented. Clipboard contains '%s' "%sg.clipboard_get(), title='TODO', grab_anywhere=True, modal=False)
 
-            elif self.event in ('Undo',):
+            elif encoded_event in ("b'Undo'", "b'Control_L:52'"): # z=52
                 sg.popup("<Undo> not implemented", title='TODO', grab_anywhere=True, modal=False)
 
-            elif self.event in ('Find...',):
+            elif encoded_event in ("b'Find...'", "b'Control_L:41'"): # z=42
                 sg.popup("<Find...> not implemented", title='TODO', grab_anywhere=True, modal=False)
 
-            elif self.event in ('Replace...',):
+            elif encoded_event in ("b'Replace...'",):
                 sg.popup("<Replace...> not implemented", title='TODO', grab_anywhere=True, modal=False)
 
 
             ### Execute ###
 
-            elif self.event in  ('Build cFS',):
+            elif encoded_event in  ("b'Build cFS'",):
                 if self.build_cfs_callback is None:
                     sg.popup("<Build cFS> is not supported in this context", title='Information', grab_anywhere=True, modal=False)
                 else:
                     self.self.build_cfs_callback
                     
-            elif self.event in  ('Run Script',):
+            elif encoded_event in  ("b'Run Script'",):
                 if self.run_script_callback is None:
                     sg.popup("<Run Script> is not supported in this context", title='Information', grab_anywhere=True, modal=False)
                 else:
                     self.run_script_callback(self.values['-FILE_TEXT-'])
 
+            prev_encoded_event = encoded_event
             
         window.close()
         

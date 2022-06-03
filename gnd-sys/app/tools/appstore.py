@@ -17,13 +17,20 @@
     edition license of cFSAT if purchased from the copyright holder.
 
     Purpose:
-        Provide classes that manage the creation of apps from templates.
+        Provide classes that manage downloading and installing apps from git repos
+        
+    Notes:    
+        Assumes the exact same app name is used for
+        - App directory
+        - App Electronic Data Sheet (EDS) file
+        - App cFS spec JSON file 
 """
 
 import sys
 import time
 import os
 import requests
+import json
 import configparser
 from datetime import datetime
 
@@ -39,7 +46,6 @@ import PySimpleGUI as sg
 
 
 ###############################################################################
-
 
 class GitHubAppProject():
     '''
@@ -99,6 +105,139 @@ class GitHubAppProject():
             descr = self.app_dict[app_name]['description']
         return descr
 
+
+###############################################################################
+
+class AppSpec():
+    '''
+    The access methods are defined according to the activities a developer
+    needs to do to integrate an app.
+    '''
+    def __init__(self, app_path, app_name):
+
+        self.app_path  = app_path
+        self.app_name  = app_name
+        self.json_file = os.path.join(app_path, app_name+'.json')
+        self.eds_file  = os.path.join(app_path, 'eds', app_name+'.xml')
+        
+        print(self.json_file)
+        print(self.eds_file)
+        
+        self.valid = False
+        self.json  = None
+        self.cfs   = None
+        if self.read_json_file():
+            if self.read_eds_file():
+                self.valid = True
+
+    def read_json_file(self):
+    
+        if os.path.exists(self.json_file):
+            try:
+                f = open(self.json_file)
+                self.json = json.load(f)
+                f.close()
+                #todo print(str(self.json))
+            except:
+                sg.popup("Error loading JSON spec file %s" % self.json_file, title='Error', grab_anywhere=True, modal=False)
+                return False
+        else:
+            sg.popup("Error loading JSON spec file %s" % self.file, title='Error', grab_anywhere=True, modal=False)
+            return False
+        
+        try:
+            self.cfs = self.json['app']['cfs']
+        except:
+            sg.popup("The JSON spec file %s does not contain the required 'cfs' object" % self.file, title='Error', grab_anywhere=True, modal=False)
+            return False
+        
+        #todo print('self.cfs = ' + str(self.cfs))
+        return True
+        
+    def read_eds_file(self):
+        return True
+        
+        
+    def get_targets_cmake_files(self):
+        """
+        The targets.cmake file needs
+           1. The app's object file name for the 'cpu1_APPLIST'
+           2. The names of all the tables that need to be copied from the app's tables directory into
+              the cfsat_defs directory 
+        """
+        files = {}
+        files['obj-file'] = self.cfs['obj-file']
+        files['tables']   = self.cfs['tables']
+        return files
+
+
+    def get_startup_scr_entry(self):
+        '''
+        Create an cfe_es_startup.scr entry string that contains the following fields:
+        
+        1. Object Type      -- CFE_APP for an Application, or CFE_LIB for a library.
+        2. Filename         -- This is a cFE Virtual filename, not a vxWorks device/pathname
+        3. Entry Point      -- This is the "main" function for Apps.
+        4. CFE Name         -- The cFE name for the APP or Library
+        5. Priority         -- This is the Priority of the App, not used for Library
+        6. Stack Size       -- This is the Stack size for the App, not used for the Library
+        7. Load Address     -- This is the Optional Load Address for the App or Library. Currently not implemented
+                               so keep it at 0x0.
+        8. Exception Action -- This is the Action the cFE should take if the App has an exception.
+                               0        = Just restart the Application
+                               Non-Zero = Do a cFE Processor Reset
+
+        CFE_APP, file_xfer,       FILE_XFER_AppMain,   FILE_XFER,    80,   16384, 0x0, 0;
+        '''
+        entry_str = ''
+        try:
+            entry_str = self.cfs['cfe-type']      + ', ' + \
+                        self.cfs['obj-file']      + ', ' + \
+                        self.cfs['entry-symbol']  + ', ' + \
+                        self.cfs['name']          + ', ' + \
+                        str(self.cfs['priority']) + ', ' + \
+                        str(self.cfs['stack'])    + ', 0x0, ' + \
+                        str(self.cfs['exception-action']) 
+        except:
+            sg.popup("Error creating targets.cmake entry due to missing or malformed JSON file.\nPartial entry string = %s" % self.file, title='Error', grab_anywhere=True, modal=False)
+        
+        return entry_str
+
+
+###############################################################################
+
+class ManageUsrApps():
+    """
+    Discover what user apps exists (each app in separate directory) and
+    create a 'database' of app specs that can be used by the user to integrate
+    an apps into their cFS.
+    """
+    def __init__(self, usr_app_path):
+
+        self.path = usr_app_path
+        self.app_specs = {}
+        
+        usr_app_list = os.listdir(usr_app_path)
+        usr_app_list.sort()
+        # Assumes app directory name equals app name
+        for app_name in usr_app_list:
+            print("User app folder/name: " + app_name)
+            #todo: AppSpec constructor could raise exception if JSON doesn't exist or is malformed
+            app_path = os.path.join(usr_app_path, app_name)
+            if os.path.isdir(os.path.join(usr_app_path, app_name)):
+                app_spec = AppSpec(app_path, app_name)
+                if app_spec.valid:
+                    self.app_specs[app_name] = app_spec        
+        
+        print("User app specs: " + str(self.app_specs))
+
+    def get_app_specs(self):
+        return self.app_specs
+
+    def get_app_spec(self, app_name):
+        return self.app_specs[app_name]
+            
+              
 ###############################################################################
 
 class AppStore():
@@ -108,6 +247,7 @@ class AppStore():
     """
     def __init__(self, git_url, usr_app_path):
 
+        self.usr_app_path = usr_app_path
         self.git_app_repo = GitHubAppProject(git_url, usr_app_path)
         self.window  = None
 
@@ -121,10 +261,10 @@ class AppStore():
         for app in self.git_app_repo.app_dict.keys():
             print(app)
             app_layout.append([sg.Radio(app, "APPS", default=False, font=hdr_label_font, size=(10,0), key='-%s-'%app),  
-                               sg.Text(self.git_app_repo.get_descr(app), font=hdr_value_font, size=(30,1))])
+                               sg.Text(self.git_app_repo.get_descr(app), font=hdr_value_font, size=(100,1))])
                 
         layout = [
-                  [sg.Text("Select an app to download then follow the 'Add App' tutorial", font=hdr_value_font)],
+                  [sg.Text("Select an app to download then follow the steps in 'Add App to cFS'. See 'Add App' tutorial if you are unfamiliar with the steps.\n", font=hdr_value_font)],
                   app_layout, 
                   [sg.Button('Download', font=hdr_label_font), sg.Button('Cancel', font=hdr_label_font)]
                  ]
@@ -149,6 +289,7 @@ class AppStore():
                 for app in self.git_app_repo.app_dict.keys():
                     if self.values["-%s-"%app] == True:
                         self.git_app_repo.clone(app)
+
                 break
                 
         self.window.close()
@@ -172,10 +313,19 @@ if __name__ == '__main__':
     git_url = config.get('APP','APP_STORE_URL')
     usr_app_path = compress_abs_path(os.path.join(os.getcwd(),'..', config.get('PATHS', 'USR_APP_PATH'))) 
 
-    app_store = AppStore(git_url, usr_app_path)
-    app_store.execute()
+    #app_store = AppStore(git_url, usr_app_path)
+    #app_store.execute()
     
     
+    manage_usr_apps = ManageUsrApps(usr_app_path)
+    
+    berry_imu = manage_usr_apps.get_app_spec('berry_imu')
+    print(berry_imu.get_targets_cmake_files())
+    print(berry_imu.get_startup_scr_entry())
+    
+    gpio_demo = manage_usr_apps.get_app_spec('gpio_demo')
+    print(gpio_demo.get_targets_cmake_files())
+    print(gpio_demo.get_startup_scr_entry())
     
     
 

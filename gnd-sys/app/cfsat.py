@@ -64,7 +64,8 @@ from cfsinterface import CmdTlmRouter
 from cfsinterface import Cfe, EdsMission
 from cfsinterface import TelecommandInterface, TelecommandScript
 from cfsinterface import TelemetryMessage, TelemetryObserver, TelemetryQueueServer
-from tools import CreateApp, ManageTutorials, crc_32c, datagram_to_str, compress_abs_path, TextEditor, AppStore
+from tools import CreateApp, ManageTutorials, crc_32c, datagram_to_str, compress_abs_path, TextEditor
+from tools import AppStore, ManageUsrApps, AppSpec
 
 
 ###############################################################################
@@ -625,44 +626,83 @@ class CfsatTelemetryMonitor(TelemetryObserver):
 class ManageCfs():
     """
     Manage the display for building and running the cFS.
+    app_abs_path - Is the python application, not cFS apps
     """
-    def __init__(self, app_abs_path, cfs_abs_base_path, main_window):
-        self.app_abs_path      = app_abs_path
+    def __init__(self, cfsat_abs_path, cfs_abs_base_path, usr_app_rel_path, main_window):
+        self.cfsat_abs_path    = cfsat_abs_path
         self.cfs_abs_base_path = cfs_abs_base_path
         self.cfs_abs_defs_path = os.path.join(self.cfs_abs_base_path, "cfsat_defs")     #TODO - Use constants
-        self.cfsat_tools_path  = os.path.join(app_abs_path, "tools")
+        self.cfsat_tools_path  = os.path.join(cfsat_abs_path, "tools")
+        self.usr_app_path      = compress_abs_path(os.path.join(cfsat_abs_path, usr_app_rel_path))
         self.main_window       = main_window
         self.build_subprocess  = None
-    
-    def gui(self):
-        b_size  = (1,1)
-        b_pad   = ((0,2),(2,2))
-        b_font  = ('Arial bold', 11)
-        b_color = 'black on LightSkyBlue3'
-        t_font  = ('Arial', 14)
+        self.selected_app      = None
+        
+        self.b_size  = (1,1)
+        self.b_pad   = ((0,2),(2,2))
+        self.b_font  = ('Arial bold', 11)
+        self.b_color = 'black on LightSkyBlue3'
+        self.t_font  = ('Arial', 14)
+
+    def select_app_gui(self, app_name_list):
+        """
+        Select an app to be integrated
+        """
+        self.selected_app = None
+        
         layout = [
-                  [sg.Button('1', size=b_size, button_color=b_color, font=b_font, pad=b_pad, enable_events=True, key='-1-'),
-                   sg.Text('Stop the cFS prior to modifying or adding an app', font=t_font)],   
-                  [sg.Button('2', size=b_size, button_color=b_color, font=b_font, pad=b_pad, enable_events=True, key='-2-'),
-                   sg.Text('Edit targets.cmake', font=t_font)],
-                  [sg.Button('3', size=b_size, button_color=b_color, font=b_font, pad=b_pad, enable_events=True, key='-3-'),
-                   sg.Text('Edit cpu1_cfe_es_startup.scr', font=t_font)],
-                  [sg.Button('4', size=b_size, button_color=b_color, font=b_font, pad=b_pad, enable_events=True, key='-4-'),
-                   sg.Text('Edit EDS cfe-topicids.xml', font=t_font)],
-                  [sg.Button('5', size=b_size, button_color=b_color, font=b_font, pad=b_pad, enable_events=True, key='-5-'),
-                   sg.Text('Edit EDS config.xml', font=t_font)],
-                  [sg.Button('6', size=b_size, button_color=b_color, font=b_font, pad=b_pad, enable_events=True, key='-6-'),
-                   sg.Text('Edit scheduler table', font=t_font)],
-                  [sg.Button('7', size=b_size, button_color=b_color, font=b_font, pad=b_pad, enable_events=True, key='-7-'),
-                   sg.Text('Edit telemetry output', font=t_font)],
-                  [sg.Button('8', size=b_size, button_color=b_color, font=b_font, pad=b_pad, enable_events=True, key='-8-'),
-                   sg.Text('Build the cfS', font=t_font)],
-                  [sg.Button('9', size=b_size, button_color=b_color, font=b_font, pad=b_pad, enable_events=True, key='-9-'),
-                   sg.Text('Reload cFS EDS definitions', font=t_font)],
+                  [sg.Text('Select an app from the dropdown iist and click OK\n', font=self.b_font)],
+                  [sg.Combo(app_name_list, font=self.b_font, enable_events=True, key="-USR_APP-", default_value=app_name_list[0]),
+                   sg.Button('Submit', button_color=('white', '#007339'), pad=self.b_pad, key='-SUBMIT-'),
+                   sg.Button('Cancel', button_color=('white', 'firebrick4'), pad=self.b_pad, key='-CANCEL-')]
+                 ]      
+
+        window = sg.Window('Select App to Integrate', layout, resizable=True, modal=True)
+        
+        while True:
+        
+            event, values = window.read()
+        
+            if event in (sg.WIN_CLOSED, '-CANCEL-') or event is None:
+                break
+                
+            elif event == '-SUBMIT-':
+                self.selected_app = values['-USR_APP-']
+                break
+        
+        window.close()       
+              
+    
+    def integrate_app_gui(self, usr_app_spec):
+        """
+        Provide steps for the user to integrate an app. This is only invoked after an
+        app has been selected.
+        """
+        layout = [
+                  [sg.Button('1', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-1-'),
+                   sg.Text('Stop the cFS prior to modifying or adding an app', font=self.t_font)],   
+                  [sg.Button('2', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-3-'),
+                   sg.Text('Copy files to cfsat_defs', font=self.t_font)],
+                  [sg.Button('3', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-2-'),
+                   sg.Text('Edit targets.cmake', font=self.t_font)],
+                  [sg.Button('4', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-3-'),
+                   sg.Text('Edit cpu1_cfe_es_startup.scr', font=self.t_font)],
+                  [sg.Button('5', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-4-'),
+                   sg.Text('Edit EDS cfe-topicids.xml', font=self.t_font)],
+                  [sg.Button('6', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-5-'),
+                   sg.Text('Edit EDS config.xml', font=self.t_font)],
+                  [sg.Button('7', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-6-'),
+                   sg.Text('Edit scheduler table', font=self.t_font)],
+                  [sg.Button('8', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-7-'),
+                   sg.Text('Edit telemetry output', font=self.t_font)],
+                  [sg.Button('9', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-8-'),
+                   sg.Text('Build the cfS', font=self.t_font)],
+                  [sg.Button('10', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-9-'),
+                   sg.Text('Reload cFS EDS definitions', font=self.t_font)],
                   [sg.Button('Exit', enable_events=True, key='-EXIT-', image_data=image_grey1, button_color=('black', sg.theme_background_color()), border_width=0)]
                  ]
         # sg.Button('Exit', enable_events=True, key='-EXIT-')
-        self.window = sg.Window('Build & Run the cFS', layout, resizable=True, modal=True)
+        self.window = sg.Window('Integrate %s with the cFS' % usr_app_spec.app_name, layout, resizable=True, modal=True)
         
         while True:
         
@@ -699,7 +739,7 @@ class ManageCfs():
                 self.text_editor = sg.execute_py_file("texteditor.py", parms=path_filename, cwd=self.cfsat_tools_path)
             
             elif self.event == '-8-': # Build the cfS
-                build_cfs_sh = os.path.join(self.app_abs_path, 'build_cfs.sh')
+                build_cfs_sh = os.path.join(self.cfsat_abs_path, 'build_cfs.sh')
                 self.build_subprocess = subprocess.Popen('%s %s' % (build_cfs_sh, self.cfs_abs_base_path),
                                                        stdout=subprocess.PIPE, shell=True, bufsize=1, universal_newlines=True)
                 if self.build_subprocess is not None:
@@ -712,8 +752,14 @@ class ManageCfs():
         self.window.close()       
 
     def execute(self):
-        self.gui()
-        
+        self.manage_usr_apps = ManageUsrApps(self.usr_app_path)
+        self.cfs_app_specs = self.manage_usr_apps.get_app_specs()
+        if len(self.cfs_app_specs) > 0:
+            self.select_app_gui(list(self.cfs_app_specs.keys()))
+            if self.selected_app is not None:
+                self.integrate_app_gui(self.manage_usr_apps.get_app_spec(self.selected_app))
+        else:
+            sg.popup('Your usr/apps directory is empty', title='Error', grab_anywhere=True, modal=True)
 
   
 class CfsStdout(threading.Thread):
@@ -897,7 +943,7 @@ class App():
     
         menu_def = [
                        ['System', ['Options', 'About', 'Exit']],
-                       ['Developer', ['Create App', 'Download App','Add App to cFS', 'Certify App', 'Run Perf Monitor']],
+                       ['Developer', ['Create App', 'Download App','Add App to cFS', 'Run Perf Monitor']], #todo: 'Certify App' 
                        ['Operator', ['Script Runner', 'File Browser', 'Manage Tables']],
                        ['Documents', ['cFS Overview', 'cFE Overview', 'OSK App Dev']],
                        ['Tutorials', self.manage_tutorials.tutorial_titles]
@@ -1050,9 +1096,9 @@ class App():
             elif self.event == 'Download App':
                 app_store = AppStore(self.config.get('APP','APP_STORE_URL'), self.config.get('PATHS','USR_APP_PATH'))
                 app_store.execute()
-
+ 
             elif self.event == 'Add App to cFS':
-                manage_cfs = ManageCfs(self.path, self.cfs_abs_base_path, self.window)
+                manage_cfs = ManageCfs(self.path, self.cfs_abs_base_path, self.config.get('PATHS', 'USR_APP_PATH'), self.window)
                 manage_cfs.execute()
 
             if self.event == 'Certify App':
@@ -1180,12 +1226,12 @@ class App():
                     time.sleep(1)
                     """
                                     
-                if self.cfs_subprocess.poll() is not None:
-                    logger.info("Killing cFS after subprocess poll")
-                    if self.cfs_stdout is not None:
-                        self.cfs_stdout.terminate()  # I tried to join() afterwards and it hangs
-                    subprocess.Popen('./stop_cfs.sh', shell=True)
-                    sg.popup("cFS failed to terminate.\nUse another terminal to kill the process.", title='Warning', grab_anywhere=True, modal=False)
+                    if self.cfs_subprocess.poll() is not None:
+                        logger.info("Killing cFS after subprocess poll")
+                        if self.cfs_stdout is not None:
+                            self.cfs_stdout.terminate()  # I tried to join() afterwards and it hangs
+                        subprocess.Popen('./stop_cfs.sh', shell=True)
+                        sg.popup("cFS failed to terminate.\nUse another terminal to kill the process.", title='Warning', grab_anywhere=True, modal=False)
                 else:
                     self.window["-CFS_IMAGE-"].update(self.GUI_NO_IMAGE_TXT)
                     self.window["-CFS_TIME-"].update(self.GUI_NULL_TXT)

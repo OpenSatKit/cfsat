@@ -102,7 +102,7 @@ SET(FT_INSTALL_SUBDIR "host/functional-test")
 SET(MISSION_CPUNAMES cpu1)
 
 SET(cpu1_PROCESSORID 1)
-SET(cpu1_APPLIST ci_lab to_lab sch_lab osk_c_fw osk_c_demo file_mgr file_xfer)
+SET(cpu1_APPLIST ci_lab to_lab sch_lab osk_c_fw osk_c_demo file_mgr file_xfer) ##
 #HELLO SET(cpu1_APPLIST ci_lab to_lab sch_lab osk_c_fw osk_c_demo filemgr file_xfer hello)
 SET(cpu1_FILELIST cfe_es_startup.scr osk_c_demo_ini.json osk_c_demo_tbl.json file_mgr_ini.json file_xfer_ini.json)
 
@@ -111,4 +111,3 @@ SET(cpu1_FILELIST cfe_es_startup.scr osk_c_demo_ini.json osk_c_demo_tbl.json fil
 SET(cpu2_PROCESSORID 2)
 SET(cpu2_APPLIST ci_lab to_lab sch_lab)
 SET(cpu2_FILELIST cfe_es_startup.scr)
-
