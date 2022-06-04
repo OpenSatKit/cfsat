@@ -638,7 +638,7 @@ class ManageCfs():
         self.build_subprocess  = None
         self.selected_app      = None
         
-        self.b_size  = (1,1)
+        self.b_size  = (2,1)
         self.b_pad   = ((0,2),(2,2))
         self.b_font  = ('Arial bold', 11)
         self.b_color = 'black on LightSkyBlue3'
@@ -652,7 +652,7 @@ class ManageCfs():
         
         layout = [
                   [sg.Text('Select an app from the dropdown iist and click OK\n', font=self.b_font)],
-                  [sg.Combo(app_name_list, font=self.b_font, enable_events=True, key="-USR_APP-", default_value=app_name_list[0]),
+                  [sg.Combo(app_name_list, pad=self.b_pad, font=self.b_font, enable_events=True, key="-USR_APP-", default_value=app_name_list[0]),
                    sg.Button('Submit', button_color=('white', '#007339'), pad=self.b_pad, key='-SUBMIT-'),
                    sg.Button('Cancel', button_color=('white', 'firebrick4'), pad=self.b_pad, key='-CANCEL-')]
                  ]      
@@ -675,30 +675,34 @@ class ManageCfs():
     
     def integrate_app_gui(self, usr_app_spec):
         """
-        Provide steps for the user to integrate an app. This is only invoked after an
-        app has been selected.
+        Provide steps for the user to integrate an app. This is only invoked
+        after an app has been selected.
+        The steps have some degree of independence in case the user doesn't do
+        things in order which means some processing may be repeated. For example
+        the table files are recomputed for the edit targets.cmake step and the
+        copy files to cfsat_defs steps. 
         """
         layout = [
                   [sg.Button('1', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-1-'),
                    sg.Text('Stop the cFS prior to modifying or adding an app', font=self.t_font)],   
-                  [sg.Button('2', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-3-'),
-                   sg.Text('Copy files to cfsat_defs', font=self.t_font)],
-                  [sg.Button('3', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-2-'),
-                   sg.Text('Edit targets.cmake', font=self.t_font)],
-                  [sg.Button('4', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-3-'),
-                   sg.Text('Edit cpu1_cfe_es_startup.scr', font=self.t_font)],
-                  [sg.Button('5', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-4-'),
-                   sg.Text('Edit EDS cfe-topicids.xml', font=self.t_font)],
-                  [sg.Button('6', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-5-'),
-                   sg.Text('Edit EDS config.xml', font=self.t_font)],
-                  [sg.Button('7', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-6-'),
-                   sg.Text('Edit scheduler table', font=self.t_font)],
-                  [sg.Button('8', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-7-'),
-                   sg.Text('Edit telemetry output', font=self.t_font)],
-                  [sg.Button('9', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-8-'),
+                  [sg.Button('2', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-2-'),
+                   sg.Text('Update targets.cmake', font=self.t_font)],
+                  [sg.Button('3', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-3-'),
+                   sg.Text('Copy table files to cfsat_defs', font=self.t_font)],
+                  [sg.Button('4', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-4-'),
+                   sg.Text('Update cpu1_cfe_es_startup.scr', font=self.t_font)],
+                  [sg.Button('5', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-5-'),
+                   sg.Text('Update EDS cfe-topicids.xml', font=self.t_font)],
+                  [sg.Button('6', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-6-'),
+                   sg.Text('Update EDS config.xml', font=self.t_font)],
+                  [sg.Button('7', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-7-'),
+                   sg.Text('Update scheduler app table', font=self.t_font)],
+                  [sg.Button('8', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-8-'),
+                   sg.Text('Update telemetry output app table', font=self.t_font)],
+                  [sg.Button('9', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-9-'),
                    sg.Text('Build the cfS', font=self.t_font)],
-                  [sg.Button('10', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-9-'),
-                   sg.Text('Reload cFS EDS definitions', font=self.t_font)],
+                  [sg.Button('10', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-10-'),
+                   sg.Text('Reload cFS python EDS definitions', font=self.t_font)],
                   [sg.Button('Exit', enable_events=True, key='-EXIT-', image_data=image_grey1, button_color=('black', sg.theme_background_color()), border_width=0)]
                  ]
         # sg.Button('Exit', enable_events=True, key='-EXIT-')
@@ -714,31 +718,53 @@ class ManageCfs():
             elif self.event == '-1-': # Stop the cFS prior to modifying or adding an app
                 subprocess.Popen('./stop_cfs.sh', shell=True)
             
-            elif self.event == '-2-': # Edit targets.cmake
+            elif self.event == '-2-': # Update targets.cmake
+                cmake_files = usr_app_spec.get_targets_cmake_files()
+                popup_text = "After this dialogue, targets.cmake will open in an editor.\nMake the following changes:\n\n1. Add '%s' to 'cpu1_APPLIST'\n" % cmake_files['obj-file']
+                table_list = ""
+                for table in cmake_files['tables']:
+                    table_list += "%s, " % table
+                if len(table_list) > 0:
+                    popup_text += "2. Add '%s' to 'cpu1_FILELIST'\n" % table_list[:len(table_list)-2]
+                sg.popup(popup_text, title='Update targets.cmake', grab_anywhere=True, modal=True)
                 path_filename = os.path.join(self.cfs_abs_defs_path, 'targets.cmake')
                 self.text_editor = sg.execute_py_file("texteditor.py", parms=path_filename, cwd=self.cfsat_tools_path)
             
-            elif self.event == '-3-': # Edit cpu1_cfe_es_startup.scr
+            elif self.event == '-3-': # Copy table files to cfsat_defs
+                cmake_files = usr_app_spec.get_targets_cmake_files()
+                popup_text = "This app does not have any table files to copy"
+                table_list = ""
+                for table in cmake_files['tables']:
+                    table_list += "%s, " % table
+                if len(table_list) > 0:
+                    app_table_path = os.path.join(self.usr_app_path, 'fsw', 'tables')
+                    popup_text = "Copy table files '%s'\n\nFROM %s\n\nTO %s\n" % (table_list[:len(table_list)-2], app_table_path, self.cfs_abs_defs_path)
+                sg.popup(popup_text, title='Copy table files', grab_anywhere=True, modal=True)
+            
+            elif self.event == '-4-': # Update cpu1_cfe_es_startup.scr
+                startup_script_entry = usr_app_spec.get_startup_scr_entry()
+                popup_text = "After this dialogue, cpu1_cfe_es_startup.scr will open in an editor.\nAdd the following entry:\n\n'%s'\n" % startup_script_entry
+                sg.popup(popup_text, title='Update cpu1_cfe_es_startup.scr', grab_anywhere=True, modal=True)
                 path_filename = os.path.join(self.cfs_abs_defs_path, 'cpu1_cfe_es_startup.scr')
                 self.text_editor = sg.execute_py_file("texteditor.py", parms=path_filename, cwd=self.cfsat_tools_path)
             
-            elif self.event == '-4-': # Edit EDS cfe-topicids.xml
-                path_filename = os.path.join(self.cfs_abs_base_path, 'eds/cfe-topicids.xml')
+            elif self.event == '-5-': # Update EDS cfe-topicids.xml
+                path_filename = os.path.join(self.cfs_abs_base_path, 'cfsat_defs', 'eds', 'cfe-topicids.xml')
                 self.text_editor = sg.execute_py_file("texteditor.py", parms=path_filename, cwd=self.cfsat_tools_path)
             
-            elif self.event == '-5-': # Edit EDS config.xml
-                path_filename = os.path.join(self.cfs_abs_base_path, 'eds/config.xml')
+            elif self.event == '-6-': # Update EDS config.xml
+                path_filename = os.path.join(self.cfs_abs_base_path, 'cfsat_defs', 'eds', 'config.xml')
                 self.text_editor = sg.execute_py_file("texteditor.py", parms=path_filename, cwd=self.cfsat_tools_path)
 
-            elif self.event == '-6-': # Edit scheduler table
+            elif self.event == '-7-': # Update scheduler app table
                 path_filename = os.path.join(self.cfs_abs_base_path, 'apps/sch_lab/fsw/tables/sch_lab_table.c')
                 self.text_editor = sg.execute_py_file("texteditor.py", parms=path_filename, cwd=self.cfsat_tools_path)
             
-            elif self.event == '-7-': # Edit telemetry output
+            elif self.event == '-8-': # Update telemetry output app table
                 path_filename = os.path.join(self.cfs_abs_base_path, 'apps/to_lab/fsw/tables/to_lab_sub.c')
                 self.text_editor = sg.execute_py_file("texteditor.py", parms=path_filename, cwd=self.cfsat_tools_path)
             
-            elif self.event == '-8-': # Build the cfS
+            elif self.event == '-9-': # Build the cfS
                 build_cfs_sh = os.path.join(self.cfsat_abs_path, 'build_cfs.sh')
                 self.build_subprocess = subprocess.Popen('%s %s' % (build_cfs_sh, self.cfs_abs_base_path),
                                                        stdout=subprocess.PIPE, shell=True, bufsize=1, universal_newlines=True)
@@ -746,8 +772,8 @@ class ManageCfs():
                     self.cfs_stdout = CfsStdout(self.build_subprocess, self.main_window)
                     self.cfs_stdout.start()
                 
-            elif self.event == '-9-': # Reload cFS EDS definitions
-                sg.popup('Reload cFS EDS definitions', title='Coming soon...', grab_anywhere=True, modal=True)
+            elif self.event == '-10-': # Reload cFS python EDS definitions
+                sg.popup('This feature has not been implemented. You must restart cfsat.', title='Reload cFS EDS definitions', grab_anywhere=True, modal=True)
 
         self.window.close()       
 
