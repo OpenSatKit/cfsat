@@ -142,7 +142,7 @@ class AppSpec():
                 sg.popup("Error loading JSON spec file %s" % self.json_file, title='Error', grab_anywhere=True, modal=False)
                 return False
         else:
-            sg.popup("Error loading JSON spec file %s" % self.file, title='Error', grab_anywhere=True, modal=False)
+            sg.popup("Error loading JSON spec file %s" % self.json_file, title='Error', grab_anywhere=True, modal=False)
             return False
         
         try:

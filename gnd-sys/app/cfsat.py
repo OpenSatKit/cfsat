@@ -360,28 +360,34 @@ class TelecommandGui(TelecommandInterface):
 
                     cmd_has_payload, cmd_payload_item = self.get_cmd_entry_payload(cmd_entry)
                     logger.debug("cmd_payload_item = " + str(cmd_payload_item))
-            
+                    
+                    send_command = True
                     if cmd_has_payload:
             
-                        # Use the information from the database entry iterator to get a payload Entry and object
-                        logger.debug("cmd_payload_item[1] = " + str(cmd_payload_item[1]))
-                        logger.debug("cmd_payload_item[2] = " + str(cmd_payload_item[2]))
-                        #todo: payload_entry = self.eds_mission.lib_db.DatabaseEntry(cmd_payload_item[1], cmd_payload_item[2])
-                        payload_entry = self.eds_mission.get_database_named_entry(cmd_payload_item[2])
-                        payload = payload_entry()
-                        logger.debug("payload_entry = " + str(payload_entry))
-                        logger.debug("payload = " + str(payload))
+                        try:
+                            # Use the information from the database entry iterator to get a payload Entry and object
+                            logger.debug("cmd_payload_item[1] = " + str(cmd_payload_item[1]))
+                            logger.debug("cmd_payload_item[2] = " + str(cmd_payload_item[2]))
+                            #todo: payload_entry = self.eds_mission.lib_db.DatabaseEntry(cmd_payload_item[1], cmd_payload_item[2])
+                            payload_entry = self.eds_mission.get_database_named_entry(cmd_payload_item[2])
+                            payload = payload_entry()
+                            logger.debug("payload_entry = " + str(payload_entry))
+                            logger.debug("payload = " + str(payload))
 
-                        #payload = EdsLib.DatabaseEntry('samplemission','FILE_MGR/SendDirListTlm_Payload')({'DirName': '', 'DirListOffset': 0, 'IncludeSizeTime': 'FALSE'})
-                        #todo: Check if None? payload_struct = self.get_payload_struct(payload_entry, payload, 'Payload')
-                        eds_payload = self.set_payload_values(self.payload_struct)
-                        payload = payload_entry(eds_payload)
-
-                        cmd_obj['Payload'] = payload
+                            #payload = EdsLib.DatabaseEntry('samplemission','FILE_MGR/SendDirListTlm_Payload')({'DirName': '', 'DirListOffset': 0, 'IncludeSizeTime': 'FALSE'})
+                            #todo: Check if None? payload_struct = self.get_payload_struct(payload_entry, payload, 'Payload')
+                            eds_payload = self.set_payload_values(self.payload_struct)
+                            payload = payload_entry(eds_payload)                   
+                            cmd_obj['Payload'] = payload
     
-                    (cmd_sent, cmd_text, cmd_status) = self.send_command(cmd_obj)
-                    if cmd_sent:
-                        cmd_status = "%s %s command sent" % (topic_name, cmd_name)
+                        except:
+                           send_command = False
+                           cmd_status = "%s %s command not sent. Error loading parameters from command window " % (topic_name, cmd_name)
+                    
+                    if send_command:
+                        (cmd_sent, cmd_text, cmd_status) = self.send_command(cmd_obj)
+                        if cmd_sent:
+                            cmd_status = "%s %s command sent" % (topic_name, cmd_name)
                     
                 else:    
             
@@ -586,7 +592,7 @@ class CfsatTelemetryMonitor(TelemetryObserver):
         self.tlm_callback = tlm_callback
         self.event_queue  = event_queue
         
-        self.sys_apps = ['CFE_ES', 'CFE_EVS', 'CFE_SB', 'CFE_TBL', 'CFE_TIME', 'OSK_C_DEMO' 'FILE_MGR']
+        self.sys_apps = ['CFE_ES', 'CFE_EVS', 'CFE_SB', 'CFE_TBL', 'CFE_TIME', 'OSK_C_DEMO' 'FILE_MGR' 'FILE_XFER']
         
         for msg in self.tlm_server.tlm_messages:
             tlm_msg = self.tlm_server.tlm_messages[msg]
