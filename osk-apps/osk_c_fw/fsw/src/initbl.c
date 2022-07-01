@@ -1,19 +1,16 @@
 /*
-**  Copyright 2022 Open STEMware Foundation
+**  Copyright 2022 bitValence, Inc.
 **  All Rights Reserved.
 **
-**  This program is free software; you can modify and/or redistribute it under
-**  the terms of the GNU Affero General Public License as published by the Free
-**  Software Foundation; version 3 with attribution addendums as found in the
-**  LICENSE.txt
+**  This program is free software; you can modify and/or redistribute it
+**  under the terms of the GNU Affero General Public License
+**  as published by the Free Software Foundation; version 3 with
+**  attribution addendums as found in the LICENSE.txt
 **
-**  This program is distributed in the hope that it will be useful, but WITHOUT
-**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
-**  details.
-**  
-**  This program may also be used under the terms of a commercial or enterprise
-**  edition license of cFSAT if purchased from the copyright holder.
+**  This program is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**  GNU Affero General Public License for more details.
 **
 **  Purpose:
 **    Define JSON Initialization table API
@@ -25,13 +22,13 @@
 **       an IniLib enumtype that defines the first enumeration as 'start'
 **       with a value of 0. The 'CFG_' parameter enum definitions follow
 **       'start' so their values begin at 1. The 'CFG_' parameters are used
-**       as an index into the config data stroage array IniTbl->CfgData[]
+**       as an index into the config data storage array IniTbl->CfgData[]
 **       and ('CFG_' - 1) is used to index into IniTbl->JsonParams[] because
 **       CJSON assumes [0] is a valid entry.
 **
 **  References:
-**    1. OpenSatKit Object-based Application Developer's Guide.
-**    2. cFS Application Developer's Guide.
+**    1. OpenSatKit Object-based Application Developer's Guide
+**    2. cFS Application Developer's Guide
 **
 */
 
@@ -59,8 +56,8 @@ static bool ValidJsonObjCfg(const INITBL_Class_t* IniTbl, uint16 JsonObjIndex, J
 **    1. This must be called prior to any other functions
 **
 */
-bool INITBL_Constructor(INITBL_Class_t* IniTbl, const char* IniTblFile,
-                       INILIB_CfgEnum_t* CfgEnum)
+bool INITBL_Constructor(INITBL_Class_t *IniTbl, const char *IniTblFile,
+                       INILIB_CfgEnum_t *CfgEnum)
 {
    
    bool RetStatus = false;
@@ -86,6 +83,34 @@ bool INITBL_Constructor(INITBL_Class_t* IniTbl, const char* IniTblFile,
 
 
 /******************************************************************************
+** Function: INITBL_GetFltConfig
+**
+** Notes:
+**    1. This does not return a status as to whether the configuration 
+**       parameter was successfully retrieved. The logic for retrieving
+**       parameters should be simple and any issues should be resolved during
+**       testing.
+**    2. If the parameter is out of range or of the wrong type, a zero is
+**       returned and an event message is sent.
+**
+*/
+float INITBL_GetFltConfig(const INITBL_Class_t *IniTbl, uint16 Param)
+{
+   
+   float RetValue = 0.0;
+   uint16 JsonObjIndex = (Param-1);
+
+   if (ValidJsonObjCfg(IniTbl, JsonObjIndex, JSONNumber))
+   {
+      RetValue = IniTbl->CfgData[Param].Flt;
+   }
+
+   return RetValue;
+   
+} /* INITBL_GetFltConfig() */
+
+
+/******************************************************************************
 ** Function: INITBL_GetIntConfig
 **
 ** Notes:
@@ -97,7 +122,7 @@ bool INITBL_Constructor(INITBL_Class_t* IniTbl, const char* IniTblFile,
 **       returned and an event message is sent.
 **
 */
-uint32 INITBL_GetIntConfig(const INITBL_Class_t* IniTbl, uint16 Param)
+uint32 INITBL_GetIntConfig(const INITBL_Class_t *IniTbl, uint16 Param)
 {
    
    uint32 RetValue = 0;
@@ -125,7 +150,7 @@ uint32 INITBL_GetIntConfig(const INITBL_Class_t* IniTbl, uint16 Param)
 **       is returned and an event message is sent.
 **
 */
-const char* INITBL_GetStrConfig(const INITBL_Class_t* IniTbl, uint16 Param)
+const char* INITBL_GetStrConfig(const INITBL_Class_t *IniTbl, uint16 Param)
 {
    
    const char* RetStrPtr = NULL;
@@ -149,7 +174,7 @@ const char* INITBL_GetStrConfig(const INITBL_Class_t* IniTbl, uint16 Param)
 **      CJSON_Obj_t that can be used to process the JSON ini file.
 **
 */
-static bool BuildJsonTblObjArray (INITBL_Class_t* IniTbl)
+static bool BuildJsonTblObjArray (INITBL_Class_t *IniTbl)
 {
 
    bool RetStatus = true;
@@ -185,18 +210,30 @@ static bool BuildJsonTblObjArray (INITBL_Class_t* IniTbl)
             JsonParam->TblDataLen   = sizeof(uint32);
             JsonParam->Updated      = false;
             JsonParam->Type         = JSONNumber;
+            JsonParam->TypeFlt      = false;
             strncpy(JsonParam->Query.Key, INITBL_JSON_CONFIG_OBJ_PREFIX, CJSON_MAX_KEY_LEN);
             strncat(JsonParam->Query.Key, CfgStrPtr, CJSON_MAX_KEY_LEN);
             JsonParam->Query.KeyLen = strlen(JsonParam->Query.Key);
          
          } /* End if integer */
+         else if (strcmp(CfgTypePtr, INILIB_TYPE_FLT) == 0)
+         {
+            JsonParam->TblData      = &IniTbl->CfgData[Param].Flt;
+            JsonParam->TblDataLen   = sizeof(float);
+            JsonParam->Updated      = false;
+            JsonParam->Type         = JSONNumber;
+            JsonParam->TypeFlt      = true;
+            strncpy(JsonParam->Query.Key, INITBL_JSON_CONFIG_OBJ_PREFIX, CJSON_MAX_KEY_LEN);
+            strncat(JsonParam->Query.Key, CfgStrPtr, CJSON_MAX_KEY_LEN);
+            JsonParam->Query.KeyLen = strlen(JsonParam->Query.Key);
+         } /* End if float */
          else if (strcmp(CfgTypePtr, INILIB_TYPE_STR) == 0)
          {
-
             JsonParam->TblData      = &IniTbl->CfgData[Param].Str;
             JsonParam->TblDataLen   = INITBL_MAX_CFG_STR_LEN;
             JsonParam->Updated      = false;
             JsonParam->Type         = JSONString;
+            JsonParam->TypeFlt      = false;
             strncpy(JsonParam->Query.Key, INITBL_JSON_CONFIG_OBJ_PREFIX, CJSON_MAX_KEY_LEN);
             strncat(JsonParam->Query.Key, CfgStrPtr, CJSON_MAX_KEY_LEN);
             JsonParam->Query.KeyLen = strlen(JsonParam->Query.Key);
@@ -236,7 +273,7 @@ static bool BuildJsonTblObjArray (INITBL_Class_t* IniTbl)
 **     configuration parameters should be defined and it is considered and
 **     error if this is not the case.
 */
-static bool LoadJsonData(size_t JsonFileLen, void* UserDataPtr)
+static bool LoadJsonData(size_t JsonFileLen, void *UserDataPtr)
 {
 
    bool            RetStatus = false;
@@ -271,7 +308,7 @@ static bool LoadJsonData(size_t JsonFileLen, void* UserDataPtr)
 ** Function: ValidJsonObjCfg
 **
 */
-static bool ValidJsonObjCfg(const INITBL_Class_t* IniTbl, uint16 JsonObjIndex, JSONTypes_t Type)
+static bool ValidJsonObjCfg(const INITBL_Class_t *IniTbl, uint16 JsonObjIndex, JSONTypes_t Type)
 {
    
    bool RetStatus = false;

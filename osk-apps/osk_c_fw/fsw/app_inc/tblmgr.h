@@ -1,19 +1,16 @@
 /*
-**  Copyright 2022 Open STEMware Foundation
+**  Copyright 2022 bitValence, Inc.
 **  All Rights Reserved.
 **
-**  This program is free software; you can modify and/or redistribute it under
-**  the terms of the GNU Affero General Public License as published by the Free
-**  Software Foundation; version 3 with attribution addendums as found in the
-**  LICENSE.txt
+**  This program is free software; you can modify and/or redistribute it
+**  under the terms of the GNU Affero General Public License
+**  as published by the Free Software Foundation; version 3 with
+**  attribution addendums as found in the LICENSE.txt
 **
-**  This program is distributed in the hope that it will be useful, but WITHOUT
-**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
-**  details.
-**  
-**  This program may also be used under the terms of a commercial or enterprise
-**  edition license of cFSAT if purchased from the copyright holder.
+**  This program is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**  GNU Affero General Public License for more details.
 **
 **  Purpose:
 **    Manage tables for an application
@@ -180,6 +177,25 @@ void TBLMGR_Constructor(TBLMGR_Class_t* TblMgr);
 
 
 /******************************************************************************
+** Function: TBLMGR_GetLastTblStatus
+**
+** Returns a pointer to the table status structure for the table that the
+** last action was performed upon. Returns NULL if table manager's last action
+** is in an invalid state.
+*/
+const TBLMGR_Tbl_t* TBLMGR_GetLastTblStatus(TBLMGR_Class_t* TblMgr);
+
+
+/******************************************************************************
+** Function: TBLMGR_GetTblStatus
+**
+** Returns a pointer to the table status for TblId. Returns NULL if TblId 
+** is invalid.
+*/
+const TBLMGR_Tbl_t* TBLMGR_GetTblStatus(TBLMGR_Class_t* TblMgr, uint8 TblId);
+
+
+/******************************************************************************
 ** Function: TBLMGR_RegisterTbl
 **
 ** Register a table without loading a default table.
@@ -207,25 +223,6 @@ void TBLMGR_ResetStatus(TBLMGR_Class_t* TblMgr);
 
 
 /******************************************************************************
-** Function: TBLMGR_GetLastTblStatus
-**
-** Returns a pointer to the table status structure for the table that the
-** last action was performed upon. Returns NULL if table manager's last action
-** is in an invalid state.
-*/
-const TBLMGR_Tbl_t* TBLMGR_GetLastTblStatus(TBLMGR_Class_t* TblMgr);
-
-
-/******************************************************************************
-** Function: TBLMGR_GetTblStatus
-**
-** Returns a pointer to the table status for TblId. Returns NULL if TblId 
-** is invalid.
-*/
-const TBLMGR_Tbl_t* TBLMGR_GetTblStatus(TBLMGR_Class_t* TblMgr, uint8 TblId);
-
-
-/******************************************************************************
 ** Function: TBLMGR_LoadTblCmd
 **
 ** Note:
@@ -238,6 +235,16 @@ bool TBLMGR_LoadTblCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
+** Function: TBLMGR_LoadTypeStr
+**
+** Note:
+**  1. Returns a pointer to a string that describes the load type 
+** 
+*/
+const char* TBLMGR_LoadTypeStr(int8 LoadType);
+
+
+/******************************************************************************
 ** Function: TBLMGR_DumpTblCmd
 **
 ** Note:
@@ -247,16 +254,6 @@ bool TBLMGR_LoadTblCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 ** 
 */
 bool TBLMGR_DumpTblCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
-
-
-/******************************************************************************
-** Function: TBLMGR_LoadTypeStr
-**
-** Note:
-**  1. Returns a pointer to a string that describes the load type 
-** 
-*/
-const char* TBLMGR_LoadTypeStr(int8 LoadType);
 
 
 #endif /* _tblmgr_ */

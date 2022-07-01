@@ -1,19 +1,16 @@
 /*
-**  Copyright 2022 Open STEMware Foundation
+**  Copyright 2022 bitValence, Inc.
 **  All Rights Reserved.
 **
-**  This program is free software; you can modify and/or redistribute it under
-**  the terms of the GNU Affero General Public License as published by the Free
-**  Software Foundation; version 3 with attribution addendums as found in the
-**  LICENSE.txt
+**  This program is free software; you can modify and/or redistribute it
+**  under the terms of the GNU Affero General Public License
+**  as published by the Free Software Foundation; version 3 with
+**  attribution addendums as found in the LICENSE.txt
 **
-**  This program is distributed in the hope that it will be useful, but WITHOUT
-**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
-**  details.
-**  
-**  This program may also be used under the terms of a commercial or enterprise
-**  edition license of cFSAT if purchased from the copyright holder.
+**  This program is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**  GNU Affero General Public License for more details.
 **
 **  Purpose:
 **    Manage command dispatching for an application
@@ -82,6 +79,113 @@ void CMDMGR_Constructor(CMDMGR_Class_t* CmdMgr)
    }
 
 } /* End CMDMGR_Constructor() */
+
+
+/******************************************************************************
+** Function: CMDMGR_BoolStr
+**
+** Purpose: Return a pointer to a string describing a boolean
+**
+** Notes:
+**   Assumes false=0 and true=1
+*/
+const char* CMDMGR_BoolStr(bool BoolArg)
+{
+   
+   uint8 i = 2;
+   
+   if ( BoolArg == true || BoolArg == false) {
+   
+      i = BoolArg;
+   
+   }
+        
+   return BoolStr[i];
+
+} /* End CMDMGR_BoolStr() */
+
+
+/******************************************************************************
+** Function: CMDMGR_DispatchFunc
+**
+** Notes:
+**   1. Considered sending an event message for alternate counter commands, but
+**      decided this is the client's responsibility. CmdMgr is a dispatcher and
+**      if an app wants a message response then it should publish the format. 
+**
+*/
+bool CMDMGR_DispatchFunc(CMDMGR_Class_t* CmdMgr, const CFE_MSG_Message_t *MsgPtr)
+{
+
+   bool   ValidCmd = false;
+   bool   ChecksumValid;
+   size_t UserDataLen; 
+   CFE_MSG_Size_t    MsgSize;
+   CFE_MSG_FcnCode_t FuncCode;
+
+   UserDataLen = CFE_SB_GetUserDataLength(MsgPtr);
+
+   CFE_MSG_GetSize(MsgPtr, &MsgSize);
+   CFE_MSG_GetFcnCode(MsgPtr, &FuncCode);
+   CFE_MSG_ValidateChecksum(MsgPtr, &ChecksumValid);
+
+   if (DBG_CMDMGR) LogMsgBytes((uint8*) MsgPtr, UserDataLen, FuncCode);
+
+   if (FuncCode < CMDMGR_CMD_FUNC_TOTAL)
+   {
+
+      if (UserDataLen == CmdMgr->Cmd[FuncCode].UserDataLen)
+      {
+
+         if (ChecksumValid)
+         {
+
+            ValidCmd = (CmdMgr->Cmd[FuncCode].FuncPtr)(CmdMgr->Cmd[FuncCode].DataPtr, MsgPtr);
+
+         } /* End if valid checksum */
+         else
+         {
+
+            CFE_EVS_SendEvent (CMDMGR_DISPATCH_INVALID_CHECKSUM_ERR_EID, CFE_EVS_EventType_ERROR,
+                               "Invalid command checksum");
+         
+         }
+      } /* End if valid length */
+      else
+      {
+
+         CFE_EVS_SendEvent (CMDMGR_DISPATCH_INVALID_LEN_ERR_EID, CFE_EVS_EventType_ERROR,
+                            "Invalid command user data length %d, expected %d for function code %d",
+                            (unsigned int)UserDataLen, CmdMgr->Cmd[FuncCode].UserDataLen, FuncCode);
+
+      }
+
+   } /* End if valid function code */
+   else
+   {
+      
+      CFE_EVS_SendEvent (CMDMGR_DISPATCH_INVALID_FUNC_CODE_ERR_EID, CFE_EVS_EventType_ERROR,
+                         "Invalid command function code %d is greater than max %d",
+                         FuncCode, (CMDMGR_CMD_FUNC_TOTAL-1));
+
+   } /* End if invalid function code */
+
+   if (CmdMgr->Cmd[FuncCode].AltCnt.Enabled)
+   {
+   
+      ValidCmd ? CmdMgr->Cmd[FuncCode].AltCnt.Valid++ : CmdMgr->Cmd[FuncCode].AltCnt.Invalid++;
+   
+   } 
+   else
+   {
+   
+      ValidCmd ? CmdMgr->ValidCmdCnt++ : CmdMgr->InvalidCmdCnt++;
+   
+   }
+   
+   return ValidCmd;
+
+} /* End CMDMGR_DispatchFunc() */
 
 
 /******************************************************************************
@@ -173,89 +277,6 @@ void CMDMGR_ResetStatus(CMDMGR_Class_t* CmdMgr)
 
 
 /******************************************************************************
-** Function: CMDMGR_DispatchFunc
-**
-** Notes:
-**   1. Considered sending an event message for alternate counter commands, but
-**      decided this is the client's responsibility. CmdMgr is a dispatcher and
-**      if an app wants a message response then it should publish the format. 
-**
-*/
-bool CMDMGR_DispatchFunc(CMDMGR_Class_t* CmdMgr, const CFE_MSG_Message_t *MsgPtr)
-{
-
-   bool   ValidCmd = false;
-   bool   ChecksumValid;
-   size_t UserDataLen; 
-   CFE_MSG_Size_t    MsgSize;
-   CFE_MSG_FcnCode_t FuncCode;
-
-   UserDataLen = CFE_SB_GetUserDataLength(MsgPtr);
-
-   CFE_MSG_GetSize(MsgPtr, &MsgSize);
-   CFE_MSG_GetFcnCode(MsgPtr, &FuncCode);
-   CFE_MSG_ValidateChecksum(MsgPtr, &ChecksumValid);
-
-   if (DBG_CMDMGR) LogMsgBytes((uint8*) MsgPtr, UserDataLen, FuncCode);
-
-   if (FuncCode < CMDMGR_CMD_FUNC_TOTAL)
-   {
-
-      if (UserDataLen == CmdMgr->Cmd[FuncCode].UserDataLen)
-      {
-
-         if (ChecksumValid)
-         {
-
-            ValidCmd = (CmdMgr->Cmd[FuncCode].FuncPtr)(CmdMgr->Cmd[FuncCode].DataPtr, MsgPtr);
-
-         } /* End if valid checksum */
-         else
-         {
-
-            CFE_EVS_SendEvent (CMDMGR_DISPATCH_INVALID_CHECKSUM_ERR_EID, CFE_EVS_EventType_ERROR,
-                               "Invalid command checksum");
-         
-         }
-      } /* End if valid length */
-      else
-      {
-
-         CFE_EVS_SendEvent (CMDMGR_DISPATCH_INVALID_LEN_ERR_EID, CFE_EVS_EventType_ERROR,
-                            "Invalid command user data length %d, expected %d for function code %d",
-                            (unsigned int)UserDataLen, CmdMgr->Cmd[FuncCode].UserDataLen, FuncCode);
-
-      }
-
-   } /* End if valid function code */
-   else
-   {
-      
-      CFE_EVS_SendEvent (CMDMGR_DISPATCH_INVALID_FUNC_CODE_ERR_EID, CFE_EVS_EventType_ERROR,
-                         "Invalid command function code %d is greater than max %d",
-                         FuncCode, (CMDMGR_CMD_FUNC_TOTAL-1));
-
-   } /* End if invalid function code */
-
-   if (CmdMgr->Cmd[FuncCode].AltCnt.Enabled)
-   {
-   
-      ValidCmd ? CmdMgr->Cmd[FuncCode].AltCnt.Valid++ : CmdMgr->Cmd[FuncCode].AltCnt.Invalid++;
-   
-   } 
-   else
-   {
-   
-      ValidCmd ? CmdMgr->ValidCmdCnt++ : CmdMgr->InvalidCmdCnt++;
-   
-   }
-   
-   return ValidCmd;
-
-} /* End CMDMGR_DispatchFunc() */
-
-
-/******************************************************************************
 ** Function: CMDMGR_ValidBoolArg
 **
 */
@@ -265,30 +286,6 @@ bool CMDMGR_ValidBoolArg(uint16 BoolArg)
    return ((BoolArg == true) || (BoolArg == false));
 
 } /* CMDMGR_ValidBoolArg() */
-
-
-/******************************************************************************
-** Function: CMDMGR_BoolStr
-**
-** Purpose: Return a pointer to a string describing a boolean
-**
-** Notes:
-**   Assumes false=0 and true=1
-*/
-const char* CMDMGR_BoolStr(bool BoolArg)
-{
-   
-   uint8 i = 2;
-   
-   if ( BoolArg == true || BoolArg == false) {
-   
-      i = BoolArg;
-   
-   }
-        
-   return BoolStr[i];
-
-} /* End CMDMGR_BoolStr() */
 
 
 /******************************************************************************

@@ -1,19 +1,16 @@
 /*
-**  Copyright 2022 Open STEMware Foundation
+**  Copyright 2022 bitValence, Inc.
 **  All Rights Reserved.
 **
-**  This program is free software; you can modify and/or redistribute it under
-**  the terms of the GNU Affero General Public License as published by the Free
-**  Software Foundation; version 3 with attribution addendums as found in the
-**  LICENSE.txt
+**  This program is free software; you can modify and/or redistribute it
+**  under the terms of the GNU Affero General Public License
+**  as published by the Free Software Foundation; version 3 with
+**  attribution addendums as found in the LICENSE.txt
 **
-**  This program is distributed in the hope that it will be useful, but WITHOUT
-**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
-**  details.
-**  
-**  This program may also be used under the terms of a commercial or enterprise
-**  edition license of cFSAT if purchased from the copyright holder.
+**  This program is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**  GNU Affero General Public License for more details.
 **
 **  Purpose:
 **    Provide general file management utilties
@@ -145,6 +142,14 @@ bool FileUtil_AppendPathSep(char *DirName, uint16 BufferLen);
 
 
 /******************************************************************************
+** Function: FileUtil_FileStateStr
+**
+** Return a string describing the FileUtil_FileState enumeration.
+*/
+const char* FileUtil_FileStateStr(FileUtil_FileState_t  FileState);
+
+
+/******************************************************************************
 ** Function: FileUtil_GetFileInfo
 **
 ** First verifies the filename string itself and determines the file state and
@@ -175,14 +180,6 @@ uint16 FileUtil_GetOpenFileList(FileUtil_OpenFileList_t *OpenFileList);
 
 
 /******************************************************************************
-** Function: FileUtil_FileStateStr
-**
-** Return a string describing the FileUtil_FileState enumeration.
-*/
-const char* FileUtil_FileStateStr(FileUtil_FileState_t  FileState);
-
-
-/******************************************************************************
 ** Function: FileUtil_ReadLine
 **
 ** Read a line from a text file.
@@ -192,11 +189,11 @@ bool FileUtil_ReadLine (int FileHandle, char* DestBuf, int MaxChar);
 
 
 /******************************************************************************
-** Function: FileUtil_VerifyFilenameStr
+** Function: FileUtil_VerifyDirForWrite
 **
-**  Verify file name len, termination, and characters are valid.
+**   Verify file name is valid and that the directory exists.
 */
-bool FileUtil_VerifyFilenameStr(const char* Filename);
+bool FileUtil_VerifyDirForWrite(const char* Filename);
 
 
 /******************************************************************************
@@ -208,10 +205,11 @@ bool FileUtil_VerifyFileForRead(const char* Filename);
 
 
 /******************************************************************************
-** Function: FileUtil_VerifyDirForWrite
+** Function: FileUtil_VerifyFilenameStr
 **
-**   Verify file name is valid and that the directory exists.
+**  Verify file name len, termination, and characters are valid.
 */
-bool FileUtil_VerifyDirForWrite(const char* Filename);
+bool FileUtil_VerifyFilenameStr(const char* Filename);
+
 
 #endif /* _file_util_ */

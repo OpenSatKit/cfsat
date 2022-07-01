@@ -1,19 +1,16 @@
 /*
-**  Copyright 2022 Open STEMware Foundation
+**  Copyright 2022 bitValence, Inc.
 **  All Rights Reserved.
 **
-**  This program is free software; you can modify and/or redistribute it under
-**  the terms of the GNU Affero General Public License as published by the Free
-**  Software Foundation; version 3 with attribution addendums as found in the
-**  LICENSE.txt
+**  This program is free software; you can modify and/or redistribute it
+**  under the terms of the GNU Affero General Public License
+**  as published by the Free Software Foundation; version 3 with
+**  attribution addendums as found in the LICENSE.txt
 **
-**  This program is distributed in the hope that it will be useful, but WITHOUT
-**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
-**  details.
-**  
-**  This program may also be used under the terms of a commercial or enterprise
-**  edition license of cFSAT if purchased from the copyright holder.
+**  This program is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**  GNU Affero General Public License for more details.
 **
 **  Purpose:
 **    Manage tables for an application
@@ -70,94 +67,52 @@ void TBLMGR_Constructor(TBLMGR_Class_t* TblMgr)
 
 } /* End TBLMGR_Constructor() */
 
+
 /******************************************************************************
-** Function: TBLMGR_RegisterTbl
+** Function: TBLMGR_DumpTblCmd
 **
-** Register a table without loading a default table.
-** Returns table ID.
+** Note:
+**  1. This function must comply with the CMDMGR_CmdFuncPtr_t definition
+**  2. It calls the TBLMGR_DumpTblFuncPtr function that the user provided
+**     during registration 
+** 
 */
-uint8 TBLMGR_RegisterTbl(TBLMGR_Class_t* TblMgr, TBLMGR_LoadTblFuncPtr_t LoadFuncPtr, 
-                         TBLMGR_DumpTblFuncPtr_t DumpFuncPtr)
+bool TBLMGR_DumpTblCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
-  
-   TBLMGR_Tbl_t*  NewTbl;
-   TblMgr->LastActionTblId = TBLMGR_MAX_TBL_PER_APP;
-   
-   if (DBG_TBLMGR) OS_printf("TBLMGR_RegisterTbl() Entry\n");
-   if (TblMgr->NextAvailableId < TBLMGR_MAX_TBL_PER_APP)
+
+   bool RetStatus = false;
+   TBLMGR_Tbl_t*   Tbl;
+   TBLMGR_Class_t* TblMgr = (TBLMGR_Class_t *) ObjDataPtr;
+   const  TBLMGR_TblCmdMsg_Payload_t *DumpTblCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, TBLMGR_DumpTblCmdMsg_t);
+      
+   if (DumpTblCmd->Id < TblMgr->NextAvailableId)
    {
-
-      NewTbl = &(TblMgr->Tbl[TblMgr->NextAvailableId]);
-      NewTbl->Id = TblMgr->NextAvailableId;
-      NewTbl->LastAction = TBLMGR_ACTION_REGISTER;
-      NewTbl->LastActionStatus = TBLMGR_STATUS_VALID;
-      NewTbl->Loaded = false;
-      strcpy(NewTbl->Filename,TBLMGR_UNDEF_STR);
-       
-      /* Should never have null ptr but just in case leave stub function in place */
-      if (LoadFuncPtr != NULL) 
-         NewTbl->LoadFuncPtr = LoadFuncPtr;
-      if (DumpFuncPtr != NULL) 
-         NewTbl->DumpFuncPtr = DumpFuncPtr;
-       
-      TblMgr->NextAvailableId++;
-      TblMgr->LastActionTblId = NewTbl->Id;
-
+      TblMgr->Tbl[DumpTblCmd->Id].LastAction       = TBLMGR_ACTION_DUMP;
+      TblMgr->Tbl[DumpTblCmd->Id].LastActionStatus = TBLMGR_STATUS_INVALID;
+      TblMgr->LastActionTblId = DumpTblCmd->Id;
+      if (FileUtil_VerifyDirForWrite(DumpTblCmd->Filename))
+      {
+         Tbl = &TblMgr->Tbl[DumpTblCmd->Id];
+         RetStatus = (Tbl->DumpFuncPtr) (Tbl, DumpTblCmd->Type, DumpTblCmd->Filename);
+         if (RetStatus)
+         {
+            TblMgr->Tbl[DumpTblCmd->Id].LastActionStatus = TBLMGR_STATUS_VALID;
+            CFE_EVS_SendEvent(TBLMGR_DUMP_SUCCESS_EID, CFE_EVS_EventType_INFORMATION, 
+                              "Successfully dumped table %d to file %s",
+                              DumpTblCmd->Id, DumpTblCmd->Filename);
+         }
+      }
    }
    else
    {
-      CFE_EVS_SendEvent (TBLMGR_REG_EXCEEDED_MAX_EID, CFE_EVS_EventType_ERROR,
-      "Attempt to register a table that would have exceeded the max %d tables defined for the app",
-      TBLMGR_MAX_TBL_PER_APP);
+      
+      CFE_EVS_SendEvent(TBLMGR_DUMP_ID_ERR_EID, CFE_EVS_EventType_ERROR, "Invalid table dump ID %d. Greater than last registered ID %d.",
+                        DumpTblCmd->Id, (TblMgr->NextAvailableId-1));     
    }
+
+   return RetStatus;
   
-   return TblMgr->LastActionTblId;
-   
-} /* End TBLMGR_RegisterTbl() */
-
-/******************************************************************************
-** Function: TBLMGR_RegisterTblWithDef
-**
-** Register a table and load a default table
-** Returns table ID.
-*/
-uint8 TBLMGR_RegisterTblWithDef(TBLMGR_Class_t* TblMgr, TBLMGR_LoadTblFuncPtr_t LoadFuncPtr, 
-                                TBLMGR_DumpTblFuncPtr_t DumpFuncPtr, const char* TblFilename)
-{
-
-   uint8 TblId = TBLMGR_RegisterTbl(TblMgr, LoadFuncPtr, DumpFuncPtr);
-   TBLMGR_LoadTblCmdMsg_t LoadTblCmd;
-
-   if (DBG_TBLMGR) OS_printf("TBLMGR_RegisterTblWithDef() Entry\n");
-
-   if (TblId < TBLMGR_MAX_TBL_PER_APP)
-   {
-      strncpy (TblMgr->Tbl[TblId].Filename,TblFilename,OS_MAX_PATH_LEN);
-      TblMgr->Tbl[TblId].Filename[OS_MAX_PATH_LEN-1] = '\0';
-      
-      /* Use load table command function */
-      LoadTblCmd.Payload.Id = TblId;
-      LoadTblCmd.Payload.Type = TBLMGR_LOAD_TBL_REPLACE;
-      strncpy (LoadTblCmd.Payload.Filename,TblFilename,OS_MAX_PATH_LEN);
-      TBLMGR_LoadTblCmd(TblMgr, (CFE_MSG_Message_t *)&LoadTblCmd);
-      
-   } /* End if TblId valid */
-   
-   return TblId;
-  
-} /* End TBLMGR_RegisterTblWithDef() */  
-
-
-/******************************************************************************
-** Function: TBLMGR_ResetStatus
-**
-*/
-void TBLMGR_ResetStatus(TBLMGR_Class_t* TblMgr)
-{
-
-   /* Nothing to do - Preserve status of most recent action */ 
-
-} /* End TBLMGR_ResetStatus() */
+} /* End TBLMGR_DumpTbl() */
 
 
 /******************************************************************************
@@ -285,50 +240,112 @@ const char* TBLMGR_LoadTypeStr(int8 LoadType)
 
 
 /******************************************************************************
-** Function: TBLMGR_DumpTblCmd
+** Function: TBLMGR_RegisterTbl
 **
-** Note:
-**  1. This function must comply with the CMDMGR_CmdFuncPtr_t definition
-**  2. It calls the TBLMGR_DumpTblFuncPtr function that the user provided
-**     during registration 
-** 
+** Register a table without loading a default table.
+** Returns table ID.
 */
-bool TBLMGR_DumpTblCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
+uint8 TBLMGR_RegisterTbl(TBLMGR_Class_t* TblMgr, TBLMGR_LoadTblFuncPtr_t LoadFuncPtr, 
+                         TBLMGR_DumpTblFuncPtr_t DumpFuncPtr)
 {
-
-   bool RetStatus = false;
-   TBLMGR_Tbl_t*   Tbl;
-   TBLMGR_Class_t* TblMgr = (TBLMGR_Class_t *) ObjDataPtr;
-   const  TBLMGR_TblCmdMsg_Payload_t *DumpTblCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, TBLMGR_DumpTblCmdMsg_t);
-      
-   if (DumpTblCmd->Id < TblMgr->NextAvailableId)
+  
+   TBLMGR_Tbl_t*  NewTbl;
+   TblMgr->LastActionTblId = TBLMGR_MAX_TBL_PER_APP;
+   
+   if (DBG_TBLMGR) OS_printf("TBLMGR_RegisterTbl() Entry\n");
+   if (TblMgr->NextAvailableId < TBLMGR_MAX_TBL_PER_APP)
    {
-      TblMgr->Tbl[DumpTblCmd->Id].LastAction       = TBLMGR_ACTION_DUMP;
-      TblMgr->Tbl[DumpTblCmd->Id].LastActionStatus = TBLMGR_STATUS_INVALID;
-      TblMgr->LastActionTblId = DumpTblCmd->Id;
-      if (FileUtil_VerifyDirForWrite(DumpTblCmd->Filename))
-      {
-         Tbl = &TblMgr->Tbl[DumpTblCmd->Id];
-         RetStatus = (Tbl->DumpFuncPtr) (Tbl, DumpTblCmd->Type, DumpTblCmd->Filename);
-         if (RetStatus)
-         {
-            TblMgr->Tbl[DumpTblCmd->Id].LastActionStatus = TBLMGR_STATUS_VALID;
-            CFE_EVS_SendEvent(TBLMGR_DUMP_SUCCESS_EID, CFE_EVS_EventType_INFORMATION, 
-                              "Successfully dumped table %d to file %s",
-                              DumpTblCmd->Id, DumpTblCmd->Filename);
-         }
-      }
+
+      NewTbl = &(TblMgr->Tbl[TblMgr->NextAvailableId]);
+      NewTbl->Id = TblMgr->NextAvailableId;
+      NewTbl->LastAction = TBLMGR_ACTION_REGISTER;
+      NewTbl->LastActionStatus = TBLMGR_STATUS_VALID;
+      NewTbl->Loaded = false;
+      strcpy(NewTbl->Filename,TBLMGR_UNDEF_STR);
+       
+      /* Should never have null ptr but just in case leave stub function in place */
+      if (LoadFuncPtr != NULL) 
+         NewTbl->LoadFuncPtr = LoadFuncPtr;
+      if (DumpFuncPtr != NULL) 
+         NewTbl->DumpFuncPtr = DumpFuncPtr;
+       
+      TblMgr->NextAvailableId++;
+      TblMgr->LastActionTblId = NewTbl->Id;
+
    }
    else
    {
-      
-      CFE_EVS_SendEvent(TBLMGR_DUMP_ID_ERR_EID, CFE_EVS_EventType_ERROR, "Invalid table dump ID %d. Greater than last registered ID %d.",
-                        DumpTblCmd->Id, (TblMgr->NextAvailableId-1));     
+      CFE_EVS_SendEvent (TBLMGR_REG_EXCEEDED_MAX_EID, CFE_EVS_EventType_ERROR,
+      "Attempt to register a table that would have exceeded the max %d tables defined for the app",
+      TBLMGR_MAX_TBL_PER_APP);
    }
-
-   return RetStatus;
   
-} /* End TBLMGR_DumpTbl() */
+   return TblMgr->LastActionTblId;
+   
+} /* End TBLMGR_RegisterTbl() */
+
+
+/******************************************************************************
+** Function: TBLMGR_RegisterTblWithDef
+**
+** Register a table and load a default table
+** Returns table ID.
+*/
+uint8 TBLMGR_RegisterTblWithDef(TBLMGR_Class_t* TblMgr, TBLMGR_LoadTblFuncPtr_t LoadFuncPtr, 
+                                TBLMGR_DumpTblFuncPtr_t DumpFuncPtr, const char* TblFilename)
+{
+
+   uint8 TblId = TBLMGR_RegisterTbl(TblMgr, LoadFuncPtr, DumpFuncPtr);
+   TBLMGR_LoadTblCmdMsg_t LoadTblCmd;
+
+   if (DBG_TBLMGR) OS_printf("TBLMGR_RegisterTblWithDef() Entry\n");
+
+   if (TblId < TBLMGR_MAX_TBL_PER_APP)
+   {
+      strncpy (TblMgr->Tbl[TblId].Filename,TblFilename,OS_MAX_PATH_LEN);
+      TblMgr->Tbl[TblId].Filename[OS_MAX_PATH_LEN-1] = '\0';
+      
+      /* Use load table command function */
+      LoadTblCmd.Payload.Id = TblId;
+      LoadTblCmd.Payload.Type = TBLMGR_LOAD_TBL_REPLACE;
+      strncpy (LoadTblCmd.Payload.Filename,TblFilename,OS_MAX_PATH_LEN);
+      TBLMGR_LoadTblCmd(TblMgr, (CFE_MSG_Message_t *)&LoadTblCmd);
+      
+   } /* End if TblId valid */
+   
+   return TblId;
+  
+} /* End TBLMGR_RegisterTblWithDef() */  
+
+
+/******************************************************************************
+** Function: TBLMGR_ResetStatus
+**
+*/
+void TBLMGR_ResetStatus(TBLMGR_Class_t* TblMgr)
+{
+
+   /* Nothing to do - Preserve status of most recent action */ 
+
+} /* End TBLMGR_ResetStatus() */
+
+
+/******************************************************************************
+** Function: DumpTblStub 
+**
+** Notes:
+**  1. Must used the TBLMGR_TblDumpFuncPtr function definition
+*/
+static bool DumpTblStub(TBLMGR_Tbl_t* Tbl, uint8 DumpType, const char* Filename)
+{
+
+   CFE_EVS_SendEvent (TBLMGR_DUMP_STUB_ERR_EID, CFE_EVS_EventType_ERROR,
+                      "Application did not define a dump table function for table %d",
+                      Tbl->Id);
+
+   return false;
+
+} /* End DumpTblStub() */
 
 
 /******************************************************************************
@@ -349,19 +366,4 @@ static bool LoadTblStub(TBLMGR_Tbl_t* Tbl, uint8 LoadType, const char* Filename)
 } /* End LoadTblStub() */
 
 
-/******************************************************************************
-** Function: DumpTblStub 
-**
-** Notes:
-**  1. Must used the TBLMGR_TblDumpFuncPtr function definition
-*/
-static bool DumpTblStub(TBLMGR_Tbl_t* Tbl, uint8 DumpType, const char* Filename)
-{
 
-   CFE_EVS_SendEvent (TBLMGR_DUMP_STUB_ERR_EID, CFE_EVS_EventType_ERROR,
-                      "Application did not define a dump table function for table %d",
-                      Tbl->Id);
-
-   return false;
-
-} /* End DumpTblStub() */
