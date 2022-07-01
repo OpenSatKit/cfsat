@@ -1,41 +1,43 @@
-/*
-** Purpose: Define the "File Input Transfer Protocol" (FITP).
+/* 
+**  Copyright 2022 bitValence, Inc.
+**  All Rights Reserved.
 **
-** Notes:
-**   1. The FITP is a custom algorithm that is similar to the CFDP Class 1
-**      protocol and the TFTP algorithm without the acks for each data
-**      segment. The need for this protocol was driven by half-duplex and 
-**      highly imbalanced communication links.
-**   2. Only one file tranfer can be active at a time and it is considered
-**      an error if a new transfer is attempted when a trasnfer is already
-**      in progress.
-**   3. The file transfer is command driven with the file sender issuing
-**      the following sequence:
+**  This program is free software; you can modify and/or redistribute it
+**  under the terms of the GNU Affero General Public License
+**  as published by the Free Software Foundation; version 3 with
+**  attribution addendums as found in the LICENSE.txt
+**
+**  This program is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**  GNU Affero General Public License for more details.
+**
+**  Purpose:
+**    Implement the "File Input Transfer Protocol" (FITP)
+**
+**  Notes:
+**    1. The FITP is a custom algorithm that is similar to the CFDP Class 1
+**       protocol and the TFTP algorithm without the acks for each data
+**       segment. The need for this protocol was driven by half-duplex and 
+**       highly imbalanced communication links.
+**    2. Only one file tranfer can be active at a time and it is considered
+**       an error if a new transfer is attempted when a trasnfer is already
+**       in progress.
+**    3. The file transfer is command driven with the file sender issuing
+**       the following sequence:
 **
 **         A. Start File Transfer command
 **         B. 1..N Data Segment commands
 **         C. Finish File Transfer command
 **
-**   4. There are no timers associated with the protocol and a cancel file
-**      transfer command can be sent at any time.
-**      
-** References:
-**   1. OpenSatKit Object-based Application Developer's Guide and the
-**      osk_c_demo app that illustrates best practices with comments.  
-**   2. cFS Application Developer's Guide.
+**    4. There are no timers associated with the protocol and a cancel file
+**       transfer command can be sent at any time.
 **
-**   Written by David McComas, licensed under the Apache License, Version 2.0
-**   (the "License"); you may not use this file except in compliance with the
-**   License. You may obtain a copy of the License at
-**
-**      http://www.apache.org/licenses/LICENSE-2.0
-**
-**   Unless required by applicable law or agreed to in writing, software
-**   distributed under the License is distributed on an "AS IS" BASIS,
-**   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-**   See the License for the specific language governing permissions and
-**   limitations under the License.
+**  References:
+**    1. OpenSatKit Object-based Application Developer's Guide.
+**    2. cFS Application Developer's Guide.
 */
+
 
 #ifndef _fitp_
 #define _fitp_
@@ -177,21 +179,14 @@ void FITP_Constructor(FITP_Class_t*  FitpPtr);
 
 
 /******************************************************************************
-** Function:  FITP_ResetStatus
-**
-*/
-void FITP_ResetStatus(void);
-
-
-/******************************************************************************
-** Function: FITP_StartTransferCmd
+** Function: FITP_CancelTransferCmd
 **
 ** 
 **
 ** Notes:
 **   1. Must match CMDMGR_CmdFuncPtr_t function signature
 */
-bool FITP_StartTransferCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
+bool FITP_CancelTransferCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
@@ -217,14 +212,21 @@ bool FITP_FinishTransferCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
-** Function: FITP_CancelTransferCmd
+** Function:  FITP_ResetStatus
+**
+*/
+void FITP_ResetStatus(void);
+
+
+/******************************************************************************
+** Function: FITP_StartTransferCmd
 **
 ** 
 **
 ** Notes:
 **   1. Must match CMDMGR_CmdFuncPtr_t function signature
 */
-bool FITP_CancelTransferCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
+bool FITP_StartTransferCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 #endif /* _fitp_ */

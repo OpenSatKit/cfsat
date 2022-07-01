@@ -1,17 +1,31 @@
-/*
-** Purpose: Define the "File Output Transfer Protocol" (FOTP).
+/* 
+**  Copyright 2022 bitValence, Inc.
+**  All Rights Reserved.
 **
-** Notes:
-**   1. The FOTP is a custom algorithm that is similar to the CFDP Class 1
-**      protocol and the TFTP algorithm without the acks for each data
-**      segment. The need for this protocol was driven by half-duplex and 
-**      highly imbalanced communication links.
-**   2. Only one file tranfer can be active at a time and it is considered
-**      an error if a new transfer is attempted when a transfer is already
-**      in progress.
-**   3. A state machine is used to manage the file transfer. State transitions
-**      occur in response to commands or Scheduler execute requests. The frequency
-**      of Scheduler requests  
+**  This program is free software; you can modify and/or redistribute it
+**  under the terms of the GNU Affero General Public License
+**  as published by the Free Software Foundation; version 3 with
+**  attribution addendums as found in the LICENSE.txt
+**
+**  This program is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**  GNU Affero General Public License for more details.
+**
+**  Purpose:
+**    Implement the "File Outut Transfer Protocol" (FOTP)
+**
+**  Notes:
+**    1. The FOTP is a custom algorithm that is similar to the CFDP Class 1
+**       protocol and the TFTP algorithm without the acks for each data
+**       segment. The need for this protocol was driven by half-duplex and 
+**       highly imbalanced communication links.
+**    2. Only one file tranfer can be active at a time and it is considered
+**       an error if a new transfer is attempted when a transfer is already
+**       in progress.
+**    3. A state machine is used to manage the file transfer. State transitions
+**       occur in response to commands or Scheduler execute requests. The frequency
+**       of Scheduler requests  
 **
 **         A. IDLE:
 **            - Default state when no file transfer is in progress
@@ -28,33 +42,20 @@
 **            - Scheduler Execute Request: Send Finish Transfer telemetry packet
 **              and transfer to IDLE state
 **
-**   4. If an error occurs in the START_TRANSFER, SEND_DATA, or FINISH_TRANSFER 
-**      states the algorithm will remain in the state and will repeatedly try
-**      perform the erroneous operation 
-**   5. A pause command received while in the START_TRANSFER, SEND_DATA, or
-**      FINISH_TRANSFER will cause the state machine to enter the paused state until
-**      either a resume or cancel command is received. The START_TRANSFER and
-**      FINISH_TRANSFER states only exist for one execution cycle so the chances of
-**      these states being paused is low.  
-**   6. There are no timers associated with the protocol
-**   7. A cancel file transfer command can be sent at any time 
-**      
-** References:
-**   1. OpenSatKit Object-based Application Developer's Guide and the
-**      osk_c_demo app that illustrates best practices with comments.  
-**   2. cFS Application Developer's Guide.
+**    4. If an error occurs in the START_TRANSFER, SEND_DATA, or FINISH_TRANSFER 
+**       states the algorithm will remain in the state and will repeatedly try
+**       perform the erroneous operation 
+**    5. A pause command received while in the START_TRANSFER, SEND_DATA, or
+**       FINISH_TRANSFER will cause the state machine to enter the paused state until
+**       either a resume or cancel command is received. The START_TRANSFER and
+**       FINISH_TRANSFER states only exist for one execution cycle so the chances of
+**       these states being paused is low.  
+**    6. There are no timers associated with the protocol
+**    7. A cancel file transfer command can be sent at any time 
 **
-**   Written by David McComas, licensed under the Apache License, Version 2.0
-**   (the "License"); you may not use this file except in compliance with the
-**   License. You may obtain a copy of the License at
-**
-**      http://www.apache.org/licenses/LICENSE-2.0
-**
-**   Unless required by applicable law or agreed to in writing, software
-**   distributed under the License is distributed on an "AS IS" BASIS,
-**   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-**   See the License for the specific language governing permissions and
-**   limitations under the License.
+**  References:
+**    1. OpenSatKit Object-based Application Developer's Guide.
+**    2. cFS Application Developer's Guide.
 */
 
 #ifndef _fotp_
@@ -246,10 +247,12 @@ void FOTP_Constructor(FOTP_Class_t*  FotpPtr, INITBL_Class_t* IniTbl);
 
 
 /******************************************************************************
-** Function:  FOTP_ResetStatus
+** Function: FOTP_CancelTransferCmd
 **
+** Notes:
+**   1. Must match CMDMGR_CmdFuncPtr_t function signature
 */
-void FOTP_ResetStatus(void);
+bool FOTP_CancelTransferCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
@@ -262,31 +265,19 @@ void FOTP_Execute(void);
 
 
 /******************************************************************************
-** Function: FOTP_StartTransferCmd
-**
-** 
-**
-** Notes:
-**   1. Must match CMDMGR_CmdFuncPtr_t function signature
-*/
-bool FOTP_StartTransferCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
-
-
-/******************************************************************************
-** Function: FOTP_CancelTransferCmd
-**
-** Notes:
-**   1. Must match CMDMGR_CmdFuncPtr_t function signature
-*/
-bool FOTP_CancelTransferCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
-
-/******************************************************************************
 ** Function: FOTP_PauseTransferCmd
 **
 ** Notes:
 **   1. Must match CMDMGR_CmdFuncPtr_t function signature
 */
 bool FOTP_PauseTransferCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
+
+
+/******************************************************************************
+** Function:  FOTP_ResetStatus
+**
+*/
+void FOTP_ResetStatus(void);
 
 
 /******************************************************************************
@@ -297,6 +288,16 @@ bool FOTP_PauseTransferCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 */
 bool FOTP_ResumeTransferCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
+
+/******************************************************************************
+** Function: FOTP_StartTransferCmd
+**
+** 
+**
+** Notes:
+**   1. Must match CMDMGR_CmdFuncPtr_t function signature
+*/
+bool FOTP_StartTransferCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 #endif /* _fotp_ */
