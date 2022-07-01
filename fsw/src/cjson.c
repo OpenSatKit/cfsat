@@ -1,19 +1,16 @@
 /*
-**  Copyright 2022 Open STEMware Foundation
+**  Copyright 2022 bitValence, Inc.
 **  All Rights Reserved.
 **
-**  This program is free software; you can modify and/or redistribute it under
-**  the terms of the GNU Affero General Public License as published by the Free
-**  Software Foundation; version 3 with attribution addendums as found in the
-**  LICENSE.txt
+**  This program is free software; you can modify and/or redistribute it
+**  under the terms of the GNU Affero General Public License
+**  as published by the Free Software Foundation; version 3 with
+**  attribution addendums as found in the LICENSE.txt
 **
-**  This program is distributed in the hope that it will be useful, but WITHOUT
-**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
-**  details.
-**  
-**  This program may also be used under the terms of a commercial or enterprise
-**  edition license of cFSAT if purchased from the copyright holder.
+**  This program is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**  GNU Affero General Public License for more details.
 **
 **  Purpose:
 **    Provides a wrapper for apps to use coreJSON for their tables.
@@ -106,6 +103,25 @@ static const char* JsonTypeStr[] = {
 
 
 /******************************************************************************
+** Function: CJSON_FltObjConstructor
+**
+** Notes:
+**    1. Float support was added much later than initial release so in order
+**       to preserve the API and since float objects are the exception, a 
+**       separate constructor was added.
+*/
+void CJSON_FltObjConstructor(CJSON_Obj_t *Obj, const char *QueryKey, 
+                             JSONTypes_t JsonType, void *TblData, size_t TblDataLen)
+{
+
+   CJSON_ObjConstructor(Obj, QueryKey, JsonType, TblData, TblDataLen);
+   
+   Obj->TypeFlt = true;
+         
+} /* End CJSON_FltObjConstructor() */
+
+
+/******************************************************************************
 ** Function: CJSON_ObjConstructor
 **
 ** Notes:
@@ -113,14 +129,15 @@ static const char* JsonTypeStr[] = {
 **       constructor is not needed if the user creates a static CJSON_Obj_t
 **       array with default values.
 */
-void CJSON_ObjConstructor(CJSON_Obj_t* Obj, const char* QueryKey, 
-                          JSONTypes_t JsonType, void* TblData, size_t TblDataLen)
+void CJSON_ObjConstructor(CJSON_Obj_t *Obj, const char *QueryKey, 
+                          JSONTypes_t JsonType, void *TblData, size_t TblDataLen)
 {
 
    Obj->Updated    = false;
    Obj->TblData    = TblData;
    Obj->TblDataLen = TblDataLen;   
    Obj->Type       = JsonType;
+   Obj->TypeFlt    = false;
    
    if (strlen(QueryKey) <= CJSON_MAX_KEY_LEN)
    {
@@ -139,13 +156,28 @@ void CJSON_ObjConstructor(CJSON_Obj_t* Obj, const char* QueryKey,
 
 
 /******************************************************************************
+** Function: CJSON_LoadObj
+**
+** Notes:
+**    1. See LoadObj()'s switch statement for supported JSON types
+**
+*/
+bool CJSON_LoadObj(CJSON_Obj_t *Obj, const char*Buf, size_t BufLen)
+{
+   
+   return LoadObj(Obj, Buf, BufLen, OBJ_REQUIRED);
+   
+} /* End CJSON_LoadObj() */
+
+
+/******************************************************************************
 ** Function: CJSON_LoadObjArray
 **
 ** Notes:
 **    1. See CJSON_LoadObj() for supported JSON types
 **
 */
-size_t CJSON_LoadObjArray(CJSON_Obj_t* Obj, size_t ObjCnt, char* Buf, size_t BufLen)
+size_t CJSON_LoadObjArray(CJSON_Obj_t *Obj, size_t ObjCnt, const char *Buf, size_t BufLen)
 {
    
    int     i;
@@ -164,63 +196,13 @@ size_t CJSON_LoadObjArray(CJSON_Obj_t* Obj, size_t ObjCnt, char* Buf, size_t Buf
 
 
 /******************************************************************************
-** Function: CJSON_ProcessFile
-**
-** Notes:
-**  1. See ProcessFile() for details.
-**  2. The JsonBuf pointer is passed in as an unused UserDataPtr. 
-*/
-bool CJSON_ProcessFile(const char* Filename, char* JsonBuf, 
-                       size_t MaxJsonFileChar, CJSON_LoadJsonData_t LoadJsonData)
-{
-
-
-   return ProcessFile(Filename, JsonBuf, MaxJsonFileChar, LoadJsonData, StubLoadJsonDataAlt, (void*)JsonBuf, false);
-
-   
-} /* End CJSON_ProcessFile() */
-
-
-/******************************************************************************
-** Function: CJSON_ProcessFile
-**
-** Notes:
-**  1. See ProcessFile() for details.
-*/
-bool CJSON_ProcessFileAlt(const char* Filename, char* JsonBuf, 
-                          size_t MaxJsonFileChar, CJSON_LoadJsonDataAlt_t LoadJsonDataAlt,
-                          void* UserDataPtr)
-{
-
-   return ProcessFile(Filename, JsonBuf, MaxJsonFileChar, StubLoadJsonData, LoadJsonDataAlt, UserDataPtr, true);
-
-   
-} /* End CJSON_ProcessFileAlt() */
-
-
-/******************************************************************************
-** Function: CJSON_LoadObj
-**
-** Notes:
-**    1. See LoadObj()'s switch statement for supported JSON types
-**
-*/
-bool CJSON_LoadObj(CJSON_Obj_t* Obj, const char* Buf, size_t BufLen)
-{
-   
-   return LoadObj(Obj, Buf, BufLen, OBJ_REQUIRED);
-   
-} /* End CJSON_LoadObj() */
-
-
-/******************************************************************************
 ** Function: CJSON_LoadObjOptional
 **
 ** Notes:
 **    1. See LoadObj()'s switch statement for supported JSON types
 **
 */
-bool CJSON_LoadObjOptional(CJSON_Obj_t* Obj, const char* Buf, size_t BufLen)
+bool CJSON_LoadObjOptional(CJSON_Obj_t *Obj, const char *Buf, size_t BufLen)
 {
    
    return LoadObj(Obj, Buf, BufLen, OBJ_OPTIONAL);
@@ -252,6 +234,41 @@ const char* CJSON_ObjTypeStr(JSONTypes_t  ObjType)
 
 
 /******************************************************************************
+** Function: CJSON_ProcessFile
+**
+** Notes:
+**  1. See ProcessFile() for details.
+**  2. The JsonBuf pointer is passed in as an unused UserDataPtr. 
+*/
+bool CJSON_ProcessFile(const char *Filename, char *JsonBuf, 
+                       size_t MaxJsonFileChar, CJSON_LoadJsonData_t LoadJsonData)
+{
+
+
+   return ProcessFile(Filename, JsonBuf, MaxJsonFileChar, LoadJsonData, StubLoadJsonDataAlt, (void*)JsonBuf, false);
+
+   
+} /* End CJSON_ProcessFile() */
+
+
+/******************************************************************************
+** Function: CJSON_ProcessFileAlt
+**
+** Notes:
+**  1. See ProcessFile() for details.
+*/
+bool CJSON_ProcessFileAlt(const char *Filename, char *JsonBuf, 
+                          size_t MaxJsonFileChar, CJSON_LoadJsonDataAlt_t LoadJsonDataAlt,
+                          void *UserDataPtr)
+{
+
+   return ProcessFile(Filename, JsonBuf, MaxJsonFileChar, StubLoadJsonData, LoadJsonDataAlt, UserDataPtr, true);
+
+   
+} /* End CJSON_ProcessFileAlt() */
+
+
+/******************************************************************************
 ** Function: LoadObj
 **
 ** Notes:
@@ -269,6 +286,7 @@ static bool LoadObj(CJSON_Obj_t* Obj, const char* Buf, size_t BufLen, OBJ_Necess
    char         *ErrCheck;
    char         NumberBuf[20], StrBuf[256];
    int          IntValue;
+   float        FltValue;
    
    Obj->Updated = false;
       
@@ -310,13 +328,28 @@ static bool LoadObj(CJSON_Obj_t* Obj, const char* Buf, size_t BufLen, OBJ_Necess
             break;
    
          case JSONNumber:
-         
-            strncpy(NumberBuf,Value,ValueLen);
+            
+            strncpy(NumberBuf, Value, ValueLen);
             NumberBuf[ValueLen] = '\0';
-            IntValue = (int)strtol(NumberBuf, &ErrCheck, 10);
+            
+            if (Obj->TypeFlt)
+            {
+               FltValue = (float)strtod(NumberBuf, &ErrCheck);
+               if (ErrCheck != NumberBuf)
+               {
+                  memcpy(Obj->TblData, &FltValue, sizeof(float));
+               }
+            }
+            else
+            {
+               IntValue = (int)strtol(NumberBuf, &ErrCheck, 10);
+               if (ErrCheck != NumberBuf)
+               {
+                  memcpy(Obj->TblData, &IntValue, sizeof(int));
+               }
+            }
             if (ErrCheck != NumberBuf)
             {
-               memcpy(Obj->TblData,&IntValue,sizeof(int));
                Obj->Updated = true;
                RetStatus = true;
             }

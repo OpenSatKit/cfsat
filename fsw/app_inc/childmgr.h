@@ -1,19 +1,16 @@
 /*
-**  Copyright 2022 Open STEMware Foundation
+**  Copyright 2022 bitValence, Inc.
 **  All Rights Reserved.
 **
-**  This program is free software; you can modify and/or redistribute it under
-**  the terms of the GNU Affero General Public License as published by the Free
-**  Software Foundation; version 3 with attribution addendums as found in the
-**  LICENSE.txt
+**  This program is free software; you can modify and/or redistribute it
+**  under the terms of the GNU Affero General Public License
+**  as published by the Free Software Foundation; version 3 with
+**  attribution addendums as found in the LICENSE.txt
 **
-**  This program is distributed in the hope that it will be useful, but WITHOUT
-**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
-**  details.
-**  
-**  This program may also be used under the terms of a commercial or enterprise
-**  edition license of cFSAT if purchased from the copyright holder.
+**  This program is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**  GNU Affero General Public License for more details.
 **
 **  Purpose:
 **    Manage an application's child task
@@ -210,22 +207,6 @@ int32 CHILDMGR_Constructor(CHILDMGR_Class_t* ChildMgr,
 
 
 /******************************************************************************
-** Function: CHILDMGR_RegisterFunc
-**
-*/
-bool CHILDMGR_RegisterFunc(CHILDMGR_Class_t* ChildMgr,
-                           uint16 FuncCode, void* ObjDataPtr,
-                           CHILDMGR_CmdFuncPtr_t ObjFuncPtr);
-
-            
-/******************************************************************************
-** Function: CHILDMGR_ResetStatus
-**
-*/
-void CHILDMGR_ResetStatus(CHILDMGR_Class_t* ChildMgr);
-
-
-/******************************************************************************
 ** Function: CHILDMGR_InvokeChildCmd
 ** 
 ** Notes:
@@ -246,6 +227,22 @@ bool CHILDMGR_InvokeChildCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 */
 bool CHILDMGR_PauseTask(uint16* TaskBlockCnt, uint16 TaskBlockLim, 
                         uint32 TaskBlockDelayMs, uint32 PerfId);
+
+
+/******************************************************************************
+** Function: CHILDMGR_RegisterFunc
+**
+*/
+bool CHILDMGR_RegisterFunc(CHILDMGR_Class_t* ChildMgr,
+                           uint16 FuncCode, void* ObjDataPtr,
+                           CHILDMGR_CmdFuncPtr_t ObjFuncPtr);
+
+            
+/******************************************************************************
+** Function: CHILDMGR_ResetStatus
+**
+*/
+void CHILDMGR_ResetStatus(CHILDMGR_Class_t* ChildMgr);
 
 
 /******************************************************************************

@@ -1,19 +1,16 @@
 /*
-**  Copyright 2022 Open STEMware Foundation
+**  Copyright 2022 bitValence, Inc.
 **  All Rights Reserved.
 **
-**  This program is free software; you can modify and/or redistribute it under
-**  the terms of the GNU Affero General Public License as published by the Free
-**  Software Foundation; version 3 with attribution addendums as found in the
-**  LICENSE.txt
+**  This program is free software; you can modify and/or redistribute it
+**  under the terms of the GNU Affero General Public License
+**  as published by the Free Software Foundation; version 3 with
+**  attribution addendums as found in the LICENSE.txt
 **
-**  This program is distributed in the hope that it will be useful, but WITHOUT
-**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
-**  details.
-**  
-**  This program may also be used under the terms of a commercial or enterprise
-**  edition license of cFSAT if purchased from the copyright holder.
+**  This program is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**  GNU Affero General Public License for more details.
 **
 **  Purpose:
 **    Manage child task command dispatching
@@ -167,75 +164,6 @@ int32 CHILDMGR_Constructor(CHILDMGR_Class_t* ChildMgr,
 
 
 /******************************************************************************
-** Function: CHILDMGR_RegisterFunc
-**
-*/
-bool CHILDMGR_RegisterFunc(CHILDMGR_Class_t* ChildMgr, uint16 FuncCode, 
-                           void* ObjDataPtr, CHILDMGR_CmdFuncPtr_t ObjFuncPtr)
-{
-
-   bool RetStatus = false;
-
-   if (FuncCode < CHILDMGR_CMD_FUNC_TOTAL)
-   {
-
-      ChildMgr->Cmd[FuncCode].DataPtr = ObjDataPtr;
-      ChildMgr->Cmd[FuncCode].FuncPtr = ObjFuncPtr;
-  
-      RetStatus = true;
-   
-   }
-   else
-   {
-      
-      CFE_EVS_SendEvent (CHILDMGR_REG_INVALID_FUNC_CODE_EID, CFE_EVS_EventType_ERROR,
-         "Attempt to register function code %d which is greater than max %d",
-         FuncCode,(CHILDMGR_CMD_FUNC_TOTAL-1));
-   }
-
-   return RetStatus;
-   
-} /* End CHILDMGR_RegisterFunc() */
-
-
-/******************************************************************************
-** Function: CHILDMGR_RegisterFuncAltCnt
-**
-*/
-bool CHILDMGR_RegisterFuncAltCnt(CHILDMGR_Class_t* ChildMgr, uint16 FuncCode, 
-                                 void* ObjDataPtr, CHILDMGR_CmdFuncPtr_t ObjFuncPtr)
-{
-
-   bool RetStatus = false;
-
-   if (CHILDMGR_RegisterFunc(ChildMgr, FuncCode, ObjDataPtr, ObjFuncPtr))
-   {
-      
-      ChildMgr->Cmd[FuncCode].AltCnt.Enabled = true;      
-
-      RetStatus = true;
-
-   }
-
-   return RetStatus;
-   
-} /* End CHILDMGR_RegisterFuncAltCnt() */
-
-
-/******************************************************************************
-** Function: CHILDMGR_ResetStatus
-**
-*/
-void CHILDMGR_ResetStatus(CHILDMGR_Class_t* ChildMgr)
-{
-
-   ChildMgr->ValidCmdCnt = 0;
-   ChildMgr->InvalidCmdCnt = 0;
-
-} /* End CHILDMGR_ResetStatus() */
-
-
-/******************************************************************************
 ** Function: CHILDMGR_InvokeChildCmd
 ** 
 ** Notes:
@@ -375,21 +303,72 @@ bool CHILDMGR_PauseTask(uint16* TaskBlockCnt, uint16 TaskBlockLim,
 
 
 /******************************************************************************
-** Function: UnusedFuncCode
+** Function: CHILDMGR_RegisterFunc
 **
 */
-static bool UnusedFuncCode(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
+bool CHILDMGR_RegisterFunc(CHILDMGR_Class_t* ChildMgr, uint16 FuncCode, 
+                           void* ObjDataPtr, CHILDMGR_CmdFuncPtr_t ObjFuncPtr)
 {
 
-   CFE_MSG_FcnCode_t FuncCode;
+   bool RetStatus = false;
 
-   CFE_MSG_GetFcnCode(MsgPtr,&FuncCode);
-   CFE_EVS_SendEvent (CHILDMGR_DISPATCH_UNUSED_FUNC_CODE_EID, CFE_EVS_EventType_ERROR,
-                      "Unused command function code %d received",FuncCode);
+   if (FuncCode < CHILDMGR_CMD_FUNC_TOTAL)
+   {
 
-   return false;
+      ChildMgr->Cmd[FuncCode].DataPtr = ObjDataPtr;
+      ChildMgr->Cmd[FuncCode].FuncPtr = ObjFuncPtr;
+  
+      RetStatus = true;
+   
+   }
+   else
+   {
+      
+      CFE_EVS_SendEvent (CHILDMGR_REG_INVALID_FUNC_CODE_EID, CFE_EVS_EventType_ERROR,
+         "Attempt to register function code %d which is greater than max %d",
+         FuncCode,(CHILDMGR_CMD_FUNC_TOTAL-1));
+   }
 
-} /* End UnusedFuncCode() */
+   return RetStatus;
+   
+} /* End CHILDMGR_RegisterFunc() */
+
+
+/******************************************************************************
+** Function: CHILDMGR_RegisterFuncAltCnt
+**
+*/
+bool CHILDMGR_RegisterFuncAltCnt(CHILDMGR_Class_t* ChildMgr, uint16 FuncCode, 
+                                 void* ObjDataPtr, CHILDMGR_CmdFuncPtr_t ObjFuncPtr)
+{
+
+   bool RetStatus = false;
+
+   if (CHILDMGR_RegisterFunc(ChildMgr, FuncCode, ObjDataPtr, ObjFuncPtr))
+   {
+      
+      ChildMgr->Cmd[FuncCode].AltCnt.Enabled = true;      
+
+      RetStatus = true;
+
+   }
+
+   return RetStatus;
+   
+} /* End CHILDMGR_RegisterFuncAltCnt() */
+
+
+/******************************************************************************
+** Function: CHILDMGR_ResetStatus
+**
+*/
+void CHILDMGR_ResetStatus(CHILDMGR_Class_t* ChildMgr)
+{
+
+   ChildMgr->ValidCmdCnt = 0;
+   ChildMgr->InvalidCmdCnt = 0;
+
+} /* End CHILDMGR_ResetStatus() */
 
 
 /******************************************************************************
@@ -543,6 +522,27 @@ void ChildMgr_TaskMainCmdDispatch(void)
 
 
 /******************************************************************************
+** Function: AppendIdToStr
+**
+** Notes:
+**   1. No need for checks since a local function with known calling 
+**      environments
+**   2. Currently ID's are not synched with 
+**   3. TODO - Add memory protection if needed
+*/
+static void AppendIdToStr(char* NewStr, const char* BaseStr)
+{
+   
+   char IdStr[5];
+   
+   strncpy(NewStr,BaseStr,OS_MAX_API_NAME-3);
+   sprintf(IdStr,"%d",NameStrId++);
+   strcat(NewStr,IdStr);
+
+} /* AppendIdToStr() */
+
+
+/******************************************************************************
 ** Function: DispatchCmdFunc
 **
 ** Assumes the parent app's cmdmgr has performed all of the checks so this
@@ -586,35 +586,6 @@ static void DispatchCmdFunc(CHILDMGR_Class_t* ChildMgr)
       ChildMgr->WakeUpSemaphore,ChildMgr->CmdQ.WriteIndex,ChildMgr->CmdQ.ReadIndex,ChildMgr->CmdQ.Count);
 
 } /* End DispatchCmdFunc() */
-
-
-/******************************************************************************
-** Function: RegChildMgrInstance
-**
-** Notes: 
-**   1. TODO - Add memory protection
-*/
-static bool RegChildMgrInstance(CHILDMGR_Class_t* ChildMgr)
-{
-   
-   bool RetStatus = false;
-   uint32 TaskIdIndex;
-   
-   CFE_ES_TaskID_ToIndex(ChildMgr->TaskId, &TaskIdIndex);   
-   if (DBG_CHILDMGR) OS_printf("CHILDMGR::RegChildMgrInstance() - Task %d, ChildTask.Count %d\n", 
-                               TaskIdIndex, ChildTask.Count);
-
-   if (ChildTask.Count <  CHILDMGR_MAX_TASKS)
-   {
-      
-      ChildTask.Instance[ChildTask.Count++] = ChildMgr;
-      RetStatus = true;
-
-   }
-   
-   return RetStatus;  
-   
-} /* RegChildMgrInstance() */
 
 
 /******************************************************************************
@@ -670,21 +641,49 @@ static CHILDMGR_Class_t* GetChildMgrInstance(void)
 
 
 /******************************************************************************
-** Function: AppendIdToStr
+** Function: RegChildMgrInstance
 **
-** Notes:
-**   1. No need for checks since a local function with known calling 
-**      environments
-**   2. Currently ID's are not synched with 
-**   3. TODO - Add memory protection if needed
+** Notes: 
+**   1. TODO - Add memory protection
 */
-static void AppendIdToStr(char* NewStr, const char* BaseStr)
+static bool RegChildMgrInstance(CHILDMGR_Class_t* ChildMgr)
 {
    
-   char IdStr[5];
+   bool RetStatus = false;
+   uint32 TaskIdIndex;
    
-   strncpy(NewStr,BaseStr,OS_MAX_API_NAME-3);
-   sprintf(IdStr,"%d",NameStrId++);
-   strcat(NewStr,IdStr);
+   CFE_ES_TaskID_ToIndex(ChildMgr->TaskId, &TaskIdIndex);   
+   if (DBG_CHILDMGR) OS_printf("CHILDMGR::RegChildMgrInstance() - Task %d, ChildTask.Count %d\n", 
+                               TaskIdIndex, ChildTask.Count);
 
-} /* AppendIdToStr() */
+   if (ChildTask.Count <  CHILDMGR_MAX_TASKS)
+   {
+      
+      ChildTask.Instance[ChildTask.Count++] = ChildMgr;
+      RetStatus = true;
+
+   }
+   
+   return RetStatus;  
+   
+} /* RegChildMgrInstance() */
+
+
+/******************************************************************************
+** Function: UnusedFuncCode
+**
+*/
+static bool UnusedFuncCode(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
+{
+
+   CFE_MSG_FcnCode_t FuncCode;
+
+   CFE_MSG_GetFcnCode(MsgPtr,&FuncCode);
+   CFE_EVS_SendEvent (CHILDMGR_DISPATCH_UNUSED_FUNC_CODE_EID, CFE_EVS_EventType_ERROR,
+                      "Unused command function code %d received",FuncCode);
+
+   return false;
+
+} /* End UnusedFuncCode() */
+
+

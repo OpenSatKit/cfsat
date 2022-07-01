@@ -1,19 +1,16 @@
 /*
-**  Copyright 2022 Open STEMware Foundation
+**  Copyright 2022 bitValence, Inc.
 **  All Rights Reserved.
 **
-**  This program is free software; you can modify and/or redistribute it under
-**  the terms of the GNU Affero General Public License as published by the Free
-**  Software Foundation; version 3 with attribution addendums as found in the
-**  LICENSE.txt
+**  This program is free software; you can modify and/or redistribute it
+**  under the terms of the GNU Affero General Public License
+**  as published by the Free Software Foundation; version 3 with
+**  attribution addendums as found in the LICENSE.txt
 **
-**  This program is distributed in the hope that it will be useful, but WITHOUT
-**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
-**  details.
-**  
-**  This program may also be used under the terms of a commercial or enterprise
-**  edition license of cFSAT if purchased from the copyright holder.
+**  This program is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**  GNU Affero General Public License for more details.
 **
 **  Purpose:
 **    Provide general file management utilties
@@ -44,6 +41,7 @@
 static void CountOpenFiles(osal_id_t ObjId, void* CallbackArg);
 static bool IsValidFilename(const char *Filename, uint32 Length);
 static void LoadOpenFileData(osal_id_t ObjId, void* CallbackArg);
+static CFE_ES_TaskId_t TaskId_FromOSAL(osal_id_t id);
 
 /************************/
 /** Exported Functions **/
@@ -90,6 +88,39 @@ bool FileUtil_AppendPathSep(char *DirName, uint16 BufferLen)
    return RetStatus;
    
 } /* End FileUtil_AppendPathSep() */
+
+
+/******************************************************************************
+** Function: FileUtil_FileStateStr
+**
+** Type checking should enforce valid parameter but check just to be safe.
+*/
+const char* FileUtil_FileStateStr(FileUtil_FileState_t  FileState)
+{
+
+   static const char* FileStateStr[] = 
+   {
+      "Undefined", 
+      "Invalid Filename",    /* FILEUTIL_FILENAME_INVALID */
+      "Nonexistent File",    /* FILEUTIL_FILE_NONEXISTENT */
+      "File Open",           /* FILEUTIL_FILE_OPEN        */
+      "File Closed",         /* FILEUTIL_FILE_OPEN        */
+      "File is a Directory"  /* FILEUTIL_FILE_IS_DIR      */
+   };
+
+   uint8 i = 0;
+   
+   if ( FileState >= FILEUTIL_FILENAME_INVALID &&
+        FileState <= FILEUTIL_FILE_IS_DIR)
+   {
+   
+      i =  FileState;
+   
+   }
+        
+   return FileStateStr[i];
+
+} /* End FileUtil_FileStateStr() */
 
 
 /******************************************************************************
@@ -168,39 +199,6 @@ FileUtil_FileInfo_t FileUtil_GetFileInfo(const char *Filename, uint16 FilenameBu
 
 
 /******************************************************************************
-** Function: FileUtil_FileStateStr
-**
-** Type checking should enforce valid parameter but check just to be safe.
-*/
-const char* FileUtil_FileStateStr(FileUtil_FileState_t  FileState)
-{
-
-   static const char* FileStateStr[] = 
-   {
-      "Undefined", 
-      "Invalid Filename",    /* FILEUTIL_FILENAME_INVALID */
-      "Nonexistent File",    /* FILEUTIL_FILE_NONEXISTENT */
-      "File Open",           /* FILEUTIL_FILE_OPEN        */
-      "File Closed",         /* FILEUTIL_FILE_OPEN        */
-      "File is a Directory"  /* FILEUTIL_FILE_IS_DIR      */
-   };
-
-   uint8 i = 0;
-   
-   if ( FileState >= FILEUTIL_FILENAME_INVALID &&
-        FileState <= FILEUTIL_FILE_IS_DIR)
-   {
-   
-      i =  FileState;
-   
-   }
-        
-   return FileStateStr[i];
-
-} /* End FileUtil_FileStateStr() */
-
-
-/******************************************************************************
 ** Function: FileUtil_GetOpenFileCount
 **
 */
@@ -273,6 +271,71 @@ bool FileUtil_ReadLine (int FileHandle, char* DestBuf, int MaxChar)
 
 
 /******************************************************************************
+** Function: FileUtil_VerifyDirForWrite
+**
+** Notes:
+**  1. Verify file name is valid and that the directory exists.
+*/
+bool FileUtil_VerifyDirForWrite(const char* Filename)
+{
+
+   bool RetStatus = false;
+   
+   if (FileUtil_VerifyFilenameStr(Filename))
+   {
+      
+      /* TODO - Find last \ and check if directory */
+      RetStatus = true;  
+      
+   } /* End if valid filename */
+   
+  return RetStatus;
+
+} /* End FileUtil_VerifyDirForWrite() */
+
+
+/******************************************************************************
+** Function: FileUtil_VerifyFileForRead
+**
+** Notes:
+**  1. Verify file name is valid and that the file exists for a read operation.
+**  2. The file is opened/closed to make sure it's valid for a read operation.
+**     The file descriptor is not returned to the caller function because there
+**     are scenarios when the user must stil open the file.  For example when
+**     they pass the filename to a third party library. 
+*/
+bool FileUtil_VerifyFileForRead(const char* Filename)
+{
+
+   bool       RetStatus = false;
+   osal_id_t  FileHandle;
+   int32      OsStatus;
+   os_err_name_t OsErrStr;
+      
+   if (FileUtil_VerifyFilenameStr(Filename))
+   {
+      
+      OsStatus = OS_OpenCreate(&FileHandle, Filename, OS_FILE_FLAG_NONE, OS_READ_ONLY);
+      if (OsStatus == OS_SUCCESS)
+      {   
+         OS_close (FileHandle);
+         RetStatus = true;  
+      }
+      else
+      {   
+         OS_GetErrorName(OsStatus, &OsErrStr);
+         CFE_EVS_SendEvent(FILEUTIL_FILE_READ_OPEN_ERR_EID, CFE_EVS_EventType_ERROR, 
+                           "Read file open failed for %s. Status = %s", Filename, OsErrStr);
+      }
+      
+   } /* End if valid filename */
+   
+  return RetStatus;
+
+} /* End FileUtil_VerifyFileForRead() */
+
+
+/******************************************************************************
 ** Function: FileUtil_VerifyFilenameStr
 **
 ** Notes:
@@ -321,69 +384,24 @@ bool FileUtil_VerifyFilenameStr(const char* Filename)
 
 
 /******************************************************************************
-** Function: FileUtil_VerifyFileForRead
+** Function: CountOpenFiles
 **
 ** Notes:
-**  1. Verify file name is valid and that the file exists for a read operation.
-**  2. The file is opened/closed to make sure it's valid for a read operation.
-**     The file descriptor is not returned to the caller function because there
-**     are scenarios when the user must stil open the file.  For example when
-**     they pass the filename to a third party library. 
+**  1. Callback function for OS_ForEachObject()
 */
-bool FileUtil_VerifyFileForRead(const char* Filename)
+static void CountOpenFiles(osal_id_t ObjId, void* CallbackArg)
 {
 
-   bool       RetStatus = false;
-   osal_id_t  FileHandle;
-   int32      OsStatus;
-   os_err_name_t OsErrStr;
-      
-   if (FileUtil_VerifyFilenameStr(Filename))
+   uint16* OpenFileCount = (uint16*)CallbackArg;
+
+   if (OS_IdentifyObject(ObjId) == OS_OBJECT_TYPE_OS_STREAM)
    {
-      
-      OsStatus = OS_OpenCreate(&FileHandle, Filename, OS_FILE_FLAG_NONE, OS_READ_ONLY);
-      if (OsStatus == OS_SUCCESS)
-      {   
-         OS_close (FileHandle);
-         RetStatus = true;  
-      }
-      else
-      {   
-         OS_GetErrorName(OsStatus, &OsErrStr);
-         CFE_EVS_SendEvent(FILEUTIL_FILE_READ_OPEN_ERR_EID, CFE_EVS_EventType_ERROR, 
-                           "Read file open failed for %s. Status = %s", Filename, OsErrStr);
-      }
-      
-   } /* End if valid filename */
-   
-  return RetStatus;
+      (*OpenFileCount)++;
+   }
 
-} /* End FileUtil_VerifyFileForRead() */
+   return;
 
-
-/******************************************************************************
-** Function: FileUtil_VerifyDirForWrite
-**
-** Notes:
-**  1. Verify file name is valid and that the directory exists.
-*/
-bool FileUtil_VerifyDirForWrite(const char* Filename)
-{
-
-   bool RetStatus = false;
-   
-   if (FileUtil_VerifyFilenameStr(Filename))
-   {
-      
-      /* TODO - Find last \ and check if directory */
-      RetStatus = true;  
-      
-   } /* End if valid filename */
-   
-  return RetStatus;
-
-} /* End FileUtil_VerifyDirForWrite() */
-
+} /* End CountOpenFiles() */
 
 
 /******************************************************************************
@@ -443,48 +461,6 @@ static bool IsValidFilename(const char *Filename, uint32 Length)
 } /* End IsValidFilename */
 
 
-
-/******************************************************************************
-** Function: TaskId_FromOSAL
-**
-** Notes:
-**  1. Copied from private function CFE_ES_TaskId_FromOSAL(osal_id_t id). Not
-**     define in local function block at top of file because this is only used
-**     below and should be removed ASAP. 
-**  2. TODO - Create long term solution for TaskId_FromOSAL()
-*/
-static CFE_ES_TaskId_t TaskId_FromOSAL(osal_id_t id)
-{
-    CFE_ResourceId_t Result;
-    unsigned long    Val;
-
-    Val    = OS_ObjectIdToInteger(id);
-    Result = CFE_ResourceId_FromInteger(Val ^ CFE_RESOURCEID_MARK);
-
-    return CFE_ES_TASKID_C(Result);
-}
-
-/******************************************************************************
-** Function: CountOpenFiles
-**
-** Notes:
-**  1. Callback function for OS_ForEachObject()
-*/
-static void CountOpenFiles(osal_id_t ObjId, void* CallbackArg)
-{
-
-   uint16* OpenFileCount = (uint16*)CallbackArg;
-
-   if (OS_IdentifyObject(ObjId) == OS_OBJECT_TYPE_OS_STREAM)
-   {
-      (*OpenFileCount)++;
-   }
-
-   return;
-
-} /* End CountOpenFiles() */
-
-
 /******************************************************************************
 ** Function: LoadOpenFileData
 **
@@ -537,3 +513,27 @@ static void LoadOpenFileData(osal_id_t ObjId, void* CallbackArg)
    return;
 
 } /* End LoadOpenFileData() */
+
+
+/******************************************************************************
+** Function: TaskId_FromOSAL
+**
+** Notes:
+**  1. Copied from private function CFE_ES_TaskId_FromOSAL(osal_id_t id). Not
+**     define in local function block at top of file because this is only used
+**     below and should be removed ASAP. 
+**  2. TODO - Create long term solution for TaskId_FromOSAL()
+*/
+static CFE_ES_TaskId_t TaskId_FromOSAL(osal_id_t id)
+{
+    CFE_ResourceId_t Result;
+    unsigned long    Val;
+
+    Val    = OS_ObjectIdToInteger(id);
+    Result = CFE_ResourceId_FromInteger(Val ^ CFE_RESOURCEID_MARK);
+
+    return CFE_ES_TASKID_C(Result);
+
+} /* End TaskId_FromOSAL() */
+ 
+

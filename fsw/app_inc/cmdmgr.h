@@ -1,19 +1,16 @@
 /*
-**  Copyright 2022 Open STEMware Foundation
+**  Copyright 2022 bitValence, Inc.
 **  All Rights Reserved.
 **
-**  This program is free software; you can modify and/or redistribute it under
-**  the terms of the GNU Affero General Public License as published by the Free
-**  Software Foundation; version 3 with attribution addendums as found in the
-**  LICENSE.txt
+**  This program is free software; you can modify and/or redistribute it
+**  under the terms of the GNU Affero General Public License
+**  as published by the Free Software Foundation; version 3 with
+**  attribution addendums as found in the LICENSE.txt
 **
-**  This program is distributed in the hope that it will be useful, but WITHOUT
-**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
-**  details.
-**  
-**  This program may also be used under the terms of a commercial or enterprise
-**  edition license of cFSAT if purchased from the copyright holder.
+**  This program is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**  GNU Affero General Public License for more details.
 **
 **  Purpose:
 **    Manage command dispatching for an application
@@ -147,6 +144,24 @@ void CMDMGR_Constructor(CMDMGR_Class_t* CmdMgr);
 
 
 /******************************************************************************
+** Function: CMDMGR_BoolStr
+**
+** Purpose: Return a pointer to a string describing the enumerated type
+**
+** Notes:
+**   None
+*/
+const char* CMDMGR_BoolStr(bool BoolArg);
+
+
+/******************************************************************************
+** Function: CMDMGR_DispatchFunc
+**
+*/
+bool CMDMGR_DispatchFunc(CMDMGR_Class_t* CmdMgr,  const CFE_MSG_Message_t *MsgPtr);
+
+
+/******************************************************************************
 ** Function: CMDMGR_RegisterFunc
 **
 */
@@ -172,13 +187,6 @@ void CMDMGR_ResetStatus(CMDMGR_Class_t* CmdMgr);
 
 
 /******************************************************************************
-** Function: CMDMGR_DispatchFunc
-**
-*/
-bool CMDMGR_DispatchFunc(CMDMGR_Class_t* CmdMgr,  const CFE_MSG_Message_t *MsgPtr);
-
-
-/******************************************************************************
 ** Function: CMDMGR_ValidBoolArg
 **
 ** Use uint16 because commands use both uint8 and uint16 for booleans and test   
@@ -186,15 +194,5 @@ bool CMDMGR_DispatchFunc(CMDMGR_Class_t* CmdMgr,  const CFE_MSG_Message_t *MsgPt
 */
 bool CMDMGR_ValidBoolArg(uint16 BoolArg);
 
-
-/******************************************************************************
-** Function: CMDMGR_BoolStr
-**
-** Purpose: Return a pointer to a string describing the enumerated type
-**
-** Notes:
-**   None
-*/
-const char* CMDMGR_BoolStr(bool BoolArg);
 
 #endif /* _cmdmgr_ */

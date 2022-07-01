@@ -1,19 +1,16 @@
 /*
-**  Copyright 2022 Open STEMware Foundation
+**  Copyright 2022 bitValence, Inc.
 **  All Rights Reserved.
 **
-**  This program is free software; you can modify and/or redistribute it under
-**  the terms of the GNU Affero General Public License as published by the Free
-**  Software Foundation; version 3 with attribution addendums as found in the
-**  LICENSE.txt
+**  This program is free software; you can modify and/or redistribute it
+**  under the terms of the GNU Affero General Public License
+**  as published by the Free Software Foundation; version 3 with
+**  attribution addendums as found in the LICENSE.txt
 **
-**  This program is distributed in the hope that it will be useful, but WITHOUT
-**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
-**  details.
-**  
-**  This program may also be used under the terms of a commercial or enterprise
-**  edition license of cFSAT if purchased from the copyright holder.
+**  This program is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**  GNU Affero General Public License for more details.
 **
 **  Purpose:
 **    Provide general utilities used with command and telemetry packets.
@@ -42,6 +39,25 @@
 /*********************/
 /** Local Functions **/
 /*********************/
+
+
+/******************************************************************************
+** Function: PktUtil_IsFilterTypeValid
+**
+** Notes:
+**   1. Intended for for parameter validation. It uses uint16 becaue command
+**      packet definitions typically don't use enumerated types so they can 
+**      control the storage size (prior to C++11).
+*/
+bool PktUtil_IsFilterTypeValid(uint16 FilterType)
+{
+
+   return ((FilterType >= PKTUTIL_FILTER_ALWAYS) &&
+           (FilterType <= PKTUTIL_FILTER_NEVER));
+
+
+} /* End PktUtil_IsFilterTypeValid() */
+
 
 /******************************************************************************
 ** Function: PktUtil_IsPacketFiltered
@@ -119,21 +135,4 @@ bool PktUtil_IsPacketFiltered(const CFE_MSG_Message_t *MsgPtr, const PktUtil_Fil
 
 } /* End of PktUtil_IsPacketFiltered() */
 
-
-/******************************************************************************
-** Function: PktUtil_IsFilterTypeValid
-**
-** Notes:
-**   1. Intended for for parameter validation. It uses uint16 becaue command
-**      packet definitions typically don't use enumerated types so they can 
-**      control the storage size (prior to C++11).
-*/
-bool PktUtil_IsFilterTypeValid(uint16 FilterType)
-{
-
-   return ((FilterType >= PKTUTIL_FILTER_ALWAYS) &&
-           (FilterType <= PKTUTIL_FILTER_NEVER));
-
-
-} /* End PktUtil_IsFilterTypeValid() */
 

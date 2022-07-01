@@ -1,19 +1,16 @@
 /*
-**  Copyright 2022 Open STEMware Foundation
+**  Copyright 2022 bitValence, Inc.
 **  All Rights Reserved.
 **
-**  This program is free software; you can modify and/or redistribute it under
-**  the terms of the GNU Affero General Public License as published by the Free
-**  Software Foundation; version 3 with attribution addendums as found in the
-**  LICENSE.txt
+**  This program is free software; you can modify and/or redistribute it
+**  under the terms of the GNU Affero General Public License
+**  as published by the Free Software Foundation; version 3 with
+**  attribution addendums as found in the LICENSE.txt
 **
-**  This program is distributed in the hope that it will be useful, but WITHOUT
-**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
-**  details.
-**  
-**  This program may also be used under the terms of a commercial or enterprise
-**  edition license of cFSAT if purchased from the copyright holder.
+**  This program is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**  GNU Affero General Public License for more details.
 **
 **  Purpose:
 **    Define a coreJSON adapter for JSON table management
@@ -88,6 +85,7 @@ typedef struct
    size_t         TblDataLen;
    bool           Updated;
    JSONTypes_t    Type;
+   bool           TypeFlt;   /* Distinguish between integer and float number types */
    CJSON_Query_t  Query;
 
 } CJSON_Obj_t;
@@ -124,6 +122,18 @@ typedef bool (*CJSON_LoadJsonDataAlt_t)(size_t JsonFileLen, void* UserDataPtr);
 
 
 /******************************************************************************
+** Function: CJSON_FltObjConstructor
+**
+** Notes:
+**    1. Float support was added much later than initial release so in order
+**       to preserve the API and since float objects are the exception, a 
+**       separate constructor was added.
+*/
+void CJSON_FltObjConstructor(CJSON_Obj_t *Obj, const char *QueryKey, 
+                             JSONTypes_t JsonType, void *TblData, size_t TblDataLen);
+
+
+/******************************************************************************
 ** Function: CJSON_ObjConstructor
 **
 ** Initialize a JSON table object
@@ -132,8 +142,8 @@ typedef bool (*CJSON_LoadJsonDataAlt_t)(size_t JsonFileLen, void* UserDataPtr);
 **   1. See file prologue for supported JSON types.
 **
 */
-void CJSON_ObjConstructor(CJSON_Obj_t* Obj, const char* QueryKey, 
-                          JSONTypes_t JsonType, void* TblData, size_t TblDataLen);
+void CJSON_ObjConstructor(CJSON_Obj_t *Obj, const char *QueryKey, 
+                          JSONTypes_t JsonType, void *TblData, size_t TblDataLen);
 
 
 /******************************************************************************
@@ -144,7 +154,17 @@ void CJSON_ObjConstructor(CJSON_Obj_t* Obj, const char* QueryKey,
 **   2. See file prologue for supported JSON types.
 **
 */
-bool CJSON_LoadObj(CJSON_Obj_t* Obj, const char* Buf, size_t BufLen);
+bool CJSON_LoadObj(CJSON_Obj_t *Obj, const char *Buf, size_t BufLen);
+
+
+/******************************************************************************
+** Function: CJSON_LoadObjArray
+**
+** Notes:
+**   1. See file prologue for supported JSON types.
+**
+*/
+size_t CJSON_LoadObjArray(CJSON_Obj_t *Obj, size_t ObjCnt, const char* Buf, size_t BufLen);
 
 
 /******************************************************************************
@@ -157,17 +177,7 @@ bool CJSON_LoadObj(CJSON_Obj_t* Obj, const char* Buf, size_t BufLen);
 **   2. See file prologue for supported JSON types.
 **
 */
-bool CJSON_LoadObjOptional(CJSON_Obj_t* Obj, const char* Buf, size_t BufLen);
-
-
-/******************************************************************************
-** Function: CJSON_LoadObjArray
-**
-** Notes:
-**   1. See file prologue for supported JSON types.
-**
-*/
-size_t CJSON_LoadObjArray(CJSON_Obj_t* Obj, size_t ObjCnt, char* Buf, size_t BufLen);
+bool CJSON_LoadObjOptional(CJSON_Obj_t *Obj, const char *Buf, size_t BufLen);
 
 
 /******************************************************************************
@@ -186,7 +196,7 @@ const char* CJSON_ObjTypeStr(JSONTypes_t  ObjType);
 **  1. Takes care of all generic table processing and validation. User's 
 **     callback function performs table-specific data processing.
 */
-bool CJSON_ProcessFile(const char* Filename, char* JsonBuf, 
+bool CJSON_ProcessFile(const char *Filename, char *JsonBuf, 
                        size_t MaxJsonFileChar, CJSON_LoadJsonData_t LoadJsonData);
 
 
@@ -199,7 +209,7 @@ bool CJSON_ProcessFile(const char* Filename, char* JsonBuf,
 **  2. Same functionality as CJSON_ProcessFile except the callback function
 **     has the UserDataPtr passed as a parameter.
 */
-bool CJSON_ProcessFileAlt(const char* Filename, char* JsonBuf, 
+bool CJSON_ProcessFileAlt(const char *Filename, char *JsonBuf, 
                           size_t MaxJsonFileChar, CJSON_LoadJsonDataAlt_t LoadJsonDataAlt,
                           void* UserDataPtr);
 
