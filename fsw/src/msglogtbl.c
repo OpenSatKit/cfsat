@@ -1,19 +1,16 @@
 /*
-**  Copyright 2022 Open STEMware Foundation
+**  Copyright 2022 bitValence, Inc.
 **  All Rights Reserved.
 **
-**  This program is free software; you can modify and/or redistribute it under
-**  the terms of the GNU Affero General Public License as published by the Free
-**  Software Foundation; version 3 with attribution addendums as found in the
-**  LICENSE.txt
+**  This program is free software; you can modify and/or redistribute it
+**  under the terms of the GNU Affero General Public License
+**  as published by the Free Software Foundation; version 3 with
+**  attribution addendums as found in the LICENSE.txt
 **
-**  This program is distributed in the hope that it will be useful, but WITHOUT
-**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
-**  details.
-**  
-**  This program may also be used under the terms of a commercial or enterprise
-**  edition license of cFSAT if purchased from the copyright holder.
+**  This program is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**  GNU Affero General Public License for more details.
 **
 **  Purpose:
 **    Implement the Message Log table
@@ -63,12 +60,12 @@ static MSGLOGTBL_Data_t TblData; /* Working buffer for loads */
 
 static CJSON_Obj_t JsonTblObjs[] = {
 
-   /* Table Data Address        Table Data Length             Updated, Data Type,   core-json query string, length of query string(exclude '\0') */
+   /* Table Data Address        Table Data Length             Updated, Data Type,  Float  core-json query string, length of query string(exclude '\0') */
    
-   { TblData.File.PathBaseName, OS_MAX_PATH_LEN,              false,   JSONString, { "file.path-base-name", (sizeof("file.path-base-name")-1)} },
-   { TblData.File.Extension,    MSGLOGTBL_FILE_EXT_MAX_LEN,   false,   JSONString, { "file.extension",      (sizeof("file.extension")-1)}      },
-   { &TblData.File.EntryCnt,    sizeof(TblData.File.EntryCnt),false,   JSONNumber, { "file.entry-cnt",      (sizeof("file.entry-cnt")-1)}      },
-   { &TblData.PlaybkDelay,      sizeof(TblData.PlaybkDelay),  false,   JSONNumber, { "playbk-delay",        (sizeof("playbk-delay")-1)}        }
+   { TblData.File.PathBaseName, OS_MAX_PATH_LEN,              false,   JSONString, false, { "file.path-base-name", (sizeof("file.path-base-name")-1)} },
+   { TblData.File.Extension,    MSGLOGTBL_FILE_EXT_MAX_LEN,   false,   JSONString, false, { "file.extension",      (sizeof("file.extension")-1)}      },
+   { &TblData.File.EntryCnt,    sizeof(TblData.File.EntryCnt),false,   JSONNumber, false, { "file.entry-cnt",      (sizeof("file.entry-cnt")-1)}      },
+   { &TblData.PlaybkDelay,      sizeof(TblData.PlaybkDelay),  false,   JSONNumber, false, { "playbk-delay",        (sizeof("playbk-delay")-1)}        }
    
 };
 
@@ -91,52 +88,6 @@ void MSGLOGTBL_Constructor(MSGLOGTBL_Class_t* MsgLogTblPtr, const INITBL_Class_t
    MsgLogTbl->JsonObjCnt = (sizeof(JsonTblObjs)/sizeof(CJSON_Obj_t));
          
 } /* End MSGLOGTBL_Constructor() */
-
-
-/******************************************************************************
-** Function: MSGLOGTBL_ResetStatus
-**
-*/
-void MSGLOGTBL_ResetStatus(void)
-{
-
-   MsgLogTbl->LastLoadStatus = TBLMGR_STATUS_UNDEF;
-   MsgLogTbl->LastLoadCnt = 0;
- 
-} /* End MSGLOGTBL_ResetStatus() */
-
-
-/******************************************************************************
-** Function: MSGLOGTBL_LoadCmd
-**
-** Notes:
-**  1. Function signature must match TBLMGR_LoadTblFuncPtr_t.
-**  2. This could migrate into table manager but I think I'll keep it here so
-**     user's can add table processing code if needed.
-*/
-bool MSGLOGTBL_LoadCmd(TBLMGR_Tbl_t* Tbl, uint8 LoadType, const char* Filename)
-{
-
-   bool  RetStatus = false;
-
-   if (CJSON_ProcessFile(Filename, MsgLogTbl->JsonBuf, MSGLOGTBL_JSON_FILE_MAX_CHAR, LoadJsonData))
-   {
-      
-      MsgLogTbl->Loaded = true;
-      MsgLogTbl->LastLoadStatus = TBLMGR_STATUS_VALID;
-      RetStatus = true;
-   
-   }
-   else
-   {
-
-      MsgLogTbl->LastLoadStatus = TBLMGR_STATUS_INVALID;
-
-   }
-
-   return RetStatus;
-   
-} /* End MSGLOGTBL_LoadCmd() */
 
 
 /******************************************************************************
@@ -207,6 +158,52 @@ bool MSGLOGTBL_DumpCmd(TBLMGR_Tbl_t* Tbl, uint8 DumpType, const char* Filename)
    return RetStatus;
    
 } /* End of MSGLOGTBL_DumpCmd() */
+
+
+/******************************************************************************
+** Function: MSGLOGTBL_LoadCmd
+**
+** Notes:
+**  1. Function signature must match TBLMGR_LoadTblFuncPtr_t.
+**  2. This could migrate into table manager but I think I'll keep it here so
+**     user's can add table processing code if needed.
+*/
+bool MSGLOGTBL_LoadCmd(TBLMGR_Tbl_t* Tbl, uint8 LoadType, const char* Filename)
+{
+
+   bool  RetStatus = false;
+
+   if (CJSON_ProcessFile(Filename, MsgLogTbl->JsonBuf, MSGLOGTBL_JSON_FILE_MAX_CHAR, LoadJsonData))
+   {
+      
+      MsgLogTbl->Loaded = true;
+      MsgLogTbl->LastLoadStatus = TBLMGR_STATUS_VALID;
+      RetStatus = true;
+   
+   }
+   else
+   {
+
+      MsgLogTbl->LastLoadStatus = TBLMGR_STATUS_INVALID;
+
+   }
+
+   return RetStatus;
+   
+} /* End MSGLOGTBL_LoadCmd() */
+
+
+/******************************************************************************
+** Function: MSGLOGTBL_ResetStatus
+**
+*/
+void MSGLOGTBL_ResetStatus(void)
+{
+
+   MsgLogTbl->LastLoadStatus = TBLMGR_STATUS_UNDEF;
+   MsgLogTbl->LastLoadCnt = 0;
+ 
+} /* End MSGLOGTBL_ResetStatus() */
 
 
 /******************************************************************************
