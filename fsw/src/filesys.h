@@ -1,19 +1,16 @@
 /*
-**  Copyright 2022 Open STEMware Foundation
+**  Copyright 2022 bitValence, Inc.
 **  All Rights Reserved.
 **
-**  This program is free software; you can modify and/or redistribute it under
-**  the terms of the GNU Affero General Public License as published by the Free
-**  Software Foundation; version 3 with attribution addendums as found in the
-**  LICENSE.txt
+**  This program is free software; you can modify and/or redistribute it
+**  under the terms of the GNU Affero General Public License
+**  as published by the Free Software Foundation; version 3 with
+**  attribution addendums as found in the LICENSE.txt
 **
-**  This program is distributed in the hope that it will be useful, but WITHOUT
-**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
-**  details.
-**  
-**  This program may also be used under the terms of a commercial or enterprise
-**  edition license of cFSAT if purchased from the copyright holder.
+**  This program is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**  GNU Affero General Public License for more details.
 **
 **  Purpose:
 **    Provide a table for identifying onboard file systems and for managing
@@ -158,6 +155,14 @@ void FILESYS_Constructor(FILESYS_Class_t* FileSysPtr, const INITBL_Class_t* IniT
 
 
 /******************************************************************************
+** Function: FILESYS_ManageTbl
+**
+** Manage the cFE table interface for table loads and validation. 
+*/
+void FILESYS_ManageTbl(void);
+
+
+/******************************************************************************
 ** Function: FILESYS_ResetStatus
 **
 ** Reset counters and status flags to a known reset state.  The behavior of
@@ -166,14 +171,6 @@ void FILESYS_Constructor(FILESYS_Class_t* FileSysPtr, const INITBL_Class_t* IniT
 **
 */
 void FILESYS_ResetStatus(void);
-
-
-/******************************************************************************
-** Function: FILESYS_ManageTbl
-**
-** Manage the cFE table interface for table loads and validation. 
-*/
-void FILESYS_ManageTbl(void);
 
 
 /******************************************************************************
@@ -186,21 +183,21 @@ bool FILESYS_SendOpenFileTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPt
 
 
 /******************************************************************************
-** Function: FILESYS_SendTblTlmCmd
-**
-** Note:
-**  1. This function must comply with the CMDMGR_CmdFuncPtr_t definition
-*/
-bool FILESYS_SendTblTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
-
-
-/******************************************************************************
 ** Function: FILESYS_SetTblStateCmd
 **
 ** Note:
 **  1. This function must comply with the CMDMGR_CmdFuncPtr_t definition
 */
 bool FILESYS_SetTblStateCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
+
+
+/******************************************************************************
+** Function: FILESYS_SendTblTlmCmd
+**
+** Note:
+**  1. This function must comply with the CMDMGR_CmdFuncPtr_t definition
+*/
+bool FILESYS_SendTblTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 #endif /* _filesys_ */

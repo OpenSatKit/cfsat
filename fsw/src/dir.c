@@ -1,19 +1,16 @@
 /*
-**  Copyright 2022 Open STEMware Foundation
+**  Copyright 2022 bitValence, Inc.
 **  All Rights Reserved.
 **
-**  This program is free software; you can modify and/or redistribute it under
-**  the terms of the GNU Affero General Public License as published by the Free
-**  Software Foundation; version 3 with attribution addendums as found in the
-**  LICENSE.txt
+**  This program is free software; you can modify and/or redistribute it
+**  under the terms of the GNU Affero General Public License
+**  as published by the Free Software Foundation; version 3 with
+**  attribution addendums as found in the LICENSE.txt
 **
-**  This program is distributed in the hope that it will be useful, but WITHOUT
-**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
-**  details.
-**  
-**  This program may also be used under the terms of a commercial or enterprise
-**  edition license of cFSAT if purchased from the copyright holder.
+**  This program is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**  GNU Affero General Public License for more details.
 **
 **  Purpose:
 **    Implement the DIR_Class methods
@@ -85,18 +82,6 @@ void DIR_Constructor(DIR_Class_t*  DirPtr, const INITBL_Class_t* IniTbl)
 
 
 /******************************************************************************
-** Function:  DIR_ResetStatus
-**
-*/
-void DIR_ResetStatus()
-{
- 
-   Dir->CmdWarningCnt = 0;
-   
-} /* End DIR_ResetStatus() */
-
-
-/******************************************************************************
 ** Function: DIR_CreateCmd
 **
 */
@@ -141,100 +126,6 @@ bool DIR_CreateCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
    
 } /* End DIR_CreateCmd() */
 
-
-
-/******************************************************************************
-** Function: DIR_DeleteCmd
-**
-*/
-bool DIR_DeleteCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
-{
-   
-   const FILE_MGR_DeleteDir_Payload_t *DeleteCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_MGR_DeleteDir_t);
-   bool                RetStatus = false;
-   int32               SysStatus;
-   bool                RemoveDir = true;
-   os_err_name_t       OsErrStr;   
-   osal_id_t           DirId;
-   os_dirent_t         DirEntry;
-   FileUtil_FileInfo_t FileInfo;
-   
-   
-   FileInfo = FileUtil_GetFileInfo(DeleteCmd->DirName, OS_MAX_PATH_LEN, false);
-
-   if (FileInfo.State == FILEUTIL_FILE_IS_DIR)
-   {
-      
-      SysStatus = OS_DirectoryOpen(&DirId, DeleteCmd->DirName);  /* Open the dir so we can see if it is empty */ 
-
-      if (SysStatus == OS_SUCCESS)
-      {
- 
-        /* Look for a directory entry that is not "." or ".." */
-        while (((SysStatus = OS_DirectoryRead(DirId, &DirEntry)) == OS_SUCCESS) && (RemoveDir == true))
-        {
-           
-            if ((strcmp(OS_DIRENTRY_NAME(DirEntry), FILEUTIL_CURRENT_DIR) != 0) &&
-                (strcmp(OS_DIRENTRY_NAME(DirEntry), FILEUTIL_PARENT_DIR)  != 0))
-            {
-                   
-               CFE_EVS_SendEvent(DIR_DELETE_ERR_EID, CFE_EVS_EventType_ERROR,
-                  "Delete directory %s failed: Dir not empty", DeleteCmd->DirName);
-
-                RemoveDir = false;
-            }
-         }
-
-         OS_DirectoryClose(DirId);
-
-      } /* End if opened dir */
-      else
-      {
-         OS_GetErrorName(SysStatus,&OsErrStr);
-         CFE_EVS_SendEvent(DIR_DELETE_ERR_EID, CFE_EVS_EventType_ERROR,
-            "Delete directory %s failed: Unable to open dir, %s", 
-            DeleteCmd->DirName, OsErrStr);
-
-         RemoveDir = false;
-      }
-
-      if (RemoveDir)
-      {
-         
-         SysStatus = OS_rmdir(DeleteCmd->DirName);
-
-         if (SysStatus == OS_SUCCESS)
-         {
-            
-            RetStatus = true;
-            CFE_EVS_SendEvent(DIR_DELETE_EID, CFE_EVS_EventType_DEBUG, "Deleted directory %s", DeleteCmd->DirName);
-            
-         }
-         else
-         {
-            OS_GetErrorName(SysStatus,&OsErrStr);            
-            CFE_EVS_SendEvent(DIR_DELETE_ERR_EID, CFE_EVS_EventType_ERROR,
-               "Delete directory %s failed: Parameters validated but OS_rmdir() failed, %s",
-               DeleteCmd->DirName, OsErrStr);
-
-         }
-      }
-
-
-   } /* End if file is a directory */
-   else
-   {
-      
-      CFE_EVS_SendEvent(DIR_DELETE_ERR_EID, CFE_EVS_EventType_ERROR,
-         "Delete directory command for %s failed due to %s",
-         DeleteCmd->DirName, FileUtil_FileStateStr(FileInfo.State));
-      
-   } /* End if file is not a directory */
-   
-   return RetStatus;
-   
-   
-} /* End DIR_DeleteCmd() */
 
 
 /******************************************************************************
@@ -392,6 +283,112 @@ bool DIR_DeleteAllCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
    return RetStatus;
 
 } /* End of DIR_DeleteAllCmd() */
+
+
+/******************************************************************************
+** Function: DIR_DeleteCmd
+**
+*/
+bool DIR_DeleteCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+{
+   
+   const FILE_MGR_DeleteDir_Payload_t *DeleteCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_MGR_DeleteDir_t);
+   bool                RetStatus = false;
+   int32               SysStatus;
+   bool                RemoveDir = true;
+   os_err_name_t       OsErrStr;   
+   osal_id_t           DirId;
+   os_dirent_t         DirEntry;
+   FileUtil_FileInfo_t FileInfo;
+   
+   
+   FileInfo = FileUtil_GetFileInfo(DeleteCmd->DirName, OS_MAX_PATH_LEN, false);
+
+   if (FileInfo.State == FILEUTIL_FILE_IS_DIR)
+   {
+      
+      SysStatus = OS_DirectoryOpen(&DirId, DeleteCmd->DirName);  /* Open the dir so we can see if it is empty */ 
+
+      if (SysStatus == OS_SUCCESS)
+      {
+ 
+        /* Look for a directory entry that is not "." or ".." */
+        while (((SysStatus = OS_DirectoryRead(DirId, &DirEntry)) == OS_SUCCESS) && (RemoveDir == true))
+        {
+           
+            if ((strcmp(OS_DIRENTRY_NAME(DirEntry), FILEUTIL_CURRENT_DIR) != 0) &&
+                (strcmp(OS_DIRENTRY_NAME(DirEntry), FILEUTIL_PARENT_DIR)  != 0))
+            {
+                   
+               CFE_EVS_SendEvent(DIR_DELETE_ERR_EID, CFE_EVS_EventType_ERROR,
+                  "Delete directory %s failed: Dir not empty", DeleteCmd->DirName);
+
+                RemoveDir = false;
+            }
+         }
+
+         OS_DirectoryClose(DirId);
+
+      } /* End if opened dir */
+      else
+      {
+         OS_GetErrorName(SysStatus,&OsErrStr);
+         CFE_EVS_SendEvent(DIR_DELETE_ERR_EID, CFE_EVS_EventType_ERROR,
+            "Delete directory %s failed: Unable to open dir, %s", 
+            DeleteCmd->DirName, OsErrStr);
+
+         RemoveDir = false;
+      }
+
+      if (RemoveDir)
+      {
+         
+         SysStatus = OS_rmdir(DeleteCmd->DirName);
+
+         if (SysStatus == OS_SUCCESS)
+         {
+            
+            RetStatus = true;
+            CFE_EVS_SendEvent(DIR_DELETE_EID, CFE_EVS_EventType_DEBUG, "Deleted directory %s", DeleteCmd->DirName);
+            
+         }
+         else
+         {
+            OS_GetErrorName(SysStatus,&OsErrStr);            
+            CFE_EVS_SendEvent(DIR_DELETE_ERR_EID, CFE_EVS_EventType_ERROR,
+               "Delete directory %s failed: Parameters validated but OS_rmdir() failed, %s",
+               DeleteCmd->DirName, OsErrStr);
+
+         }
+      }
+
+
+   } /* End if file is a directory */
+   else
+   {
+      
+      CFE_EVS_SendEvent(DIR_DELETE_ERR_EID, CFE_EVS_EventType_ERROR,
+         "Delete directory command for %s failed due to %s",
+         DeleteCmd->DirName, FileUtil_FileStateStr(FileInfo.State));
+      
+   } /* End if file is not a directory */
+   
+   return RetStatus;
+   
+   
+} /* End DIR_DeleteCmd() */
+
+
+/******************************************************************************
+** Function:  DIR_ResetStatus
+**
+*/
+void DIR_ResetStatus()
+{
+ 
+   Dir->CmdWarningCnt = 0;
+   
+} /* End DIR_ResetStatus() */
 
 
 /******************************************************************************
