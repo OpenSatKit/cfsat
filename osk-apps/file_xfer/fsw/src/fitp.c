@@ -1,27 +1,29 @@
 /* 
-** Purpose: Implement the "File Input Transfer Protocol" (FITP).
+**  Copyright 2022 bitValence, Inc.
+**  All Rights Reserved.
 **
-** Notes
-**   1. See fitp.h file prologue for protocol overview and functions
-**      below for protocol details.
+**  This program is free software; you can modify and/or redistribute it
+**  under the terms of the GNU Affero General Public License
+**  as published by the Free Software Foundation; version 3 with
+**  attribution addendums as found in the LICENSE.txt
 **
-** References:
-**   1. OpenSatKit Object-based Application Developer's Guide and the
-**      osk_c_demo app that illustrates best practices with comments.  
-**   2. cFS Application Developer's Guide.
+**  This program is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**  GNU Affero General Public License for more details.
 **
-**   Written by David McComas, licensed under the Apache License, Version 2.0
-**   (the "License"); you may not use this file except in compliance with the
-**   License. You may obtain a copy of the License at
+**  Purpose:
+**    Implement the "File Input Transfer Protocol" (FITP)
 **
-**      http://www.apache.org/licenses/LICENSE-2.0
+**  Notes:
+**    1. See fitp.h file prologue for protocol overview and functions
+**       below for protocol details.
 **
-**   Unless required by applicable law or agreed to in writing, software
-**   distributed under the License is distributed on an "AS IS" BASIS,
-**   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-**   See the License for the specific language governing permissions and
-**   limitations under the License.
+**  References:
+**    1. OpenSatKit Object-based Application Developer's Guide.
+**    2. cFS Application Developer's Guide.
 */
+
 
 /*
 ** Include Files:
@@ -65,97 +67,42 @@ void FITP_Constructor(FITP_Class_t*  FitpPtr)
 
 
 /******************************************************************************
-** Function:  FITP_ResetStatus
-**
-*/
-void FITP_ResetStatus(void)
-{
-
-   if (Fitp->FileTransferActive == false)
-   {
-
-      Fitp->FileTransferCnt     = 0;
-      Fitp->LastDataSegmentId   = FITP_DATA_SEG_ID_NULL;
-      Fitp->DataSegmentErrCnt   = 0;
-      Fitp->FileTransferByteCnt = 0;
-      Fitp->FileRunningCrc      = 0;
-      strcpy(Fitp->DestFilename, "Undefined");
-      
-   } /* End if not FileTransferActive */
-   
-} /* End FITP_ResetStatus() */
-
-
-/******************************************************************************
-** Function: FITP_StartTransferCmd
+** Function: FITP_CancelTransferCmd
 **
 ** Notes:
 **   1. Must match CMDMGR_CmdFuncPtr_t function signature
+**   2. Receiving a cancel command when no transfer is in progress is not
+**      considered an error because this command may be sent in the blind 
 */
-bool FITP_StartTransferCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
+bool FITP_CancelTransferCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
-   const FILE_XFER_FitpStartTransfer_Payload_t *StartTransferCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_XFER_SendFile_t);
-   bool RetStatus = false;
+   bool RetStatus = true;
    
-   uint32         OsStatus;
-   os_err_name_t  OsErrStr;
-
-   if (Fitp->FileTransferActive)
+   if (Fitp->FileTransferActive == true)
    {
-      
-      CFE_EVS_SendEvent(FITP_START_TRANSFER_CMD_ERR_EID, CFE_EVS_EventType_ERROR, 
-                        "Start transfer command rejected: %s transfer in progress",
+   
+      Fitp->FileTransferActive = false;
+      OS_close(Fitp->FileHandle);
+   
+      CFE_EVS_SendEvent(FITP_CANCEL_TRANSFER_CMD_EID, CFE_EVS_EventType_INFORMATION, 
+                        "Cancel file transfer command terminated transfer for %s",
                         Fitp->DestFilename);
-   }
+
+   } /* End if FileTransferActive */
    else
    {
-         
-      if (FileUtil_VerifyFilenameStr(StartTransferCmd->DestFilename))
-      {
-         
-         OsStatus = OS_OpenCreate(&Fitp->FileHandle, StartTransferCmd->DestFilename, OS_FILE_FLAG_CREATE | OS_FILE_FLAG_TRUNCATE, OS_WRITE_ONLY);
-         
-         if (OsStatus == OS_SUCCESS)
-         { 
-         
-            strncpy(Fitp->DestFilename, StartTransferCmd->DestFilename, FITP_FILENAME_LEN);      
-            Fitp->LastDataSegmentId   = FITP_DATA_SEG_ID_NULL;
-            Fitp->DataSegmentErrCnt   = 0;
-            Fitp->FileTransferByteCnt = 0;
-            Fitp->FileRunningCrc      = 0;
-            Fitp->FileTransferActive  = true;
-
-            RetStatus = true;
-            CFE_EVS_SendEvent(FITP_START_TRANSFER_CMD_EID, CFE_EVS_EventType_INFORMATION, 
-                              "Start file transfer command accepted for %s",
-                              Fitp->DestFilename);
-            
-         }
-         else
-         {
-         
-            OS_GetErrorName(OsStatus, &OsErrStr);
-            CFE_EVS_SendEvent(FITP_START_TRANSFER_CMD_ERR_EID, CFE_EVS_EventType_ERROR, 
-                              "Start transfer command rejected: Open %s failed, status = %s",
-                              Fitp->DestFilename, OsErrStr);
-                              
-         }
-      }
-      else
-      {
-         
-         CFE_EVS_SendEvent(FITP_START_TRANSFER_CMD_ERR_EID, CFE_EVS_EventType_ERROR, 
-                           "Start transfer command rejected: Invalid filename %s",
-                           Fitp->DestFilename);
-
-      }
       
-   }
-   
+      CFE_EVS_SendEvent(FITP_CANCEL_TRANSFER_CMD_EID, CFE_EVS_EventType_INFORMATION, 
+                        "Cancel file transfer command received when no file transfer is currently active");
+
+   } /* End if not FileTransferActive */
+ 
+   FITP_ResetStatus();
+    
    return RetStatus;
-   
-} /* FITP_StartTransferCmd() */
+
+} /* FITP_CancelTransferCmd() */
 
 
 /******************************************************************************
@@ -323,42 +270,97 @@ bool FITP_FinishTransferCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 
 
 /******************************************************************************
-** Function: FITP_CancelTransferCmd
+** Function:  FITP_ResetStatus
+**
+*/
+void FITP_ResetStatus(void)
+{
+
+   if (Fitp->FileTransferActive == false)
+   {
+
+      Fitp->FileTransferCnt     = 0;
+      Fitp->LastDataSegmentId   = FITP_DATA_SEG_ID_NULL;
+      Fitp->DataSegmentErrCnt   = 0;
+      Fitp->FileTransferByteCnt = 0;
+      Fitp->FileRunningCrc      = 0;
+      strcpy(Fitp->DestFilename, "Undefined");
+      
+   } /* End if not FileTransferActive */
+   
+} /* End FITP_ResetStatus() */
+
+
+/******************************************************************************
+** Function: FITP_StartTransferCmd
 **
 ** Notes:
 **   1. Must match CMDMGR_CmdFuncPtr_t function signature
-**   2. Receiving a cancel command when no transfer is in progress is not
-**      considered an error because this command may be sent in the blind 
 */
-bool FITP_CancelTransferCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
+bool FITP_StartTransferCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
-   bool RetStatus = true;
+   const FILE_XFER_FitpStartTransfer_Payload_t *StartTransferCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_XFER_SendFile_t);
+   bool RetStatus = false;
    
-   if (Fitp->FileTransferActive == true)
-   {
-   
-      Fitp->FileTransferActive = false;
-      OS_close(Fitp->FileHandle);
-   
-      CFE_EVS_SendEvent(FITP_CANCEL_TRANSFER_CMD_EID, CFE_EVS_EventType_INFORMATION, 
-                        "Cancel file transfer command terminated transfer for %s",
-                        Fitp->DestFilename);
+   uint32         OsStatus;
+   os_err_name_t  OsErrStr;
 
-   } /* End if FileTransferActive */
-   else
+   if (Fitp->FileTransferActive)
    {
       
-      CFE_EVS_SendEvent(FITP_CANCEL_TRANSFER_CMD_EID, CFE_EVS_EventType_INFORMATION, 
-                        "Cancel file transfer command received when no file transfer is currently active");
+      CFE_EVS_SendEvent(FITP_START_TRANSFER_CMD_ERR_EID, CFE_EVS_EventType_ERROR, 
+                        "Start transfer command rejected: %s transfer in progress",
+                        Fitp->DestFilename);
+   }
+   else
+   {
+         
+      if (FileUtil_VerifyFilenameStr(StartTransferCmd->DestFilename))
+      {
+         
+         OsStatus = OS_OpenCreate(&Fitp->FileHandle, StartTransferCmd->DestFilename, OS_FILE_FLAG_CREATE | OS_FILE_FLAG_TRUNCATE, OS_WRITE_ONLY);
+         
+         if (OsStatus == OS_SUCCESS)
+         { 
+         
+            strncpy(Fitp->DestFilename, StartTransferCmd->DestFilename, FITP_FILENAME_LEN);      
+            Fitp->LastDataSegmentId   = FITP_DATA_SEG_ID_NULL;
+            Fitp->DataSegmentErrCnt   = 0;
+            Fitp->FileTransferByteCnt = 0;
+            Fitp->FileRunningCrc      = 0;
+            Fitp->FileTransferActive  = true;
 
-   } /* End if not FileTransferActive */
- 
-   FITP_ResetStatus();
-    
+            RetStatus = true;
+            CFE_EVS_SendEvent(FITP_START_TRANSFER_CMD_EID, CFE_EVS_EventType_INFORMATION, 
+                              "Start file transfer command accepted for %s",
+                              Fitp->DestFilename);
+            
+         }
+         else
+         {
+         
+            OS_GetErrorName(OsStatus, &OsErrStr);
+            CFE_EVS_SendEvent(FITP_START_TRANSFER_CMD_ERR_EID, CFE_EVS_EventType_ERROR, 
+                              "Start transfer command rejected: Open %s failed, status = %s",
+                              Fitp->DestFilename, OsErrStr);
+                              
+         }
+      }
+      else
+      {
+         
+         CFE_EVS_SendEvent(FITP_START_TRANSFER_CMD_ERR_EID, CFE_EVS_EventType_ERROR, 
+                           "Start transfer command rejected: Invalid filename %s",
+                           Fitp->DestFilename);
+
+      }
+      
+   }
+   
    return RetStatus;
-
-} /* FITP_CancelTransferCmd() */
+   
+} /* FITP_StartTransferCmd() */
 
 
 /******************************************************************************

@@ -1,19 +1,16 @@
 /*
-**  Copyright 2022 Open STEMware Foundation
+**  Copyright 2022 bitValence, Inc.
 **  All Rights Reserved.
 **
-**  This program is free software; you can modify and/or redistribute it under
-**  the terms of the GNU Affero General Public License as published by the Free
-**  Software Foundation; version 3 with attribution addendums as found in the
-**  LICENSE.txt
+**  This program is free software; you can modify and/or redistribute it
+**  under the terms of the GNU Affero General Public License
+**  as published by the Free Software Foundation; version 3 with
+**  attribution addendums as found in the LICENSE.txt
 **
-**  This program is distributed in the hope that it will be useful, but WITHOUT
-**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
-**  details.
-**  
-**  This program may also be used under the terms of a commercial or enterprise
-**  edition license of cFSAT if purchased from the copyright holder.
+**  This program is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**  GNU Affero General Public License for more details.
 **
 **  Purpose:
 **    Implement the File Transfer application
@@ -164,63 +161,6 @@ bool FILE_XFER_ResetAppCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
    return true;
 
 } /* End FILE_XFER_ResetAppCmd() */
-
-
-/******************************************************************************
-** Function: SendHousekeepingPkt
-**
-** Notes:
-**   1. At a minimum all FITP/FOTP variables affected by a reset must be
-**      included in HK telemetry
-*/
-static void SendHousekeepingPkt(void)
-{
-
-   /*
-   ** FILE_XFER Application Data
-   */
-
-   FileXfer.HkPkt.ValidCmdCnt   = FileXfer.CmdMgr.ValidCmdCnt;
-   FileXfer.HkPkt.InvalidCmdCnt = FileXfer.CmdMgr.InvalidCmdCnt;
-
-   /*
-   ** FITP Data
-   */
-   
-   FileXfer.HkPkt.Fitp.FileTransferCnt     = FileXfer.Fitp.FileTransferCnt;
-   FileXfer.HkPkt.Fitp.FileTransferActive  = FileXfer.Fitp.FileTransferActive; 
-   FileXfer.HkPkt.Fitp.LastDataSegmentId   = FileXfer.Fitp.LastDataSegmentId;
-   FileXfer.HkPkt.Fitp.DataSegmentErrCnt   = FileXfer.Fitp.DataSegmentErrCnt;             
-   FileXfer.HkPkt.Fitp.FileTransferByteCnt = FileXfer.Fitp.FileTransferByteCnt;
-   FileXfer.HkPkt.Fitp.FileRunningCrc      = FileXfer.Fitp.FileRunningCrc;
-  
-   strncpy(FileXfer.HkPkt.Fitp.DestFilename, FileXfer.Fitp.DestFilename, FITP_FILENAME_LEN);
-
-   /*
-   ** FOTP Data
-   */
-   
-   FileXfer.HkPkt.Fotp.FileTransferCnt     = FileXfer.Fotp.FileTransferCnt;             
-   FileXfer.HkPkt.Fotp.FileTransferState   = FileXfer.Fotp.FileTransferState; 
-   FileXfer.HkPkt.Fotp.PausedTransferState = FileXfer.Fotp.PausedFileTransferState;
-   FileXfer.HkPkt.Fotp.PrevSegmentFailed   = FileXfer.Fotp.PrevSendDataSegmentFailed;
-   
-   FileXfer.HkPkt.Fotp.FileTranferByteCnt  = FileXfer.Fotp.FileTransferByteCnt;
-   FileXfer.HkPkt.Fotp.FileRunningCrc      = FileXfer.Fotp.FileRunningCrc;
-   
-   FileXfer.HkPkt.Fotp.DataTransferLen     = FileXfer.Fotp.DataTransferLen;
-   FileXfer.HkPkt.Fotp.FileLen             = FileXfer.Fotp.FileLen;
-   FileXfer.HkPkt.Fotp.FileByteOffset      = FileXfer.Fotp.FileByteOffset;
-   FileXfer.HkPkt.Fotp.DataSegmentLen      = FileXfer.Fotp.DataSegmentLen;
-   FileXfer.HkPkt.Fotp.DataSegmentOffset   = FileXfer.Fotp.DataSegmentOffset;
-   FileXfer.HkPkt.Fotp.NextDataSegmentId   = FileXfer.Fotp.NextDataSegmentId;
-
-   strncpy(FileXfer.HkPkt.Fotp.SrcFilename, FileXfer.Fotp.SrcFilename, FOTP_FILENAME_LEN);
-
-   CFE_SB_TimeStampMsg(CFE_MSG_PTR(FileXfer.HkPkt.TlmHeader));
-   CFE_SB_TransmitMsg(CFE_MSG_PTR(FileXfer.HkPkt.TlmHeader), true);
-
-} /* End SendHousekeepingPkt() */
 
 
 /******************************************************************************
@@ -399,3 +339,61 @@ static int32 ProcessCommands(void)
    return RetStatus;
 
 } /* End ProcessCommands() */
+
+
+/******************************************************************************
+** Function: SendHousekeepingPkt
+**
+** Notes:
+**   1. At a minimum all FITP/FOTP variables affected by a reset must be
+**      included in HK telemetry
+*/
+static void SendHousekeepingPkt(void)
+{
+
+   /*
+   ** FILE_XFER Application Data
+   */
+
+   FileXfer.HkPkt.ValidCmdCnt   = FileXfer.CmdMgr.ValidCmdCnt;
+   FileXfer.HkPkt.InvalidCmdCnt = FileXfer.CmdMgr.InvalidCmdCnt;
+
+   /*
+   ** FITP Data
+   */
+   
+   FileXfer.HkPkt.Fitp.FileTransferCnt     = FileXfer.Fitp.FileTransferCnt;
+   FileXfer.HkPkt.Fitp.FileTransferActive  = FileXfer.Fitp.FileTransferActive; 
+   FileXfer.HkPkt.Fitp.LastDataSegmentId   = FileXfer.Fitp.LastDataSegmentId;
+   FileXfer.HkPkt.Fitp.DataSegmentErrCnt   = FileXfer.Fitp.DataSegmentErrCnt;             
+   FileXfer.HkPkt.Fitp.FileTransferByteCnt = FileXfer.Fitp.FileTransferByteCnt;
+   FileXfer.HkPkt.Fitp.FileRunningCrc      = FileXfer.Fitp.FileRunningCrc;
+  
+   strncpy(FileXfer.HkPkt.Fitp.DestFilename, FileXfer.Fitp.DestFilename, FITP_FILENAME_LEN);
+
+   /*
+   ** FOTP Data
+   */
+   
+   FileXfer.HkPkt.Fotp.FileTransferCnt     = FileXfer.Fotp.FileTransferCnt;             
+   FileXfer.HkPkt.Fotp.FileTransferState   = FileXfer.Fotp.FileTransferState; 
+   FileXfer.HkPkt.Fotp.PausedTransferState = FileXfer.Fotp.PausedFileTransferState;
+   FileXfer.HkPkt.Fotp.PrevSegmentFailed   = FileXfer.Fotp.PrevSendDataSegmentFailed;
+   
+   FileXfer.HkPkt.Fotp.FileTranferByteCnt  = FileXfer.Fotp.FileTransferByteCnt;
+   FileXfer.HkPkt.Fotp.FileRunningCrc      = FileXfer.Fotp.FileRunningCrc;
+   
+   FileXfer.HkPkt.Fotp.DataTransferLen     = FileXfer.Fotp.DataTransferLen;
+   FileXfer.HkPkt.Fotp.FileLen             = FileXfer.Fotp.FileLen;
+   FileXfer.HkPkt.Fotp.FileByteOffset      = FileXfer.Fotp.FileByteOffset;
+   FileXfer.HkPkt.Fotp.DataSegmentLen      = FileXfer.Fotp.DataSegmentLen;
+   FileXfer.HkPkt.Fotp.DataSegmentOffset   = FileXfer.Fotp.DataSegmentOffset;
+   FileXfer.HkPkt.Fotp.NextDataSegmentId   = FileXfer.Fotp.NextDataSegmentId;
+
+   strncpy(FileXfer.HkPkt.Fotp.SrcFilename, FileXfer.Fotp.SrcFilename, FOTP_FILENAME_LEN);
+
+   CFE_SB_TimeStampMsg(CFE_MSG_PTR(FileXfer.HkPkt.TlmHeader));
+   CFE_SB_TransmitMsg(CFE_MSG_PTR(FileXfer.HkPkt.TlmHeader), true);
+
+} /* End SendHousekeepingPkt() */
+
