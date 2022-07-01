@@ -1,20 +1,17 @@
 #!/usr/bin/env python
 """
-    Copyright 2022 Open STEMware Foundation
+    Copyright 2022 bitValence, Inc.
     All Rights Reserved.
 
-    This program is free software; you can modify and/or redistribute it under
-    the terms of the GNU Affero General Public License as published by the Free
-    Software Foundation; version 3 with attribution addendums as found in the
-    LICENSE.txt
+    This program is free software; you can modify and/or redistribute it
+    under the terms of the GNU Affero General Public License
+    as published by the Free Software Foundation; version 3 with
+    attribution addendums as found in the LICENSE.txt.
 
-    This program is distributed in the hope that it will be useful, but WITHOUT
-    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-    FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
-    details.
-
-    This program may also be used under the terms of a commercial or enterprise
-    edition license of cFSAT if purchased from the copyright holder.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
 
     Purpose:
         Provide the main application for the cFS Application Toolkit (cFSAT)
@@ -65,7 +62,7 @@ from cfsinterface import Cfe, EdsMission
 from cfsinterface import TelecommandInterface, TelecommandScript
 from cfsinterface import TelemetryMessage, TelemetryObserver, TelemetryQueueServer
 from tools import CreateApp, ManageTutorials, crc_32c, datagram_to_str, compress_abs_path, TextEditor
-from tools import AppStore, ManageUsrApps, AppSpec
+from tools import AppStore, ManageUsrApps, AppSpec, PiControl
 
 
 ###############################################################################
@@ -657,7 +654,7 @@ class ManageCfs():
         self.selected_app = None
         
         layout = [
-                  [sg.Text('Select an app from the dropdown iist and click OK\n', font=self.b_font)],
+                  [sg.Text('Select an app from the dropdown iist and click Submit\n', font=self.b_font)],
                   [sg.Combo(app_name_list, pad=self.b_pad, font=self.b_font, enable_events=True, key="-USR_APP-", default_value=app_name_list[0]),
                    sg.Button('Submit', button_color=('white', '#007339'), pad=self.b_pad, key='-SUBMIT-'),
                    sg.Button('Cancel', button_color=('white', 'firebrick4'), pad=self.b_pad, key='-CANCEL-')]
@@ -908,6 +905,7 @@ class App():
         self.file_browser  = None
         self.script_runner = None
         self.tutorial      = None
+        self.pisat_control = None
 
     def update_event_history_str(self, new_event_text):
         time = datetime.now().strftime("%H:%M:%S")
@@ -976,7 +974,7 @@ class App():
         menu_def = [
                        ['System', ['Options', 'About', 'Exit']],
                        ['Developer', ['Create App', 'Download App','Add App to cFS', 'Run Perf Monitor']], #todo: 'Certify App' 
-                       ['Operator', ['Script Runner', 'File Browser', 'Manage Tables']],
+                       ['Operator', ['Browse Files', 'Run Script', 'Manage Tables', '---', 'Control PiSat']],
                        ['Documents', ['cFS Overview', 'cFE Overview', 'OSK App Dev']],
                        ['Tutorials', self.manage_tutorials.tutorial_titles]
                    ]
@@ -1145,14 +1143,14 @@ class App():
             elif self.event == '-ENA_TLM-':
                 self.enable_telemetry()
 
-            elif self.event == 'Script Runner':
+            elif self.event == 'Run Script':
                 self.cmd_tlm_router.add_cmd_source(self.config.getint('NETWORK','SCRIPT_RUNNER_CMD_PORT'))
                 self.cmd_tlm_router.add_tlm_dest(self.config.getint('NETWORK','SCRIPT_RUNNER_TLM_PORT'))
                 cfs_interface_dir = os.path.join(self.path, "cfsinterface")
                 print("cfs_interface_dir = " + cfs_interface_dir)
                 self.script_runner = sg.execute_py_file("scriptrunner.py", cwd=cfs_interface_dir)
 
-            elif self.event == 'File Browser' or self.event == '-FILE_BROWSER-':
+            elif self.event == 'Browse Files' or self.event == '-FILE_BROWSER-':
                 self.cmd_tlm_router.add_cmd_source(self.config.getint('NETWORK','FILE_BROWSER_CMD_PORT'))
                 self.cmd_tlm_router.add_tlm_dest(self.config.getint('NETWORK','FILE_BROWSER_TLM_PORT'))
                 cfs_interface_dir = os.path.join(self.path, "cfsinterface")
@@ -1161,6 +1159,11 @@ class App():
 
             elif self.event == 'Manage Tables':
                 self.ComingSoonPopup("Manage cFS app JSON tables")
+
+            elif self.event == 'Control PiSat':
+                tools_dir = os.path.join(self.path, "tools")
+                print("tools_dir = " + tools_dir)
+                self.pisat_control = sg.execute_py_file("picontrol.py", cwd=tools_dir)
 
 
             ### DOCUMENTS ###
