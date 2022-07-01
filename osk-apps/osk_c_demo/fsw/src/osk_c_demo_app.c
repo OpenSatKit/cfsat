@@ -1,19 +1,16 @@
 /*
-**  Copyright 2022 Open STEMware Foundation
+**  Copyright 2022 bitValence, Inc.
 **  All Rights Reserved.
 **
-**  This program is free software; you can modify and/or redistribute it under
-**  the terms of the GNU Affero General Public License as published by the Free
-**  Software Foundation; version 3 with attribution addendums as found in the
-**  LICENSE.txt
+**  This program is free software; you can modify and/or redistribute it
+**  under the terms of the GNU Affero General Public License
+**  as published by the Free Software Foundation; version 3 with
+**  attribution addendums as found in the LICENSE.txt
 **
-**  This program is distributed in the hope that it will be useful, but WITHOUT
-**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
-**  details.
-**  
-**  This program may also be used under the terms of a commercial or enterprise
-**  edition license of cFSAT if purchased from the copyright holder.
+**  This program is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**  GNU Affero General Public License for more details.
 **
 **  Purpose:
 **    Implement the OSK C Demo application
@@ -200,12 +197,12 @@ static void SendHousekeepingPkt(void)
 static int32 InitApp(void)
 {
 
-   int32 Status = OSK_C_FW_CFS_ERROR;
+   int32 RetStatus = OSK_C_FW_CFS_ERROR;
    
    CHILDMGR_TaskInit_t ChildTaskInit;
    
    /*
-   ** Initialize objects 
+   ** Read JSON INI Table & Initialize Child Manager  
    */
    
    if (INITBL_Constructor(INITBL_OBJ, OSK_C_DEMO_INI_FILENAME, &IniCfgEnum))
@@ -218,20 +215,20 @@ static int32 InitApp(void)
       OskCDemo.ExecuteMid = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_EXECUTE_MID));
       OskCDemo.SendHkMid  = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_SEND_HK_MID));
 
-      /* Child Manager constructor sends error events */    
+      /* Child Manager constructor sends error events */
       ChildTaskInit.TaskName  = INITBL_GetStrConfig(INITBL_OBJ, CFG_CHILD_NAME);
       ChildTaskInit.StackSize = INITBL_GetIntConfig(INITBL_OBJ, CFG_CHILD_STACK_SIZE);
       ChildTaskInit.Priority  = INITBL_GetIntConfig(INITBL_OBJ, CFG_CHILD_PRIORITY);
       ChildTaskInit.PerfId    = INITBL_GetIntConfig(INITBL_OBJ, CHILD_PERF_ID);
 
-      Status = CHILDMGR_Constructor(CHILDMGR_OBJ, 
+      RetStatus = CHILDMGR_Constructor(CHILDMGR_OBJ, 
                                     ChildMgr_TaskMainCmdDispatch,
                                     NULL, 
                                     &ChildTaskInit); 
   
    } /* End if INITBL Constructed */
   
-   if (Status == CFE_SUCCESS)
+   if (RetStatus == CFE_SUCCESS)
    {
 
       /*
@@ -299,7 +296,7 @@ static int32 InitApp(void)
 
    } /* End if CHILDMGR constructed */
    
-   return(Status);
+   return RetStatus;
 
 } /* End of InitApp() */
 

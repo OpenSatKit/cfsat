@@ -1,19 +1,16 @@
 /*
-**  Copyright 2022 Open STEMware Foundation
+**  Copyright 2022 bitValence, Inc.
 **  All Rights Reserved.
 **
-**  This program is free software; you can modify and/or redistribute it under
-**  the terms of the GNU Affero General Public License as published by the Free
-**  Software Foundation; version 3 with attribution addendums as found in the
-**  LICENSE.txt
+**  This program is free software; you can modify and/or redistribute it
+**  under the terms of the GNU Affero General Public License
+**  as published by the Free Software Foundation; version 3 with
+**  attribution addendums as found in the LICENSE.txt
 **
-**  This program is distributed in the hope that it will be useful, but WITHOUT
-**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
-**  details.
-**  
-**  This program may also be used under the terms of a commercial or enterprise
-**  edition license of cFSAT if purchased from the copyright holder.
+**  This program is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**  GNU Affero General Public License for more details.
 **
 **  Purpose:
 **    Define the Message Log table
@@ -118,7 +115,7 @@ typedef struct
 /******************************************************************************
 ** Function: MSGLOGTBL_Constructor
 **
-** Initialize the example table object.
+** Initialize the message log table object.
 **
 ** Notes:
 **   1. The table values are not populated. This is done when the table is 
@@ -129,14 +126,17 @@ void MSGLOGTBL_Constructor(MSGLOGTBL_Class_t* TblObj, const INITBL_Class_t* IniT
 
 
 /******************************************************************************
-** Function: MSGLOGTBL_ResetStatus
+** Function: MSGLOGTBL_DumpCmd
 **
-** Reset counters and status flags to a known reset state.  The behavior of
-** the table manager should not be impacted. The intent is to clear counters
-** and flags to a known default state for telemetry.
+** Command to dump the table.
+**
+** Notes:
+**  1. Function signature must match TBLMGR_DumpTblFuncPtr_t.
+**  2. Can assume valid table file name because this is a callback from 
+**     the app framework table manager.
 **
 */
-void MSGLOGTBL_ResetStatus(void);
+bool MSGLOGTBL_DumpCmd(TBLMGR_Tbl_t* Tbl, uint8 DumpType, const char* Filename);
 
 
 /******************************************************************************
@@ -154,17 +154,14 @@ bool MSGLOGTBL_LoadCmd(TBLMGR_Tbl_t* Tbl, uint8 LoadType, const char* Filename);
 
 
 /******************************************************************************
-** Function: MSGLOGTBL_DumpCmd
+** Function: MSGLOGTBL_ResetStatus
 **
-** Command to dump the table.
-**
-** Notes:
-**  1. Function signature must match TBLMGR_DumpTblFuncPtr_t.
-**  2. Can assume valid table file name because this is a callback from 
-**     the app framework table manager.
+** Reset counters and status flags to a known reset state.  The behavior of
+** the table manager should not be impacted. The intent is to clear counters
+** and flags to a known default state for telemetry.
 **
 */
-bool MSGLOGTBL_DumpCmd(TBLMGR_Tbl_t* Tbl, uint8 DumpType, const char* Filename);
+void MSGLOGTBL_ResetStatus(void);
 
 
 #endif /* _msglogtbl_ */
