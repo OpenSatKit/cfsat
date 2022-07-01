@@ -1,19 +1,16 @@
 /*
-**  Copyright 2022 Open STEMware Foundation
+**  Copyright 2022 bitValence, Inc.
 **  All Rights Reserved.
 **
-**  This program is free software; you can modify and/or redistribute it under
-**  the terms of the GNU Affero General Public License as published by the Free
-**  Software Foundation; version 3 with attribution addendums as found in the
-**  LICENSE.txt
+**  This program is free software; you can modify and/or redistribute it
+**  under the terms of the GNU Affero General Public License
+**  as published by the Free Software Foundation; version 3 with
+**  attribution addendums as found in the LICENSE.txt
 **
-**  This program is distributed in the hope that it will be useful, but WITHOUT
-**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
-**  details.
-**  
-**  This program may also be used under the terms of a commercial or enterprise
-**  edition license of cFSAT if purchased from the copyright holder.
+**  This program is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**  GNU Affero General Public License for more details.
 **
 **  Purpose:
 **    Implement the FILE_Class methods
@@ -74,18 +71,6 @@ void FILE_Constructor(FILE_Class_t*  FilePtr, const INITBL_Class_t* IniTbl)
                 sizeof(FILE_MGR_FileInfoTlm_t));
 
 } /* End FILE_Constructor */
-
-
-/******************************************************************************
-** Function:  FILE_ResetStatus
-**
-*/
-void FILE_ResetStatus()
-{
- 
-   File->CmdWarningCnt = 0;
-   
-} /* End FILE_ResetStatus() */
 
 
 /******************************************************************************
@@ -589,6 +574,18 @@ bool FILE_RenameCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 
 
 /******************************************************************************
+** Function:  FILE_ResetStatus
+**
+*/
+void FILE_ResetStatus()
+{
+ 
+   File->CmdWarningCnt = 0;
+   
+} /* End FILE_ResetStatus() */
+
+
+/******************************************************************************
 ** Function: FILE_SendInfoTlmCmd
 **
 ** Notes:
@@ -750,6 +747,90 @@ bool FILE_SetPermissionsCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 
 
 /******************************************************************************
+** Function: ComputeFileCrc
+**
+** Notes:
+**   1. TaskBlockCnt is the count of "task blocks" performed. A task block is 
+**      is group of instructions that is CPU intensive and may need to be 
+**      periodically suspended to prevent CPU hogging.
+**
+*/
+
+static bool ComputeFileCrc(const char* CmdName, const char* Filename, uint32* Crc, uint8 CrcType)
+{
+   
+   int32         SysStatus;
+   os_err_name_t OsErrStr;
+   osal_id_t     FileHandle;
+   int32         FileBytesRead;
+
+   
+   uint16  TaskBlockCnt = 0;   /* See prologue */
+   uint32  CurrentCrc   = 0;
+   bool    CrcComputed  = false;
+   bool    ComputingCrc = true;
+   
+
+   *Crc = 0;
+   SysStatus = OS_OpenCreate(&FileHandle, Filename, OS_FILE_FLAG_NONE, OS_READ_ONLY);
+   
+   if (SysStatus == OS_SUCCESS)
+   {
+   
+      while (ComputingCrc)
+      {
+         
+         FileBytesRead = OS_read(FileHandle, File->FileTaskBuf, FILE_MGR_TASK_FILE_BLOCK_SIZE);
+
+         if (FileBytesRead == 0) /* Successfully finished reading file */ 
+         {  
+            
+            ComputingCrc = false;
+            OS_close(FileHandle);
+
+            *Crc = CurrentCrc;
+            CrcComputed = true;
+           
+         }
+         else if (FileBytesRead < 0) /* Error reading file */ 
+         {  
+            
+            ComputingCrc = false;
+            OS_close(FileHandle);
+            
+            CFE_EVS_SendEvent(FILE_COMPUTE_FILE_CRC_ERR_EID, CFE_EVS_EventType_ERROR,
+                              "Concatenate file cmd error: File read error, OS_read status = %d", FileBytesRead);
+
+         }
+         else
+         {
+                
+            CurrentCrc = CFE_ES_CalculateCRC(File->FileTaskBuf, FileBytesRead,
+                                             CurrentCrc, CrcType);
+         
+            CHILDMGR_PauseTask(&TaskBlockCnt, INITBL_GetIntConfig(File->IniTbl, CFG_TASK_FILE_BLOCK_CNT),
+                               INITBL_GetIntConfig(File->IniTbl, CFG_TASK_FILE_BLOCK_DELAY), 
+                               INITBL_GetIntConfig(File->IniTbl, CFG_CHILD_TASK_PERF_ID));
+         
+         } /* End if still reading file */
+
+      } /* End while computing CRC */
+   
+   }
+   else
+   {
+      OS_GetErrorName(SysStatus, &OsErrStr);
+      CFE_EVS_SendEvent(FILE_COMPUTE_FILE_CRC_ERR_EID, CFE_EVS_EventType_ERROR,
+                        "%s failed: Error opening file %s, OS_open status %s", CmdName, Filename, OsErrStr);
+   
+   } /* End if file open */
+   
+   return CrcComputed;
+   
+} /* End ComputeCrc() */
+
+
+/******************************************************************************
 ** Function: ConcatenateFiles
 **
 */
@@ -862,88 +943,5 @@ static bool ConcatenateFiles(const char* SrcFile1, const char* SrcFile2, const c
 
 } /* End of ConcatenateFiles() */
 
-
-/******************************************************************************
-** Function: ComputeFileCrc
-**
-** Notes:
-**   1. TaskBlockCnt is the count of "task blocks" performed. A task block is 
-**      is group of instructions that is CPU intensive and may need to be 
-**      periodically suspended to prevent CPU hogging.
-**
-*/
-
-static bool ComputeFileCrc(const char* CmdName, const char* Filename, uint32* Crc, uint8 CrcType)
-{
-   
-   int32         SysStatus;
-   os_err_name_t OsErrStr;
-   osal_id_t     FileHandle;
-   int32         FileBytesRead;
-
-   
-   uint16  TaskBlockCnt = 0;   /* See prologue */
-   uint32  CurrentCrc   = 0;
-   bool    CrcComputed  = false;
-   bool    ComputingCrc = true;
-   
-
-   *Crc = 0;
-   SysStatus = OS_OpenCreate(&FileHandle, Filename, OS_FILE_FLAG_NONE, OS_READ_ONLY);
-   
-   if (SysStatus == OS_SUCCESS)
-   {
-   
-      while (ComputingCrc)
-      {
-         
-         FileBytesRead = OS_read(FileHandle, File->FileTaskBuf, FILE_MGR_TASK_FILE_BLOCK_SIZE);
-
-         if (FileBytesRead == 0) /* Successfully finished reading file */ 
-         {  
-            
-            ComputingCrc = false;
-            OS_close(FileHandle);
-
-            *Crc = CurrentCrc;
-            CrcComputed = true;
-           
-         }
-         else if (FileBytesRead < 0) /* Error reading file */ 
-         {  
-            
-            ComputingCrc = false;
-            OS_close(FileHandle);
-            
-            CFE_EVS_SendEvent(FILE_COMPUTE_FILE_CRC_ERR_EID, CFE_EVS_EventType_ERROR,
-                              "Concatenate file cmd error: File read error, OS_read status = %d", FileBytesRead);
-
-         }
-         else
-         {
-                
-            CurrentCrc = CFE_ES_CalculateCRC(File->FileTaskBuf, FileBytesRead,
-                                             CurrentCrc, CrcType);
-         
-            CHILDMGR_PauseTask(&TaskBlockCnt, INITBL_GetIntConfig(File->IniTbl, CFG_TASK_FILE_BLOCK_CNT),
-                               INITBL_GetIntConfig(File->IniTbl, CFG_TASK_FILE_BLOCK_DELAY), 
-                               INITBL_GetIntConfig(File->IniTbl, CFG_CHILD_TASK_PERF_ID));
-         
-         } /* End if still reading file */
-
-      } /* End while computing CRC */
-   
-   }
-   else
-   {
-      OS_GetErrorName(SysStatus, &OsErrStr);
-      CFE_EVS_SendEvent(FILE_COMPUTE_FILE_CRC_ERR_EID, CFE_EVS_EventType_ERROR,
-                        "%s failed: Error opening file %s, OS_open status %s", CmdName, Filename, OsErrStr);
-   
-   } /* End if file open */
-   
-   return CrcComputed;
-   
-} /* End ComputeCrc() */
 
 

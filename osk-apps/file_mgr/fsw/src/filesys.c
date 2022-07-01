@@ -1,19 +1,16 @@
 /*
-**  Copyright 2022 Open STEMware Foundation
+**  Copyright 2022 bitValence, Inc.
 **  All Rights Reserved.
 **
-**  This program is free software; you can modify and/or redistribute it under
-**  the terms of the GNU Affero General Public License as published by the Free
-**  Software Foundation; version 3 with attribution addendums as found in the
-**  LICENSE.txt
+**  This program is free software; you can modify and/or redistribute it
+**  under the terms of the GNU Affero General Public License
+**  as published by the Free Software Foundation; version 3 with
+**  attribution addendums as found in the LICENSE.txt
 **
-**  This program is distributed in the hope that it will be useful, but WITHOUT
-**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
-**  details.
-**  
-**  This program may also be used under the terms of a commercial or enterprise
-**  edition license of cFSAT if purchased from the copyright holder.
+**  This program is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**  GNU Affero General Public License for more details.
 **
 **  Purpose:
 **    Implement the File System Table
@@ -104,19 +101,6 @@ void FILESYS_Constructor(FILESYS_Class_t*  FileSysPtr, const INITBL_Class_t* Ini
 
 
 /******************************************************************************
-** Function:  FILESYSTBL_ResetStatus
-**
-*/
-void FILESYS_ResetStatus()
-{
-
-   /* Nothing to do */
-
-} /* End FILESYSTBL_ResetStatus() */
-
-
-
-/******************************************************************************
 ** Function: FILESYS_ManageTbl
 **
 */
@@ -145,143 +129,15 @@ void FILESYS_ManageTbl(void)
 
 
 /******************************************************************************
-** Function: ValidateTbl
-**
-** Callback function used by CFE Table service to allow a table to be validated
-** prior to being committed.
-**
-** Function signature must match CFE_TBL_CallbackFuncPtr_t
+** Function:  FILESYSTBL_ResetStatus
 **
 */
-static int32 ValidateTbl(void* VoidTblPtr) 
+void FILESYS_ResetStatus()
 {
-   
-   FILESYS_TblData_t* Tbl = (FILESYS_TblData_t *) VoidTblPtr;
 
-   int32   RetStatus = INITBL_GetIntConfig(FileSys->IniTbl, CFG_TBL_ERR_CODE);
-   uint16  NameLength;
-   uint16  i;
+   /* Nothing to do */
 
-   uint16 ValidEntries   = 0;
-   uint16 InvalidEntries = 0;
-   uint16 UnusedEntries  = 0;
-
-   /*
-   ** Verification criteria
-   **
-   **  1. Table volume state must be enabled or disabled or unused
-   **  2. Enabled or disabled entries must have a valid file system name
-   **  3. File system name for unused entries is ignored
-   **
-   ** FileUtil_VerifyFilenameStr() checks for null string. A null string test is 
-   ** done first to separate it from an invalid character error. 
-   */
-
-   for (i = 0; i < FILE_MGR_FILESYS_TBL_VOL_CNT; i++)
-   {
-
-      /* Validate file system name if state is enabled or disabled */
-      
-      if ((Tbl->Volume[i].State == FILESYS_TBL_ENTRY_ENABLED) ||
-          (Tbl->Volume[i].State == FILESYS_TBL_ENTRY_DISABLED))
-      {
-
-         /* Search file system name buffer for a string terminator */
-         
-         for (NameLength = 0; NameLength < OS_MAX_PATH_LEN; NameLength++)
-         {
-
-            if (Tbl->Volume[i].Name[NameLength] == '\0') break;
-              
-         }
-
-         /* 
-         ** Valid file system names must be: non-zero length, terminated and valid characters  
-         ** Only send event on first error occurence 
-         */
-         if (NameLength == 0)
-         {
-
-            ++InvalidEntries;
-
-            if (InvalidEntries == 1)
-            {
-
-               CFE_EVS_SendEvent(FILESYS_TBL_VERIFY_ERR_EID, CFE_EVS_EventType_ERROR,
-                                 "%s Table error: index = %d, empty name string",
-                                 FileSys->CfeTblName, i);
-            }
-
-         }
-         else if (NameLength == OS_MAX_PATH_LEN)
-         {
-
-            InvalidEntries++;
-
-            if (InvalidEntries == 1) {
-                    
-               CFE_EVS_SendEvent(FILESYS_TBL_VERIFY_ERR_EID, CFE_EVS_EventType_ERROR,
-                                 "%s table error: index = %d, non-terminated name string",
-                                 FileSys->CfeTblName, i);
-            }
-            
-         }
-         else if (!FileUtil_VerifyFilenameStr(Tbl->Volume[i].Name))
-         {
-
-            InvalidEntries++;
-
-            if (InvalidEntries == 1)
-            {
-
-               CFE_EVS_SendEvent(FILESYS_TBL_VERIFY_ERR_EID, CFE_EVS_EventType_ERROR,
-                                 "%s table error: index = %d, invalid name = %s",
-                                 FileSys->CfeTblName, i, Tbl->Volume[i].Name);
-            }
-         }
-         else
-         {
-            ValidEntries++;
-
-         } /* End NameLength checks */
-     
-      } /* End ENABLED/DISABLED checcks */ 
-      else if (Tbl->Volume[i].State == FILESYS_TBL_ENTRY_UNUSED)
-      {
-
-         /* Ignore (but count) unused table entries */
-         ++UnusedEntries;
-      
-      }
-      else
-      {
-
-         /* Invalid state */
-                    
-         ++InvalidEntries;   
-            
-         if (InvalidEntries == 1)
-         {
-
-            CFE_EVS_SendEvent(FILESYS_TBL_VERIFY_ERR_EID, CFE_EVS_EventType_ERROR,
-                              "%s table error: index = %d, invalid state = %d",
-                              FileSys->CfeTblName, i, Tbl->Volume[i].State);
-         }
-
-      } /* End state checks **/
-
-   } /* End volume loop */
-
-   CFE_EVS_SendEvent(FILESYS_TBL_VERIFIED_EID, CFE_EVS_EventType_INFORMATION,
-                      "%s table entry verification: valid = %d, invalid = %d, unused = %d",
-                       FileSys->CfeTblName, ValidEntries, InvalidEntries, UnusedEntries);
-
-   if (InvalidEntries == 0) RetStatus = CFE_SUCCESS;
-
-   return RetStatus;
-
-  
-} /* End ValidateTbl() */
+} /* End FILESYSTBL_ResetStatus() */
 
 
 /******************************************************************************
@@ -453,3 +309,145 @@ bool FILESYS_SetTblStateCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
    return RetStatus;
 
 } /* End of FILESYS_SetTableStateCmd() */
+
+
+/******************************************************************************
+** Function: ValidateTbl
+**
+** Callback function used by CFE Table service to allow a table to be validated
+** prior to being committed.
+**
+** Function signature must match CFE_TBL_CallbackFuncPtr_t
+**
+*/
+static int32 ValidateTbl(void* VoidTblPtr) 
+{
+   
+   FILESYS_TblData_t* Tbl = (FILESYS_TblData_t *) VoidTblPtr;
+
+   int32   RetStatus = INITBL_GetIntConfig(FileSys->IniTbl, CFG_TBL_ERR_CODE);
+   uint16  NameLength;
+   uint16  i;
+
+   uint16 ValidEntries   = 0;
+   uint16 InvalidEntries = 0;
+   uint16 UnusedEntries  = 0;
+
+   /*
+   ** Verification criteria
+   **
+   **  1. Table volume state must be enabled or disabled or unused
+   **  2. Enabled or disabled entries must have a valid file system name
+   **  3. File system name for unused entries is ignored
+   **
+   ** FileUtil_VerifyFilenameStr() checks for null string. A null string test is 
+   ** done first to separate it from an invalid character error. 
+   */
+
+   for (i = 0; i < FILE_MGR_FILESYS_TBL_VOL_CNT; i++)
+   {
+
+      /* Validate file system name if state is enabled or disabled */
+      
+      if ((Tbl->Volume[i].State == FILESYS_TBL_ENTRY_ENABLED) ||
+          (Tbl->Volume[i].State == FILESYS_TBL_ENTRY_DISABLED))
+      {
+
+         /* Search file system name buffer for a string terminator */
+         
+         for (NameLength = 0; NameLength < OS_MAX_PATH_LEN; NameLength++)
+         {
+
+            if (Tbl->Volume[i].Name[NameLength] == '\0') break;
+              
+         }
+
+         /* 
+         ** Valid file system names must be: non-zero length, terminated and valid characters  
+         ** Only send event on first error occurence 
+         */
+         if (NameLength == 0)
+         {
+
+            ++InvalidEntries;
+
+            if (InvalidEntries == 1)
+            {
+
+               CFE_EVS_SendEvent(FILESYS_TBL_VERIFY_ERR_EID, CFE_EVS_EventType_ERROR,
+                                 "%s Table error: index = %d, empty name string",
+                                 FileSys->CfeTblName, i);
+            }
+
+         }
+         else if (NameLength == OS_MAX_PATH_LEN)
+         {
+
+            InvalidEntries++;
+
+            if (InvalidEntries == 1) {
+                    
+               CFE_EVS_SendEvent(FILESYS_TBL_VERIFY_ERR_EID, CFE_EVS_EventType_ERROR,
+                                 "%s table error: index = %d, non-terminated name string",
+                                 FileSys->CfeTblName, i);
+            }
+            
+         }
+         else if (!FileUtil_VerifyFilenameStr(Tbl->Volume[i].Name))
+         {
+
+            InvalidEntries++;
+
+            if (InvalidEntries == 1)
+            {
+
+               CFE_EVS_SendEvent(FILESYS_TBL_VERIFY_ERR_EID, CFE_EVS_EventType_ERROR,
+                                 "%s table error: index = %d, invalid name = %s",
+                                 FileSys->CfeTblName, i, Tbl->Volume[i].Name);
+            }
+         }
+         else
+         {
+            ValidEntries++;
+
+         } /* End NameLength checks */
+     
+      } /* End ENABLED/DISABLED checcks */ 
+      else if (Tbl->Volume[i].State == FILESYS_TBL_ENTRY_UNUSED)
+      {
+
+         /* Ignore (but count) unused table entries */
+         ++UnusedEntries;
+      
+      }
+      else
+      {
+
+         /* Invalid state */
+                    
+         ++InvalidEntries;   
+            
+         if (InvalidEntries == 1)
+         {
+
+            CFE_EVS_SendEvent(FILESYS_TBL_VERIFY_ERR_EID, CFE_EVS_EventType_ERROR,
+                              "%s table error: index = %d, invalid state = %d",
+                              FileSys->CfeTblName, i, Tbl->Volume[i].State);
+         }
+
+      } /* End state checks **/
+
+   } /* End volume loop */
+
+   CFE_EVS_SendEvent(FILESYS_TBL_VERIFIED_EID, CFE_EVS_EventType_INFORMATION,
+                      "%s table entry verification: valid = %d, invalid = %d, unused = %d",
+                       FileSys->CfeTblName, ValidEntries, InvalidEntries, UnusedEntries);
+
+   if (InvalidEntries == 0) RetStatus = CFE_SUCCESS;
+
+   return RetStatus;
+
+  
+} /* End ValidateTbl() */
+
+

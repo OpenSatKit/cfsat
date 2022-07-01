@@ -1,19 +1,16 @@
 /*
-**  Copyright 2022 Open STEMware Foundation
+**  Copyright 2022 bitValence, Inc.
 **  All Rights Reserved.
 **
-**  This program is free software; you can modify and/or redistribute it under
-**  the terms of the GNU Affero General Public License as published by the Free
-**  Software Foundation; version 3 with attribution addendums as found in the
-**  LICENSE.txt
+**  This program is free software; you can modify and/or redistribute it
+**  under the terms of the GNU Affero General Public License
+**  as published by the Free Software Foundation; version 3 with
+**  attribution addendums as found in the LICENSE.txt
 **
-**  This program is distributed in the hope that it will be useful, but WITHOUT
-**  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-**  FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
-**  details.
-**  
-**  This program may also be used under the terms of a commercial or enterprise
-**  edition license of cFSAT if purchased from the copyright holder.
+**  This program is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**  GNU Affero General Public License for more details.
 **
 **  Purpose:
 **    Define methods for managing files
@@ -149,19 +146,6 @@ void FILE_Constructor(FILE_Class_t *FilePtr, const INITBL_Class_t* IniTbl);
 
 
 /******************************************************************************
-** Function: FILE_ResetStatus
-**
-** Reset counters and status flags to a known reset state.
-**
-** Notes:
-**   1. Any counter or variable that is reported in HK telemetry that doesn't
-**      change the functional behavior should be reset.
-**
-*/
-void FILE_ResetStatus(void);
-
-
-/******************************************************************************
 ** Function: FILE_ConcatenateCmd
 **
 */
@@ -169,17 +153,17 @@ bool FILE_ConcatenateCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
-** Function: FILE_DecompressCmd
-**
-*/
-bool FILE_DecompressCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
-
-
-/******************************************************************************
 ** Function: FILE_CopyCmd
 **
 */
 bool FILE_CopyCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
+
+
+/******************************************************************************
+** Function: FILE_DecompressCmd
+**
+*/
+bool FILE_DecompressCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
@@ -201,6 +185,19 @@ bool FILE_MoveCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 **
 */
 bool FILE_RenameCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
+
+
+/******************************************************************************
+** Function: FILE_ResetStatus
+**
+** Reset counters and status flags to a known reset state.
+**
+** Notes:
+**   1. Any counter or variable that is reported in HK telemetry that doesn't
+**      change the functional behavior should be reset.
+**
+*/
+void FILE_ResetStatus(void);
 
 
 /******************************************************************************
