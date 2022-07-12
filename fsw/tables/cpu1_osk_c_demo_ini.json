@@ -1,6 +1,7 @@
 {
    "title": "OSK C Demo initialization file",
-   "description": ["Define runtime configurations"],
+   "description": ["Define runtime configurations",
+                   "CMD_MID: OSK=8048, EDS=6231"],
    "config": {
       
       "APP_CFE_NAME": "OSK_C_DEMO",
@@ -11,11 +12,11 @@
       "CHILD_STACK_SIZE": 16384,
       "CHILD_PRIORITY":   80,
       
-      "CMD_MID":        8048,
-      "EXECUTE_MID":    6593,
-      "SEND_HK_MID":    6594,
-      "HK_TLM_MID":     3952,
-      "PLAYBK_TLM_MID": 3953,
+      "OSK_C_DEMO_CMD_TOPICID":        6234,
+      "OSK_C_DEMO_EXE_TOPICID":        6235,
+      "OSK_C_DEMO_SEND_HK_TOPICID":    6236,
+      "OSK_C_DEMO_HK_TLM_TOPICID":     2133,
+      "OSK_C_DEMO_PLAYBK_TLM_TOPICID": 2134,
       
       "CMD_PIPE_DEPTH": 5,
       "CMD_PIPE_NAME":  "OSK_C_DEMO_CMD",

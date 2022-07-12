@@ -211,9 +211,9 @@ static int32 InitApp(void)
       OskCDemo.PerfId  = INITBL_GetIntConfig(INITBL_OBJ, CFG_APP_PERF_ID);
       CFE_ES_PerfLogEntry(OskCDemo.PerfId);
 
-      OskCDemo.CmdMid     = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_CMD_MID));
-      OskCDemo.ExecuteMid = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_EXECUTE_MID));
-      OskCDemo.SendHkMid  = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_SEND_HK_MID));
+      OskCDemo.CmdMid     = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_OSK_C_DEMO_CMD_TOPICID));
+      OskCDemo.ExecuteMid = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_OSK_C_DEMO_EXE_TOPICID));
+      OskCDemo.SendHkMid  = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_OSK_C_DEMO_SEND_HK_TOPICID));
 
       /* Child Manager constructor sends error events */
       ChildTaskInit.TaskName  = INITBL_GetStrConfig(INITBL_OBJ, CFG_CHILD_NAME);
@@ -281,11 +281,11 @@ static int32 InitApp(void)
       */
 
 
-      CFE_MSG_Init(CFE_MSG_PTR(OskCDemo.MsgLogRunChildFuncCmd.CmdHeader), CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_EXECUTE_MID)), 
+      CFE_MSG_Init(CFE_MSG_PTR(OskCDemo.MsgLogRunChildFuncCmd.CmdHeader), CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_OSK_C_DEMO_EXE_TOPICID)), 
                    sizeof(OskCDemo.MsgLogRunChildFuncCmd.CmdHeader)-2);  //todo: Why is user data length 2 with just size of header?
       CFE_MSG_SetFcnCode(CFE_MSG_PTR(OskCDemo.MsgLogRunChildFuncCmd.CmdHeader), (CFE_MSG_FcnCode_t)MSGLOG_RUN_CHILD_ALT_CMD_FC);
       CFE_MSG_GenerateChecksum(CFE_MSG_PTR(OskCDemo.MsgLogRunChildFuncCmd.CmdHeader));
-      CFE_MSG_Init(CFE_MSG_PTR(OskCDemo.HkPkt.TlmHeader), CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_HK_TLM_MID)), OSK_C_DEMO_TLM_HK_LEN);
+      CFE_MSG_Init(CFE_MSG_PTR(OskCDemo.HkPkt.TlmHeader), CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_OSK_C_DEMO_HK_TLM_TOPICID)), OSK_C_DEMO_TLM_HK_LEN);
 
       /*
       ** Application startup event message
