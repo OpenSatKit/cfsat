@@ -76,15 +76,15 @@ void FOTP_Constructor(FOTP_Class_t* FotpPtr, INITBL_Class_t* IniTbl)
    FOTP_ResetStatus();
 
    CFE_MSG_Init(CFE_MSG_PTR(Fotp->StartTransferPkt.TelemetryHeader), 
-                CFE_SB_ValueToMsgId(INITBL_GetIntConfig(Fotp->IniTbl, CFG_FOTP_START_TRANSFER_TLM_MID)),
+                CFE_SB_ValueToMsgId(INITBL_GetIntConfig(Fotp->IniTbl, CFG_FILE_XFER_FOTP_START_TRANSFER_TLM_TOPICID)),
                 sizeof(FILE_XFER_FotpStartTransferTlm_t));
 
    CFE_MSG_Init(CFE_MSG_PTR(Fotp->DataSegmentPkt.TelemetryHeader),
-               CFE_SB_ValueToMsgId(INITBL_GetIntConfig(Fotp->IniTbl, CFG_FOTP_DATA_SEGMENT_TLM_MID)),
+               CFE_SB_ValueToMsgId(INITBL_GetIntConfig(Fotp->IniTbl, CFG_FILE_XFER_FOTP_DATA_SEGMENT_TLM_TOPICID)),
                sizeof(FILE_XFER_FotpDataSegmentTlm_t));
 
    CFE_MSG_Init(CFE_MSG_PTR(Fotp->FinishTransferPkt.TelemetryHeader),
-                CFE_SB_ValueToMsgId(INITBL_GetIntConfig(Fotp->IniTbl, CFG_FOTP_FINISH_TRANSFER_TLM_MID)),
+                CFE_SB_ValueToMsgId(INITBL_GetIntConfig(Fotp->IniTbl, CFG_FILE_XFER_FOTP_FINISH_TRANSFER_TLM_TOPICID)),
                 sizeof(FILE_XFER_FotpFinishTransferTlm_t));
 
    OS_TaskInstallDeleteHandler(DestructorCallback); /* Called when application terminates */

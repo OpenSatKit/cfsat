@@ -190,9 +190,9 @@ static int32 InitApp(void)
    {
       
       FileXfer.PerfId     = INITBL_GetIntConfig(INITBL_OBJ, CFG_APP_PERF_ID);
-      FileXfer.CmdMid     = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_APP_CMD_MID));
-      FileXfer.SendHkMid  = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_APP_SEND_HK_MID));
-      FileXfer.ExecuteMid = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_APP_EXECUTE_MID));
+      FileXfer.CmdMid     = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_FILE_XFER_CMD_TOPICID));
+      FileXfer.SendHkMid  = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_FILE_XFER_SEND_HK_TOPICID));
+      FileXfer.ExecuteMid = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_FILE_XFER_EXE_TOPICID));
 
       FITP_Constructor(FITP_OBJ);
       FOTP_Constructor(FOTP_OBJ, INITBL_OBJ);
@@ -254,7 +254,7 @@ static int32 InitApp(void)
          CMDMGR_RegisterFunc(CMDMGR_OBJ, FOTP_PAUSE_TRANSFER_CMD_FC,  FOTP_OBJ, FOTP_PauseTransferCmd,  0);
          CMDMGR_RegisterFunc(CMDMGR_OBJ, FOTP_RESUME_TRANSFER_CMD_FC, FOTP_OBJ, FOTP_ResumeTransferCmd, 0);
 
-         CFE_MSG_Init(CFE_MSG_PTR(FileXfer.HkPkt.TlmHeader), CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_APP_HK_TLM_MID)), sizeof(FILE_XFER_HkPkt_t));
+         CFE_MSG_Init(CFE_MSG_PTR(FileXfer.HkPkt.TlmHeader), CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_FILE_XFER_HK_TLM_TOPICID)), sizeof(FILE_XFER_HkPkt_t));
 
          /*
          ** Application startup event message
