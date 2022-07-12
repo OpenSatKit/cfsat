@@ -90,11 +90,11 @@ void FILESYS_Constructor(FILESYS_Class_t*  FileSysPtr, const INITBL_Class_t* Ini
    }
 
    CFE_MSG_Init(CFE_MSG_PTR(FileSys->TblTlm.TelemetryHeader), 
-                CFE_SB_ValueToMsgId(INITBL_GetIntConfig(FileSys->IniTbl, CFG_FILESYS_TLM_MID)),
+                CFE_SB_ValueToMsgId(INITBL_GetIntConfig(FileSys->IniTbl, CFG_FILE_MGR_FILE_SYS_TBL_TLM_TOPICID)),
                 sizeof(FILE_MGR_FileSysTblTlm_t));
    
    CFE_MSG_Init(CFE_MSG_PTR(FileSys->OpenFileTlm.TelemetryHeader),
-                CFE_SB_ValueToMsgId(INITBL_GetIntConfig(FileSys->IniTbl, CFG_FILESYS_OPEN_FILE_TLM_MID)),
+                CFE_SB_ValueToMsgId(INITBL_GetIntConfig(FileSys->IniTbl, CFG_FILE_MGR_OPEN_FILE_TLM_TOPICID)),
                 sizeof(FILE_MGR_OpenFileTlm_t));
 
 } /* End FILESYS_Constructor() */
