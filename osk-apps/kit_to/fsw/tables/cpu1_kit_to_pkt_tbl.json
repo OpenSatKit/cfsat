@@ -1,0 +1,443 @@
+{
+   "name": "Telemetry Output Table",
+   "description": "Define default telemetry packets that are forwarded by KIT_TO",
+  
+   "topic-id-map": { 
+   
+      "start": true,
+      
+      "ES_HK_TLM_TOPICID"       : "topic-id-0",
+      "ES_APP_TLM_TOPICID"      : "topic-id-1",
+      "ES_SHELL_TLM_TOPICID"    : "topic-id-2",
+      "ES_MEMSTATS_TLM_TOPICID" : "topic-id-3",
+      
+      "EVS_HK_TLM_TOPICID"          : "topic-id-4",
+      "EVS_SHORT_EVENT_MSG_TOPICID" : "topic-id-5",
+      "EVS_LONG_EVENT_MSG_TOPICID"  : "topic-id-6",
+      
+      "SB_HK_TLM_TOPICID"      : "topic-id-7",
+      "SB_STATS_TLM_TOPICID"   : "topic-id-8",
+      "SB_ALLSUBS_TLM_TOPICID" : "topic-id-9",
+      "SB_ONESUB_TLM_TOPICID"  : "topic-id-10",
+
+      "TBL_HK_TLM_TOPICID"  : "topic-id-11",
+      "TBL_REG_TLM_TOPICID" : "topic-id-12",
+      
+      "TIME_HK_TLM_TOPICID"   : "topic-id-13",
+      "TIME_DIAG_TLM_TOPICID" : "topic-id-14",
+      
+      "CI_LAB_HK_TLM_TOPICID"             : "topic-id-20",
+      "TO_LAB_HK_TLM_TOPICID"             : "topic-id-21",
+      "TO_LAB_DATA_TYPES_TOPICID"         : "topic-id-22",
+      "FILE_MGR_HK_TLM_TOPICID"           : "topic-id-23",
+      "FILE_MGR_FILE_INFO_TLM_TOPICID"    : "topic-id-24",
+      "FILE_MGR_DIR_LIST_TLM_TOPICID"     : "topic-id-25",
+      "FILE_MGR_OPEN_FILE_TLM_TOPICID"    : "topic-id-26",
+      "FILE_MGR_FILE_SYS_TBL_TLM_TOPICID" : "topic-id-27",
+      "FILE_XFER_HK_TLM_TOPICID"          : "topic-id-28",
+      "FILE_XFER_FOTP_START_TRANSFER_TLM_TOPICID"  : "topic-id-29",
+      "FILE_XFER_FOTP_DATA_SEGMENT_TLM_TOPICID"    : "topic-id-30",
+      "FILE_XFER_FOTP_FINISH_TRANSFER_TLM_TOPICID" : "topic-id-31",
+      
+      "SAMPLE_APP_HK_TLM_TOPICID"     : "topic-id-40",
+      "CFSAT_DEV_HK_TLM_TOPICID"      : "topic-id-41",
+      "OSK_C_DEMO_HK_TLM_TOPICID"     : "topic-id-42",
+      "OSK_C_DEMO_PLAYBK_TLM_TOPICID" : "topic-id-43",
+      
+      "PL_MGR_STATUS_TLM_TOPICID"  : "topic-id-50",
+      "PL_SIM_STATUS_TLM_TOPICID"  : "topic-id-51",
+      "BERRY_IMU_HK_TLM_TOPICID"   : "topic-id-52",
+      "BERRY_IMU_RATE_TLM_TOPICID" : "topic-id-53",
+      "MQTT_GW_HK_TLM_TOPICID"     : "topic-id-54",
+      "MQTT_GW_RATE_TLM_TOPICID"   : "topic-id-55",
+      "GPIO_DEMO_HK_TLM_TOPICID"   : "topic-id-56",
+            
+      "end": true
+      
+   },
+
+
+   "packet-array": [
+
+      {"packet": {
+         "name": "ES_HK_TLM_TOPICID",
+         "topic-id-0": 2112,
+         "topic-id": 2112,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 2,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+  
+      {"packet": {
+         "name": "ES_APP_TLM_TOPICID",
+         "topic-id-1": 2113,
+         "topic-id": 2113,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 2,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+
+      {"packet": {
+         "name": "ES_SHELL_TLM_TOPICID",
+         "topic-id-2": 2114,
+         "topic-id": 2114,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 2,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+
+      {"packet": {
+         "name": "ES_MEMSTATS_TLM_TOPICID",
+         "topic-id-3": 2115,
+         "topic-id": 2115,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 2,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+
+      {"packet": {
+         "name": "EVS_HK_TLM_TOPICID",
+         "topic-id-4": 2118,
+         "topic-id": 2118,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 2,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+
+      {"packet": {
+         "name": "EVS_SHORT_EVENT_MSG_TOPICID",
+         "topic-id-5": 2119,
+         "topic-id": 2119,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 2,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+
+      {"packet": {
+         "name": "EVS_LONG_EVENT_MSG_TOPICID",
+         "topic-id-6": 2120,
+         "topic-id": 2120,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 40,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+      
+      {"packet": {
+         "name": "SB_HK_TLM_TOPICID",
+         "topic-id-7": 2121,
+         "topic-id": 2121,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 2,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+
+      {"packet": {
+         "name": "SB_STATS_TLM_TOPICID",
+         "topic-id-8": 2122,
+         "topic-id": 2122,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 2,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+
+      {"packet": {
+         "name": "SB_ALLSUBS_TLM_TOPICID",
+         "topic-id-9": 2123,
+         "topic-id": 2123,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 2,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+
+      {"packet": {
+         "name": "SB_ONESUB_TLM_TOPICID",
+         "topic-id-10": 2124,
+         "topic-id": 2124,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 2,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+
+      {"packet": {
+         "name": "TBL_HK_TLM_TOPICID",
+         "topic-id-11": 2125,
+         "topic-id": 2125,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 2,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+
+      {"packet": {
+         "name": "TBL_REG_TLM_TOPICID",
+         "topic-id-12": 2126,
+         "topic-id": 2126,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 2,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+
+      {"packet": {
+         "name": "TIME_HK_TLM_TOPICID",
+         "topic-id-13": 2116,
+         "topic-id": 2116,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 2,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+
+      {"packet": {
+         "name": "TIME_DIAG_TLM_TOPICID",
+         "topic-id-14": 2117,
+         "topic-id": 2117,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 2,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+
+      {"packet": {
+         "name": "CI_LAB_HK_TLM_TOPICID",
+         "topic-id-20": 2127,
+         "topic-id": 2127,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 2,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+
+      {"packet": {
+         "name": "TO_LAB_HK_TLM_TOPICID",
+         "topic-id-21": 2128,
+         "topic-id": 2128,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 2,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+
+      {"packet": {
+         "name": "TO_LAB_DATA_TYPES_TOPICID",
+         "topic-id-22": 2129,
+         "topic-id": 2129,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 2,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+
+      {"packet": {
+         "name": "FILE_MGR_HK_TLM_TOPICID",
+         "topic-id-23": 2135,
+         "topic-id": 2135,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 2,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+
+      {"packet": {
+         "name": "FILE_MGR_FILE_INFO_TLM_TOPICID",
+         "topic-id-24": 2136,
+         "topic-id": 2136,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 2,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+
+      {"packet": {
+         "name": "FILE_MGR_DIR_LIST_TLM_TOPICID",
+         "topic-id-25": 2137,
+         "topic-id": 2137,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 4,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+
+      {"packet": {
+         "name": "FILE_MGR_OPEN_FILE_TLM_TOPICID",
+         "topic-id-26": 2138,
+         "topic-id": 2138,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 2,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+
+      {"packet": {
+         "name": "FILE_MGR_FILE_SYS_TBL_TLM_TOPICID",
+         "topic-id-27": 2139,
+         "topic-id": 2139,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 2,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+
+      {"packet": {
+         "name": "FILE_XFER_HK_TLM_TOPICID",
+         "topic-id-28": 2140,
+         "topic-id": 2140,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 2,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+
+      {"packet": {
+         "name": "FILE_XFER_FOTP_START_TRANSFER_TLM_TOPICID",
+         "topic-id-29": 2141,
+         "topic-id": 2141,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 2,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+
+      {"packet": {
+         "name": "FILE_XFER_FOTP_DATA_SEGMENT_TLM_TOPICID",
+         "topic-id-30": 2142,
+         "topic-id": 2142,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 16,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+
+      {"packet": {
+         "name": "FILE_XFER_FOTP_FINISH_TRANSFER_TLM_TOPICID",
+         "topic-id-31": 2143,
+         "topic-id": 2143,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 16,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+      
+      {"packet": {
+         "name": "SAMPLE_APP_HK_TLM_TOPICID",
+         "topic-id-40": 2130,
+         "topic-id": 2130,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 2,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+
+      {"packet": {
+         "name": "CFSAT_DEV_HK_TLM_TOPICID",
+         "topic-id-41": 2132,
+         "topic-id": 2132,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 2,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+
+      {"packet": {
+         "name": "OSK_C_DEMO_HK_TLM_TOPICID",
+         "topic-id-42": 2133,
+         "topic-id": 2133,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 2,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+
+      {"packet": {
+         "name": "OSK_C_DEMO_PLAYBK_TLM_TOPICID",
+         "topic-id-43": 2134,
+         "topic-id": 2134,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 2,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+     
+      {"packet": {
+         "name": "PL_MGR_STATUS_TLM_TOPICID",
+         "topic-id-50": 2144,
+         "topic-id": 2144,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 4,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+
+      {"packet": {
+         "name": "PL_SIM_STATUS_TLM_TOPICID",
+         "topic-id-51": 2145,
+         "topic-id": 2145,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 4,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+
+      {"packet": {
+         "name": "BERRY_IMU_HK_TLM_TOPICID",
+         "topic-id-52": 2146,
+         "topic-id": 2146,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 2,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+
+      {"packet": {
+         "name": "BERRY_IMU_RATE_TLM_TOPICID",
+         "topic-id-53": 2147,
+         "topic-id": 2147,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 8,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+
+      {"packet": {
+         "name": "MQTT_GW_HK_TLM_TOPICID",
+         "topic-id-54": 2148,
+         "topic-id": 2148,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 2,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+
+      {"packet": {
+         "name": "MQTT_GW_RATE_TLM_TOPICID",
+         "topic-id-55": 2149,
+         "topic-id": 2149,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 2,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }},
+
+      {"packet": {
+         "name": "GPIO_DEMO_HK_TLM_TOPICID",
+         "topic-id-56": 2150,
+         "topic-id": 2150,
+         "priority": 0,
+         "reliability": 0,
+         "buf-limit": 2,
+         "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
+      }}
+
+   ]
+}
