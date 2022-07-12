@@ -1,0 +1,249 @@
+{
+   "name": "Scheduler Table Message Table",
+   "description":  [
+        "Steps to add a new message:",
+        " 1. Add the topic to the 'topic-id-map' object. The entry must",
+        "    be between the 'start' and 'end' entries and use the      ",
+        "    following convention:      ",
+        "     0 - cFE apps              ",
+        "    10 - Base Camp runtime apps",
+        "    20 - Dev & Demo apps       ",
+        "    30 - User apps             ",
+        " 2. Add a new 'message' object. N must be identical in ",
+        "    topic-id-N must match",
+        " 3. The sequence-segmentation flag entry 'seq-seg' can always",
+        "    be set to 49152",
+        "uint16  Sequence;     /* packet sequence word */                ",
+        "  /*  bits  shift                description                  */",
+        "  /* 0x3FFF    0  : sequence count                            */",
+        "  /* 0xC000   14  : segmentation flags:  3 = complete packet  */",
+        "uint16  Length;       /* packet length word */                  ",
+        "  /*  bits  shift                description                  */",
+        "  /* 0xFFFF    0  : (total packet length) - 7                 */"
+        ],
+
+   
+   "topic-id-map": { 
+   
+      "start": true,
+      
+      "ES_SEND_HK_TOPICID"   : "topic-id-0",
+      "EVS_SEND_HK_TOPICID"  : "topic-id-1",
+      "SB_SEND_HK_TOPICID"   : "topic-id-2",
+      "TBL_SEND_HK_TOPICID"  : "topic-id-3",
+      "TIME_SEND_HK_TOPICID" : "topic-id-4",
+      
+      "CI_LAB_SEND_HK_TOPICID"    : "topic-id-10",
+      "TO_LAB_SEND_HK_TOPICID"    : "topic-id-11",
+      "FILE_MGR_SEND_HK_TOPICID"  : "topic-id-12",
+      "FILE_XFER_EXE_TOPICID"     : "topic-id-13",
+      "FILE_XFER_SEND_HK_TOPICID" : "topic-id-14",
+
+      "SAMPLE_APP_SEND_HK_TOPICID" : "topic-id-20",
+      "OSK_C_DEMO_EXE_TOPICID"     : "topic-id-21",
+      "OSK_C_DEMO_SEND_HK_TOPICID" : "topic-id-22",
+      "OSK_DEV_EXE_TOPICID"        : "topic-id-23",
+      "OSK_DEV_SEND_HK_TOPICID"    : "topic-id-24",
+      
+      "PL_MGR_EXE_TOPICID"         : "topic-id-30",
+      "PL_SIM_EXE_TOPICID"         : "topic-id-31",
+      "BERRY_IMU_SEND_HK_TOPICID"  : "topic-id-32",
+      "MQTT_GW_SEND_HK_TOPICID"    : "topic-id-33",
+      "GPIO_DEMO_SEND_HK_TOPICID"  : "topic-id-34",
+      
+      "end": true
+      
+  },
+   
+   
+   "message-array": [
+
+      {"message": {
+         "name":  "ES_SEND_HK_TOPICID",
+         "id": 0,
+         "topic-id-0": 6209,
+         "topic-id": 6209,
+         "seq-seg": 49152,
+         "length": 1
+      }},
+
+      {"message": {
+         "name":  "EVS_SEND_HK_TOPICID",
+         "id": 1,
+         "topic-id-1": 6218,
+         "topic-id": 6218,
+         "seq-seg": 49152,
+         "length": 1
+      }},
+
+      {"message": {
+         "name":  "SB_SEND_HK_TOPICID",
+         "id": 2,
+         "topic-id-2": 6220,
+         "topic-id": 6220,
+         "seq-seg": 49152,
+         "length": 1
+      }},
+
+      {"message": {
+         "name":  "TBL_SEND_HK_TOPICID",
+         "id": 3,
+         "topic-id-3": 6222,
+         "topic-id": 6222,
+         "seq-seg": 49152,
+         "length": 1
+      }},
+
+      {"message": {
+         "name":  "TIME_SEND_HK_TOPICID",
+         "id": 4,
+         "topic-id-4": 6213,
+         "topic-id": 6213,
+         "seq-seg": 49152,
+         "length": 1
+      }},
+
+
+
+      {"message": {
+         "name":  "CI_LAB_SEND_HK_TOPICID",
+         "id": 10,
+         "topic-id-10": 6224,
+         "topic-id": 6224,
+         "seq-seg": 49152,
+         "length": 1
+      }},
+      
+      {"message": {
+         "name":  "TO_LAB_SEND_HK_TOPICID",
+         "id": 11,
+         "topic-id-11": 6226,
+         "topic-id": 6226,
+         "seq-seg": 49152,
+         "length": 1
+      }},
+
+      {"message": {
+         "name":  "FILE_MGR_SEND_HK_TOPICID",
+         "id": 12,
+         "topic-id-12": 6238,
+         "topic-id": 6238,
+         "seq-seg": 49152,
+         "length": 1
+      }},
+
+      {"message": {
+         "name":  "FILE_XFER_EXE_TOPICID",
+         "id": 13,
+         "topic-id-13": 6240,
+         "topic-id": 6240,
+         "seq-seg": 49152,
+         "length": 1
+      }},
+
+      {"message": {
+         "name":  "FILE_XFER_SEND_HK_TOPICID",
+         "id": 14,
+         "topic-id-14": 6241,
+         "topic-id": 6241,
+         "seq-seg": 49152,
+         "length": 1
+      }},
+
+
+      
+      {"message": {
+         "name":  "SAMPLE_APP_SEND_HK_TOPICID",
+         "id": 20,
+         "topic-id-20": 6228,
+         "topic-id": 6228,
+         "seq-seg": 49152,
+         "length": 1
+      }},
+
+      {"message": {
+         "name":  "OSK_C_DEMO_EXE_TOPICID",
+         "id": 21,
+         "topic-id-21": 6235,
+         "topic-id": 6235,
+         "seq-seg": 49152,
+         "length": 1
+      }},
+
+      {"message": {
+         "name":  "OSK_C_DEMO_SEND_HK_TOPICID",
+         "id": 22,
+         "topic-id-22": 6236,
+         "topic-id": 6236,
+         "seq-seg": 49152,
+         "length": 1
+      }},
+
+      {"message": {
+         "name":  "OSK_DEV_EXE_TOPICID",
+         "id": 23,
+         "topic-id-23": 6232,
+         "topic-id": 6232,
+         "seq-seg": 49152,
+         "length": 1
+      }},
+
+      {"message": {
+         "name":  "OSK_DEV_SEND_HK_TOPICID",
+         "id": 24,
+         "topic-id-24": 6233,
+         "topic-id": 6233,
+         "seq-seg": 49152,
+         "length": 1
+      }},
+
+
+
+      {"message": {
+         "name":  "PL_MGR_EXE_TOPICID",
+         "id": 30,
+         "topic-id-30": 6243,
+         "topic-id": 6243,
+         "seq-seg": 49152,
+         "length": 1
+      }},
+
+      {"message": {
+         "name":  "PL_SIM_EXE_TOPICID",
+         "id": 31,
+         "topic-id-31": 6245,
+         "topic-id": 6245,
+         "seq-seg": 49152,
+         "length": 1
+      }},
+
+      {"message": {
+         "name":  "BERRY_IMU_SEND_HK_TOPICID",
+         "id": 32,
+         "topic-id-32": 6247,
+         "topic-id": 6247,
+         "seq-seg": 49152,
+         "length": 1
+      }},
+
+      {"message": {
+         "name":  "MQTT_GW_SEND_HK_TOPICID",
+         "id": 33,
+         "topic-id-33": 6249,
+         "topic-id": 6249,
+         "seq-seg": 49152,
+         "length": 1
+      }},
+
+      {"message": {
+         "name":  "GPIO_DEMO_SEND_HK_TOPICID",
+         "id": 34,
+         "topic-id-34": 6251,
+         "topic-id": 6251,
+         "seq-seg": 49152,
+         "length": 1
+      }}
+
+   ]
+}
+
