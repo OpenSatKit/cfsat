@@ -13,12 +13,12 @@
       "APP_RUN_LOOP_DELAY_MIN": 200,
       "APP_RUN_LOOP_DELAY_MAX": 1000,
 
-      "APP_CMD_MID":           7968,
-      "APP_SEND_HK_MID":       7969,
-      "APP_HK_TLM_MID":        3872,
-      "APP_DATA_TYPE_TLM_MID": 3874,
-      "PKTMGR_TLM_MID":        3873,
-      "EVT_PLBK_TLM_MID":      3875,
+      "KIT_TO_CMD_TOPICID":          6225,
+      "KIT_TO_SEND_HK_TOPICID":      6226,
+      "KIT_TO_HK_TLM_TOPICID":       2128,
+      "KIT_TO_DATA_TYPES_TOPICID":   3874,
+      "KIT_TO_PKT_TBL_TLM_TOPICID":  3873,
+      "KIT_TO_EVT_PLBK_TLM_TOPICID": 3875,
       
       "PKTMGR_PIPE_DEPTH":   50,
       "PKTMGR_PIPE_NAME":    "KIT_TO_PKT",
@@ -33,8 +33,8 @@
       "EVT_PLBK_HK_PERIOD": 2,
       "EVT_PLBK_LOG_FILE":  "/cf/kit_to_evt_log.dat",
 
-      "EVT_PLBK_EVS_CMD_MID":      6145,
-      "EVT_PLBK_EVS_WRITE_LOG_FC": 18
+      "EVS_CMD_TOPICID": 6217,
+      "CFE_EVS_WRITE_LOG_DATA_FILE_CC": 18
 
    }
 }
