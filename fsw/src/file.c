@@ -67,7 +67,7 @@ void FILE_Constructor(FILE_Class_t*  FilePtr, const INITBL_Class_t* IniTbl)
    File->IniTbl = IniTbl;
    
    CFE_MSG_Init(CFE_MSG_PTR(File->InfoTlm.TelemetryHeader), 
-                CFE_SB_ValueToMsgId(INITBL_GetIntConfig(File->IniTbl, CFG_FILE_INFO_TLM_MID)), 
+                CFE_SB_ValueToMsgId(INITBL_GetIntConfig(File->IniTbl, CFG_FILE_MGR_FILE_INFO_TLM_TOPICID)), 
                 sizeof(FILE_MGR_FileInfoTlm_t));
 
 } /* End FILE_Constructor */

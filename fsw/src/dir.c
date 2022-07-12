@@ -651,7 +651,7 @@ bool SendDirListTlm(const char *DirName, uint16 DirListOffset, bool IncludeSizeT
       
       /* Clears counters and nulls strings */
       CFE_MSG_Init(CFE_MSG_PTR(Dir->ListTlm.TelemetryHeader), 
-                   CFE_SB_ValueToMsgId(INITBL_GetIntConfig(Dir->IniTbl,CFG_DIR_LIST_TLM_MID)),
+                   CFE_SB_ValueToMsgId(INITBL_GetIntConfig(Dir->IniTbl,CFG_FILE_MGR_DIR_LIST_TLM_TOPICID)),
                    sizeof(FILE_MGR_DirListTlm_t));
       
       strcpy(DirWithSep, DirName);
