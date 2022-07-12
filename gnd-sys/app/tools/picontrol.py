@@ -46,12 +46,14 @@ class PiControl():
     JSON_CMD_CFS_ENA_TLM  = 'ena-tlm'
     JSON_CMD_CFS_STOP     = 'stop'
 
+    JSON_CMD_PI_NOOP      = 'noop'
     JSON_CMD_PI_REBOOT    = 'reboot'
     JSON_CMD_PI_SHUTDOWN  = 'shutdown'
 
     # String constants used for JSON telemetry message and GUI keys
     JSON_TLM_SEQ_CNT = 'seq-cnt'
     JSON_TLM_RUNNING = 'running'
+    JSON_TLM_CMD_CNT = 'cmd-cnt'
     JSON_TLM_APPS    = 'apps'
     JSON_TLM_EVENT   = 'event'
      
@@ -71,7 +73,7 @@ class PiControl():
         self.cmd_topic = "osk/pisat-%s/cmd" % pisat_id
         self.tlm_topic = "osk/pisat-%s/tlm" % pisat_id
 
-        self.json_tlm_keys =  [self.JSON_TLM_SEQ_CNT, self.JSON_TLM_RUNNING, self.JSON_TLM_APPS, self.JSON_TLM_EVENT]
+        self.json_tlm_keys =  [self.JSON_TLM_SEQ_CNT, self.JSON_TLM_RUNNING, self.JSON_TLM_CMD_CNT, self.JSON_TLM_APPS, self.JSON_TLM_EVENT]
 
         
     def on_connect(self, client, userdata, flags, rc):
@@ -125,6 +127,7 @@ class PiControl():
             [sg.Button('',visible=False)], # If this isn't present then the first button in teh frame will have a border. Seems like a bug 
             [sg.Frame('Commands', 
                 [[sg.Text('Pi-Sat:',    size=(5,1), font=hdr_label_font, pad=((5,0),(12,12))), 
+                sg.Button('Noop',       size=(9,1), font=hdr_label_font, enable_events=True, key='-PISAT_NOOP-',     pad=((10,5),(12,12))),
                 sg.Button('Reboot',     size=(9,1), font=hdr_label_font, enable_events=True, key='-PISAT_REBOOT-',   pad=((10,5),(12,12))),
                 sg.Button('Shutdown',   size=(9,1), font=hdr_label_font, enable_events=True, key='-PISAT_SHUTDOWN-', pad=((10,5),(12,12)))],
                 [sg.Text('cFS:',        size=(5,1), font=hdr_label_font, pad=((5,0),(12,12))), 
@@ -135,14 +138,16 @@ class PiControl():
             ],
                 [sg.Text('  ', pad=((10,5),(12,12)))],
             [sg.Frame('Status',
-                [[sg.Text('Seq Cnt:',  size=(8,1),   font=hdr_label_font, pad=((5,0),(6,6))), 
-                sg.Text('0',           size=(8,1),   font=hdr_value_font, key=self.JSON_TLM_SEQ_CNT)],
-                [sg.Text('cFS:',       size=(8,1),   font=hdr_label_font, pad=((5,0),(6,6))), 
-                sg.Text('Idle',        size=(8,1),   font=hdr_value_font, key=self.JSON_TLM_RUNNING)],
-                [sg.Text('cFS Apps:',  size=(8,1),   font=hdr_label_font, pad=((5,0),(6,6))), 
-                sg.Text('None',        size=(33,1),  font=hdr_value_font, key=self.JSON_TLM_APPS)],
-                [sg.Text('Event:',     size=(8,1),   font=hdr_label_font, pad=((5,0),(6,6))), 
-                sg.Text('None',        size=(33,1),  font=hdr_value_font, key=self.JSON_TLM_EVENT)]
+                [[sg.Text('Seq Cnt:',   size=(9,1),   font=hdr_label_font, pad=((5,0),(6,6))), 
+                sg.Text('0',            size=(9,1),   font=hdr_value_font, key=self.JSON_TLM_SEQ_CNT)],
+                [sg.Text('cFS Exe:',    size=(9,1),   font=hdr_label_font, pad=((5,0),(6,6))), 
+                sg.Text('False',        size=(9,1),   font=hdr_value_font, key=self.JSON_TLM_RUNNING)],
+                [sg.Text('Cmd Cnt:',    size=(9,1),   font=hdr_label_font, pad=((5,0),(6,6))), 
+                sg.Text('0',            size=(9,1),   font=hdr_value_font, key=self.JSON_TLM_CMD_CNT)],
+                [sg.Text('User Apps:',  size=(9,1),   font=hdr_label_font, pad=((5,0),(6,6))), 
+                sg.Text('None',         size=(45,1),  font=hdr_value_font, key=self.JSON_TLM_APPS)],
+                [sg.Text('Event:',      size=(9,1),   font=hdr_label_font, pad=((5,0),(6,6))), 
+                sg.Text('None',         size=(45,1),  font=hdr_value_font, key=self.JSON_TLM_EVENT)]
                 ])
             ]
         ]
@@ -173,7 +178,10 @@ class PiControl():
             if self.event in (sg.WIN_CLOSED, 'Exit') or self.event is None:
                 break
 
-            if self.event == '-PISAT_REBOOT-':
+            if self.event == '-PISAT_NOOP-':
+                self.publish_cmd(self.JSON_CMD_TARGET_PI, self.JSON_CMD_PI_NOOP)
+
+            elif self.event == '-PISAT_REBOOT-':
                 self.publish_cmd(self.JSON_CMD_TARGET_PI, self.JSON_CMD_PI_REBOOT)
             
             elif self.event == '-PISAT_SHUTDOWN-':

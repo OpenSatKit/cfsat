@@ -102,9 +102,12 @@ SET(FT_INSTALL_SUBDIR "host/functional-test")
 SET(MISSION_CPUNAMES cpu1)
 
 SET(cpu1_PROCESSORID 1)
-SET(cpu1_APPLIST ci_lab to_lab sch_lab osk_c_fw osk_c_demo file_mgr file_xfer) ##
-#HELLO SET(cpu1_APPLIST ci_lab to_lab sch_lab osk_c_fw osk_c_demo filemgr file_xfer hello)
-SET(cpu1_FILELIST cfe_es_startup.scr osk_c_demo_ini.json osk_c_demo_tbl.json file_mgr_ini.json file_xfer_ini.json)
+SET(cpu1_APPLIST ci_lab kit_to kit_sch osk_c_fw file_mgr file_xfer osk_c_demo) 
+## mqtt_lib mqtt_gw pl_mgr pl_sim pl_sim_lib pi_iolib gpio_demo berry_imu
+## HELLO SET(cpu1_APPLIST ci_lab to_lab sch_lab osk_c_fw osk_c_demo filemgr file_xfer hello)
+SET(cpu1_FILELIST cfe_es_startup.scr file_mgr_ini.json file_xfer_ini.json osk_c_demo_ini.json osk_c_demo_tbl.json kit_sch_ini.json kit_sch_msgtbl.json kit_sch_schtbl.json kit_to_ini.json kit_to_pkt_tbl.json)
+## pl_mgr_ini.json pl_sim_ini.json pl_sim_lib_ini.json berry_imu_ini.json mqtt_gw_ini.json mqtt_topic.json gpio_demo_ini.json )
+
 
 # CPU2 example.  This is not built by default anymore but
 # serves as an example of how one would configure multiple cpus.
