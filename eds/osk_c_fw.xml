@@ -66,6 +66,14 @@
         </EnumerationList>
       </EnumeratedDataType>
 
+      <ContainerDataType name="PktUtil_FilterParam" shortDescription="Define parameters for filtering equation">
+        <EntryList>
+          <Entry name="N"  type="BASE_TYPES/uint16" shortDescription="" />
+          <Entry name="X"  type="BASE_TYPES/uint16" shortDescription="" />
+          <Entry name="O"  type="BASE_TYPES/uint16" shortDescription="" />
+       </EntryList>
+      </ContainerDataType>
+
       <!-- OSK_C_FW::StateRep -->
 
       <EnumeratedDataType name="StateRepOptions" shortDescription="" >

@@ -42,9 +42,11 @@
 
 #define PKTUTIL_MAX_APP_ID    (0x0800)  /* Maximum CCSDS v1 ApId */
 
-#define PKTUTIL_PRI_HDR_BYTES (sizeof(CCSDS_SpacePacket_t))
-#define PKTUTIL_PRI_HDR_WORDS (sizeof(CCSDS_SpacePacket_t)/2)
+#define PKTUTIL_CMD_HDR_BYTES (sizeof(CFE_MSG_CommandHeader_t))
+#define PKTUTIL_CMD_HDR_WORDS (sizeof(CFE_MSG_CommandHeader_t)/2)
 
+#define PKTUTIL_TLM_HDR_BYTES (sizeof(CFE_MSG_TelemetryHeader_t))
+#define PKTUTIL_TLM_HDR_WORDS (sizeof(CFE_MSG_TelemetryHeader_t)/2)
 
 #define PKTUTIL_16_MSB_SUBSECS_SHIFT  16
 #define PKTUTIL_11_LSB_SECONDS_MASK   0x07FF
@@ -59,7 +61,10 @@
 **
 */
 
-/* Macro to convert 16/32 bit types from platform "endianness" to Big Endian */
+/* 
+** Macros to convert 16/32 bit types from platform "endianness" to Big Endian
+** - cFE 7.0: cfe_endian.h defines these 
+**
 #ifdef SOFTWARE_BIG_BIT_ORDER
   #define CFE_MAKE_BIG16(n) (n)
   #define CFE_MAKE_BIG32(n) (n)
@@ -67,6 +72,7 @@
   #define CFE_MAKE_BIG16(n) ( (((n) << 8) & 0xFF00) | (((n) >> 8) & 0x00FF) )
   #define CFE_MAKE_BIG32(n) ( (((n) << 24) & 0xFF000000) | (((n) << 8) & 0x00FF0000) | (((n) >> 8) & 0x0000FF00) | (((n) >> 24) & 0x000000FF) )
 #endif
+*/
 
 /**********************/
 /** Type Definitions **/
