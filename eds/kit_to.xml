@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright 2022 bitValence, Inc.
+    All Rights Reserved.
+
+    This program is free software; you can modify and/or redistribute it
+    under the terms of the GNU Affero General Public License
+    as published by the Free Software Foundation; version 3 with
+    attribution addendums as found in the LICENSE.txt.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    Purpose: 
+      This describes all interface objects for the OpenSatKit(OSK) 
+      Telemetry Output (KIT_TO) app
+
+    Notes:
+      1. This document adheres to the Electronic Data Sheet (EDS) XML schema 
+         as prescribed in CCSDS book 876.0. 
+
+-->
+<PackageFile xmlns="http://www.ccsds.org/schema/sois/seds">
+  <Package name="KIT_TO" shortDescription="Telemetry Output App">
+    <DataTypeSet>
+
+      <!--***********************************-->
+      <!--**** DataTypeSet:  Entry Types ****-->
+      <!--***********************************-->
+
+      <StringDataType name="char_x_10" length="10" />
+      <StringDataType name="char_x_16" length="16" />
+      
+      <!--***************************************-->
+      <!--**** DataTypeSet: Command Payloads ****-->
+      <!--***************************************-->
+
+      <ContainerDataType name="AddPkt_Payload" shortDescription="Add a packet to packet table in memory">
+        <EntryList>
+          <Entry name="MsgId"       type="BASE_TYPES/uint16"            shortDescription="Message Id" />
+          <Entry name="Qos"         type="CFE_SB/Qos"                   shortDescription="Qos for subscription" />
+          <Entry name="BufLim"      type="BASE_TYPES/uint16"            shortDescription="SB queue depth" />
+          <Entry name="FilterType"  type="OSK_C_FW/PktFilterOptions"    shortDescription="SB queue depth" />
+          <Entry name="FilterParam" type="OSK_C_FW/PktUtil_FilterParam" shortDescription="SB queue depth" />
+       </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="EnableOutput_Payload" shortDescription="Enable TLM packet output">
+        <EntryList>
+          <Entry name="DestIp" type="char_x_16" shortDescription="IP address to send to" />
+        </EntryList>
+      </ContainerDataType>
+
+      <!--*****************************************-->
+      <!--**** DataTypeSet: Telemetry Payloads ****-->
+      <!--*****************************************-->
+
+      <ContainerDataType name="HkTlm_Payload" shortDescription="App's state and status summary, 'housekeeping data'">
+        <EntryList>
+          <Entry name="ValidCmdCnt"          type="BASE_TYPES/uint16" />
+          <Entry name="InvalidCmdCnt"        type="BASE_TYPES/uint16" />
+          <Entry name="RunLoopDelay"         type="BASE_TYPES/uint16" />
+          <Entry name="PktTblLastLoadStatus" type="BASE_TYPES/uint8"  />
+          <Entry name="PktTblSpareAlignByte" type="BASE_TYPES/uint8"  />
+          <Entry name="PktTblAttrErrCnt"     type="BASE_TYPES/uint16" />
+          <Entry name="StatsValid"           type="BASE_TYPES/uint8"  />
+          <Entry name="PktMgrSpareAlignByte" type="BASE_TYPES/uint8"  />
+          <Entry name="PktsPerSec"           type="BASE_TYPES/uint16" />
+          <Entry name="BytesPerSec"          type="BASE_TYPES/uint32" />
+          <Entry name="TlmSockId"            type="BASE_TYPES/uint16" />
+          <Entry name="TlmDestIp"            type="char_x_16"/>
+          <Entry name="EvtPlbkEna"           type="BASE_TYPES/uint8"  />
+          <Entry name="EvtPlbkHkPeriod"      type="BASE_TYPES/uint8"  />
+        </EntryList>
+      </ContainerDataType>
+  
+      <!--**************************************-->
+      <!--**** DataTypeSet: Command Packets ****-->
+      <!--**************************************-->
+
+      <ContainerDataType name="CommandBase" baseType="CFE_HDR/CommandHeader">
+      </ContainerDataType>
+
+      <ContainerDataType name="Noop" baseType="CommandBase" shortDescription="Generate an info event message with app version">
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/NOOP_CC}" />
+        </ConstraintSet>
+      </ContainerDataType>
+
+      <ContainerDataType name="Reset" baseType="CommandBase" shortDescription="Reset app to a known state">
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/RESET_CC}" />
+        </ConstraintSet>
+      </ContainerDataType>
+
+      <ContainerDataType name="AddPkt" baseType="CommandBase" shortDescription="Add a packet to packet table in memory">
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 0" />
+        </ConstraintSet>
+        <EntryList>
+          <Entry type="AddPkt_Payload" name="Payload" />
+        </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="EnableOutput" baseType="CommandBase" shortDescription="">
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 1" />
+        </ConstraintSet>
+        <EntryList>
+          <Entry type="EnableOutput_Payload" name="Payload" />
+        </EntryList>
+      </ContainerDataType>
+
+
+      <!--****************************************-->
+      <!--**** DataTypeSet: Telemetry Packets ****-->
+      <!--****************************************-->
+
+      <ContainerDataType name="HkTlm" baseType="CFE_HDR/TelemetryHeader">
+        <EntryList>
+          <Entry type="HkTlm_Payload" name="Payload" />
+        </EntryList>
+      </ContainerDataType>
+     
+    </DataTypeSet>
+    
+    <ComponentSet>
+      <Component name="Application">
+
+        <!--***********************************-->
+        <!--**** Component Set: Interfaces ****-->
+        <!--***********************************-->
+      
+        <RequiredInterfaceSet>
+        
+          <Interface name="CMD" shortDescription="Software bus telecommand interface" type="CFE_SB/Telecommand">
+            <GenericTypeMapSet>
+              <GenericTypeMap name="TelecommandDataType" type="CommandBase" />
+            </GenericTypeMapSet>
+          </Interface>
+          <Interface name="SEND_HK" shortDescription="Signal app to send its housekeeping telemetry command interface" type="CFE_SB/Telecommand">
+            <!-- This uses a bare spacepacket with no payload -->
+            <GenericTypeMapSet>
+              <GenericTypeMap name="TelecommandDataType" type="CFE_HDR/CommandHeader" />
+            </GenericTypeMapSet>
+          </Interface>
+          
+          <Interface name="HK_TLM" shortDescription="Software bus housekeeping telemetry interface" type="CFE_SB/Telemetry">
+            <GenericTypeMapSet>
+              <GenericTypeMap name="TelemetryDataType" type="HkTlm" />
+            </GenericTypeMapSet>
+          </Interface>
+
+        </RequiredInterfaceSet>
+
+        <!--***************************************-->
+        <!--**** Component Set: Implementation ****-->
+        <!--***************************************-->
+
+        <Implementation>
+          <VariableSet>
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="CmdTopicId"       initialValue="${CFE_MISSION/KIT_TO_CMD_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="SendHkTopicId"    initialValue="${CFE_MISSION/KIT_TO_SEND_HK_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="HkTlmTopicId"     initialValue="${CFE_MISSION/KIT_TO_HK_TLM_TOPICID}" />
+          </VariableSet>
+          <!-- Assign fixed numbers to the "TopicId" parameter of each interface -->
+          <ParameterMapSet>          
+            <ParameterMap interface="CMD"        parameter="TopicId" variableRef="CmdTopicId" />
+            <ParameterMap interface="SEND_HK"    parameter="TopicId" variableRef="SendHkTopicId" />
+            <ParameterMap interface="HK_TLM"     parameter="TopicId" variableRef="HkTlmTopicId" />
+          </ParameterMapSet>
+        </Implementation>
+      </Component>
+    </ComponentSet>
+    
+  </Package>
+</PackageFile>
+
