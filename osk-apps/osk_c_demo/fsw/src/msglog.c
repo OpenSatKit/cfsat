@@ -83,7 +83,7 @@ void MSGLOG_Constructor(MSGLOG_Class_t*  MsgLogPtr, INITBL_Class_t* IniTbl)
                      INITBL_GetStrConfig(MsgLog->IniTbl, CFG_MSGLOG_PIPE_NAME));  
 
    CFE_MSG_Init(CFE_MSG_PTR(MsgLog->PlaybkPkt.TlmHeader), 
-                CFE_SB_ValueToMsgId(INITBL_GetIntConfig(MsgLog->IniTbl,CFG_PLAYBK_TLM_MID)),
+                CFE_SB_ValueToMsgId(INITBL_GetIntConfig(MsgLog->IniTbl,CFG_OSK_C_DEMO_PLAYBK_TLM_TOPICID)),
                 sizeof(MSGLOG_PlaybkPkt_t));
    
    MSGLOGTBL_Constructor(TBL_OBJ, IniTbl);
