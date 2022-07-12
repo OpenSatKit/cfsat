@@ -6,11 +6,11 @@
       "APP_CFE_NAME":      "KIT_SCH",
       "APP_PERF_ID":       91,
            
-      "CMD_MID":           7952,
-      "SEND_HK_MID":       7953,
-      "HK_TLM_MID":        3856,
-      "DIAG_TLM_MID":      3857,
-      "TBL_ENTRY_TLM_MID": 3858,
+      "KIT_SCH_CMD_TOPICID":           7952,
+      "KIT_SCH_SEND_HK_TOPICID":       7953,
+      "KIT_SCH_HK_TLM_TOPICID":        3856,
+      "KIT_SCH_DIAG_TLM_TOPICID":      3857,
+      "KIT_SCH_TBL_ENTRY_TLM_TOPICID": 3858,
       
       "CMD_PIPE_DEPTH":    10,
       "CMD_PIPE_NAME":     "KIT_SCH_CMD",

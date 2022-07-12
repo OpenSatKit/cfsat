@@ -17,79 +17,9 @@
          "activity-array" : [
          
             {"activity": {
-               "name":    "I42_EXECUTE_MID",
-               "descr":   "42 interface synchronization.",
+               "name":    "ES_SEND_HK_TOPICID",
+               "descr":   "",
                "index":   0,
-               "enabled": "false",
-               "period":  1,
-               "offset":  0,
-               "msg-idx": 41
-            }},
-
-            {"activity": {
-               "name":    "SC Execution - Used for FILE_OUT",
-               "descr":   "",
-               "index":   1,
-               "enabled": "true",
-               "period":  3,
-               "offset":  0,
-               "msg-idx": 22
-            }},
-            
-            {"activity": {
-               "name":    "MD Execution",
-               "descr":   "",
-               "index":   2,
-               "enabled": "false",
-               "period":  1,
-               "offset":  0,
-               "msg-idx": 19
-            }},
-            
-            {"activity": {
-               "name":    "CS Execution",
-               "descr":   "",
-               "index":   3,
-               "enabled": "false",
-               "period":  2,
-               "offset":  0,
-               "msg-idx": 11
-            }},
-            
-           {"activity": {
-               "name":    "GPIO_DEMO Housekeeping",
-               "descr":   "",
-               "index":   7,
-               "enabled": "true",
-               "period":  1,
-               "offset":  0,
-               "msg-idx": 48
-            }},
-
-           {"activity": {
-               "name":    "C DEMO Housekeeping",
-               "descr":   "",
-               "index":   8,
-               "enabled": "false",
-               "period":  4,
-               "offset":  2,
-               "msg-idx": 45
-            }},
-
-            {"activity": {
-               "name":    "HSIM Housekeeping",
-               "descr":   "",
-               "index":   9,
-               "enabled": "false",
-               "period":  4,
-               "offset":  0,
-               "msg-idx": 34
-            }},
-
-            {"activity": {
-               "name":    "cFE ES Housekeeping",
-               "descr":   "",
-               "index":   10,
                "enabled": "true",
                "period":  4,
                "offset":  0,
@@ -97,44 +27,45 @@
             }},
 
             {"activity": {
-               "name":    "cFE EVS Housekeeping",
+               "name":    "EVS_SEND_HK_TOPICID",
                "descr":   "",
-               "index":   11,
+               "index":   1,
                "enabled": "true",
                "period":  4,
-               "offset":  1,
+               "offset":  0,
                "msg-idx": 1
             }},
-
+            
             {"activity": {
-               "name":    "cFE SB Housekeeping",
+               "name":    "SB_SEND_HK_TOPICID",
                "descr":   "",
-               "index":   12,
+               "index":   2,
                "enabled": "true",
                "period":  4,
-               "offset":  2,
+               "offset":  0,
                "msg-idx": 2
             }},
-
+            
             {"activity": {
-               "name":    "cFE TBL Housekeeping",
+               "name":    "TBL_SEND_HK_TOPICID",
                "descr":   "",
-               "index":   13,
+               "index":   3,
                "enabled": "true",
                "period":  4,
-               "offset":  3,
+               "offset":  0,
                "msg-idx": 3
             }},
-
+            
             {"activity": {
-               "name":    "Time Housekeeping",
+               "name":    "TIME_SEND_HK_TOPICID",
                "descr":   "",
-               "index":   14,
+               "index":   4,
                "enabled": "true",
                "period":  4,
                "offset":  0,
                "msg-idx": 4
             }}
+            
          ]
       }},   
 
@@ -145,123 +76,53 @@
          "activity-array" : [
          
             {"activity": {
-               "name":    "LC Execution(Sample AP)",
+               "name":    "CI_LAB_SEND_HK_TOPICID",
                "descr":   "",
                "index":   0,
-               "enabled": "false",
-               "period":  1,
-               "offset":  0,
-               "msg-idx": 17
-            }},
-            
-            {"activity": {
-               "name":    "HK Combined Pkt 1",
-               "descr":   "Period can be adjusted based on input data packet rates",
-               "index":   1,
-               "enabled": "false",
-               "period":  6,
-               "offset":  2,
-               "msg-idx": 24
-            }},
-            
-            {"activity": {
-               "name":    "HK Combined Pkt 2",
-               "descr":   "Period can be adjusted based on input data packet rates",
-               "index":   2,
-               "enabled": "false",
+               "enabled": "true",
                "period":  4,
                "offset":  1,
-               "msg-idx": 25
+               "msg-idx": 10
+            }},
+            
+            {"activity": {
+               "name":    "TO_LAB_SEND_HK_TOPICID",
+               "descr":   "",
+               "index":   1,
+               "enabled": "true",
+               "period":  4,
+               "offset":  1,
+               "msg-idx": 11
+            }},
+            
+            {"activity": {
+               "name":    "FILE_MGR_SEND_HK_TOPICID",
+               "descr":   "",
+               "index":   2,
+               "enabled": "true",
+               "period":  4,
+               "offset":  1,
+               "msg-idx": 12
             }},
             
            {"activity": {
-               "name":    "HC Execution",
+               "name":    "FILE_XFER_EXE_TOPICID",
                "descr":   "",
                "index":   3,
-               "enabled": "false",
-               "period":  10,
-               "offset":  0,
-               "msg-idx": 33
+               "enabled": "true",
+               "period":  1,
+               "offset":  1,
+               "msg-idx": 13
             }},
                         
            {"activity": {
-               "name":    "CF Execution",
+               "name":    "FILE_XFER_SEND_HK_TOPICID",
                "descr":   "",
                "index":   4,
-               "enabled": "false",
-               "period":  1,
-               "offset":  0,
-               "msg-idx": 27
-            }},
-                        
-            {"activity": {
-               "name":    "C++ DEMO Housekeeping",
-               "descr":   "",
-               "index":   8,
-               "enabled": "false",
-               "period":  4,
-               "offset":  2,
-               "msg-idx": 46
-            }},
-
-            {"activity": {
-               "name":    "BM Housekeeping",
-               "descr":   "",
-               "index":   9,
-               "enabled": "false",
-               "period":  4,
-               "offset":  0,
-               "msg-idx": 30
-            }},
-
-            {"activity": {
-               "name":    "KIT_CI Housekeeping",
-               "descr":   "",
-               "index":   10,
-               "enabled": "true",
-               "period":  4,
-               "offset":  0,
-               "msg-idx": 36
-            }},
-
-            {"activity": {
-               "name":    "KIT_SCH Housekeeping",
-               "descr":   "",
-               "index":   11,
                "enabled": "true",
                "period":  4,
                "offset":  1,
-               "msg-idx": 37
-            }},
-
-            {"activity": {
-               "name":    "KIT_TO Housekeeping",
-               "descr":   "",
-               "index":   12,
-               "enabled": "true",
-               "period":  4,
-               "offset":  2,
-               "msg-idx": 38
-            }},
-        
-            {"activity": {
-               "name":    "SC Housekeeping",
-               "descr":   "",
-               "index":   13,
-               "enabled": "false",
-               "period":  4,
-               "offset":  3,
-               "msg-idx": 21
-            }},
-
-            {"activity": {
-               "name":    "CS Housekeeping",
-               "descr":   "",
-               "index":   14,
-               "enabled": "false",
-               "period":  4,
-               "offset":  0,
-               "msg-idx": 10
+               "msg-idx": 14
             }}
         
          ]
@@ -273,117 +134,56 @@
          "activity-array" : [
          
             {"activity": {
-               "name":    "I42_EXECUTE_MID",
-               "descr":   "42 interface synchronization.",
+               "name":    "SAMPLE_APP_SEND_HK_TOPICID",
+               "descr":   "",
                "index":   0,
                "enabled": "false",
-               "period":  1,
-               "offset":  0,
-               "msg-idx": 41
+               "period":  4,
+               "offset":  2,
+               "msg-idx": 20
             }},
             
             {"activity": {
-               "name":    "HS Execution",
+               "name":    "OSK_C_DEMO_EXE_TOPICID",
                "descr":   "",
                "index":   1,
-               "enabled": "false",
-               "period":  2,
-               "offset":  1,
-               "msg-idx": 15
+               "enabled": "true",
+               "period":  1,
+               "offset":  0,
+               "msg-idx": 21
             }},
 
             {"activity": {
-               "name":    "ISIM Execution",
+               "name":    "OSK_C_DEMO_SEND_HK_TOPICID",
                "descr":   "",
                "index":   2,
                "enabled": "true",
-               "period":  1,
-               "offset":  0,
-               "msg-idx": 43
+               "period":  4,
+               "offset":  2,
+               "msg-idx": 22
             }},
             
             {"activity": {
-               "name":    "FILEMGR Housekeeping",
+               "name":    "OSK_DEV_EXE_TOPICID",
                "descr":   "",
-               "index":   7,
+               "index":   3,
                "enabled": "true",
-               "period":  4,
+               "period":  1,
                "offset":  0,
-               "msg-idx": 47
-            }},
-
-
-            {"activity": {
-               "name":    "HC Housekeeping",
-               "descr":   "",
-               "index":   8,
-               "enabled": "false",
-               "period":  4,
-               "offset":  0,
-               "msg-idx": 32
-            }},
-
-            {"activity": {
-               "name":    "MM Housekeeping",
-               "descr":   "",
-               "index":   9,
-               "enabled": "false",
-               "period":  4,
-               "offset":  1,
-               "msg-idx": 20
-            }},
-
-            {"activity": {
-               "name":    "FM Housekeeping",
-               "descr":   "",
-               "index":   10,
-               "enabled": "false",
-               "period":  4,
-               "offset":  0,
-               "msg-idx": 13
-            }},
-         
-            {"activity": {
-               "name":    "HK Housekeeping",
-               "descr":   "",
-               "index":   11,
-               "enabled": "false",
-               "period":  4,
-               "offset":  2,
                "msg-idx": 23
             }},
-            
+
 
             {"activity": {
-               "name":    "CF Housekeeping",
+               "name":    "OSK_DEV_SEND_HK_TOPICID",
                "descr":   "",
-               "index":   12,
-               "enabled": "false",
-               "period":  3,
-               "offset":  2,
-               "msg-idx": 26
-            }},
-            
-            {"activity": {
-               "name":    "TFTP Housekeeping",
-               "descr":   "Send every cycle for faster file transfer verification",
-               "index":   13,
+               "index":   4,
                "enabled": "true",
-               "period":  1,
-               "offset":  0,
-               "msg-idx": 39
-            }},
-
-            {"activity": {
-               "name":    "LC Housekeeping",
-               "descr":   "",
-               "index":   14,
-               "enabled": "false",
                "period":  4,
                "offset":  2,
-               "msg-idx": 16
+               "msg-idx": 24
             }}
-                        
+            
          ]
       }},   
    
@@ -393,105 +193,55 @@
          "activity-array" : [
          
             {"activity": {
-               "name":    "HSIM Execution",
+               "name":    "PL_MGR_EXE_TOPICID",
                "descr":   "",
                "index":   0,
                "enabled": "false",
                "period":  1,
                "offset":  0,
-               "msg-idx": 35
+               "msg-idx": 30
             }},
             
              {"activity": {
-               "name":    "BM Execution",
+               "name":    "PL_SIM_EXE_TOPICID",
                "descr":   "",
                "index":   1,
                "enabled": "false",
-               "period":  2,
+               "period":  1,
                "offset":  0,
                "msg-idx": 31
             }},
             
             {"activity": {
-               "name":    "CF Execution",
+               "name":    "BERRY_IMU_SEND_HK_TOPICID",
                "descr":   "",
                "index":   2,
                "enabled": "false",
-               "period":  1,
-               "offset":  0,
-               "msg-idx": 27
+               "period":  4,
+               "offset":  3,
+               "msg-idx": 32
             }},
                         
            {"activity": {
-               "name":    "TEST",
-               "descr":   "Used by Create App and available for development",
-               "index":   8,
+               "name":    "MQTT_GW_SEND_HK_TOPICID",
+               "descr":   "",
+               "index":   3,
                "enabled": "false",
                "period":  4,
-               "offset":  0,
-               "msg-idx": 100
+               "offset":  3,
+               "msg-idx": 33
             }},
 
             {"activity": {
-               "name":    "F42 Housekeeping",
+               "name":    "GPIO_DEMO_SEND_HK_TOPICID",
                "descr":   "",
-               "index":   9,
+               "index":   4,
                "enabled": "false",
                "period":  4,
-               "offset":  0,
-               "msg-idx": 40
-            }},
-
-            {"activity": {
-               "name":    "I42 Housekeeping",
-               "descr":   "",
-               "index":   10,
-               "enabled": "false",
-               "period":  4,
-               "offset":  0,
-               "msg-idx": 42
-            }},
-            
-            {"activity": {
-               "name":    "ISIM Housekeeping",
-               "descr":   "",
-               "index":   11,
-               "enabled": "true",
-               "period":  4,
-               "offset":  0,
-               "msg-idx": 44
-            }},
-            
-            {"activity": {
-               "name":    "DS Housekeeping",
-               "descr":   "",
-               "index":   12,
-               "enabled": "false",
-               "period":  4,
-               "offset":  0,
-               "msg-idx": 12
-            }},
-
-            {"activity": {
-               "name":    "MD Housekeeping",
-               "descr":   "",
-               "index":   13,
-               "enabled": "false",
-               "period":  4,
-               "offset":  0,
-               "msg-idx": 18
-            }},
-            
-            {"activity": {
-               "name":    "HS Housekeeping",
-               "descr":   "",
-               "index":   14,
-               "enabled": "false",
-               "period":  4,
-               "offset":  1,
-               "msg-idx": 14
+               "offset":  3,
+               "msg-idx": 34
             }}
-           
+            
          ]
       }}
 
