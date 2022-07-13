@@ -48,12 +48,14 @@ class GitHubAppProject():
     '''
     Manage the interface to cFS apps in github repos  
     '''
-    def __init__(self, git_url, usr_app_path):
+    def __init__(self, git_url, usr_app_path, repo_exclusions):
         """
         usr_app_path is an absolute path to where git repos should be cloned into
+        repo_exclusions is a list of repos that should not be used
         """
         self.usr_clone_path = usr_app_path
         self.git_url  = git_url
+        self.repo_exclusions = repo_exclusions
         self.app_repo = None
         self.app_dict = {}
          
@@ -74,7 +76,8 @@ class GitHubAppProject():
                 for repo in app_repo_list:                
                     print(repo['name'])
                     print(repo['git_url'])
-                    self.app_dict[repo['name']] = repo
+                    if repo['name'] not in self.repo_exclusions:
+                        self.app_dict[repo['name']] = repo
                 #print(self.app_dict['kit_ci'])
                 ret_status = True
         except ConnectionError:
@@ -242,10 +245,10 @@ class AppStore():
     Manage the user interface for downloading apps from github and cloning
     them into the user's app directory. 
     """
-    def __init__(self, git_url, usr_app_path):
+    def __init__(self, git_url, usr_app_path, repo_exclusions):
 
         self.usr_app_path = usr_app_path
-        self.git_app_repo = GitHubAppProject(git_url, usr_app_path)
+        self.git_app_repo = GitHubAppProject(git_url, usr_app_path, repo_exclusions)
         self.window  = None
 
         

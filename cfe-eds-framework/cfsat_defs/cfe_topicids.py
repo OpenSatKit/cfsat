@@ -139,23 +139,24 @@ class CfeTopicIds():
                             print('Adding ' + topic_id_str)
                             topic_id_lookup[topic_id_str] = [keyword_str, self.topic_ids[keyword_str]]
                     else:
+                        line_suffix = ',\n' if ',' in line else '\n' 
                         if topic_id_map:
                             print('>>> Mapping in progress <<<')
                             if topic_id_pair:
-                                line = '%s: %s,\n' % (keyword[0], topic_id_value) # Value preserved from previouz iteration                           
+                                line = '%s: %s,\n' % (keyword[0], topic_id_value) # Value preserved from previous iteration                           
                                 topic_id_pair = False
                             else:
                                 if keyword_str in topic_id_lookup:
                                     topic_id_name  = topic_id_lookup[keyword_str][0]
                                     topic_id_value = topic_id_lookup[keyword_str][1]
-                                    line = '%s: %s,\n' % (keyword[0], topic_id_value)
+                                    line = '%s: %s' % (keyword[0], topic_id_value) + line_suffix
                                     file_modified = True
                                     topic_id_updates.append('    %s : %d (mapped to %s)' % (keyword_str, topic_id_value, topic_id_name))
                                     print('Modified mapped line: ' + line)
                                     topic_id_pair = True
                         else:
                             if keyword_str in self.topic_ids:
-                                line = '%s: %d,\n' % (keyword[0], self.topic_ids[keyword_str])
+                                line = '%s: %d' % (keyword[0], self.topic_ids[keyword_str]) + line_suffix
                                 file_modified = True
                                 topic_id_updates.append('    %s : %d' % (keyword_str, self.topic_ids[keyword_str]))
                                 print('Modified unmapped line: ' + line)
