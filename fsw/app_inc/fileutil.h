@@ -185,7 +185,7 @@ uint16 FileUtil_GetOpenFileList(FileUtil_OpenFileList_t *OpenFileList);
 ** Read a line from a text file.
 **
 */
-bool FileUtil_ReadLine (int FileHandle, char* DestBuf, int MaxChar);
+bool FileUtil_ReadLine(int FileHandle, char *DestBuf, int MaxChar);
 
 
 /******************************************************************************
@@ -193,7 +193,7 @@ bool FileUtil_ReadLine (int FileHandle, char* DestBuf, int MaxChar);
 **
 **   Verify file name is valid and that the directory exists.
 */
-bool FileUtil_VerifyDirForWrite(const char* Filename);
+bool FileUtil_VerifyDirForWrite(const char *Filename);
 
 
 /******************************************************************************
@@ -201,7 +201,7 @@ bool FileUtil_VerifyDirForWrite(const char* Filename);
 **
 **   Verify file name is valid and that the file exists for a read operation.
 */
-bool FileUtil_VerifyFileForRead(const char* Filename);
+bool FileUtil_VerifyFileForRead(const char *Filename);
 
 
 /******************************************************************************
@@ -209,7 +209,7 @@ bool FileUtil_VerifyFileForRead(const char* Filename);
 **
 **  Verify file name len, termination, and characters are valid.
 */
-bool FileUtil_VerifyFilenameStr(const char* Filename);
+bool FileUtil_VerifyFilenameStr(const char *Filename);
 
 
 #endif /* _file_util_ */

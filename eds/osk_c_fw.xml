@@ -84,7 +84,7 @@
         </EnumerationList>
       </EnumeratedDataType>
 
-     <!-- OSK_C_FW::TblMgr -->
+      <!-- OSK_C_FW::TblMgr -->
 
       <EnumeratedDataType name="TblLoadOptions" shortDescription="Defines options for a table load command" >
         <IntegerDataEncoding sizeInBits="8" encoding="unsigned" />
