@@ -1,26 +1,30 @@
 /*
-** Purpose: Define the @Template@ application
+**  Copyright 2022 bitValence, Inc.
+**  All Rights Reserved.
 **
-** Notes:
-**   1. Generated from the Hello World app template using the 
-**      OSK C Application Framework 
+**  This program is free software; you can modify and/or redistribute it
+**  under the terms of the GNU Affero General Public License
+**  as published by the Free Software Foundation; version 3 with
+**  attribution addendums as found in the LICENSE.txt
 **
-** References:
-**   1. OpenSatKit Object-based Application Developer's Guide.
-**   2. cFS Application Developer's Guide.
+**  This program is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**  GNU Affero General Public License for more details.
 **
-**   Written by David McComas, licensed under the Apache License, Version 2.0
-**   (the "License"); you may not use this file except in compliance with the
-**   License. You may obtain a copy of the License at
+**  Purpose:
+**    Define the @Template@ application
 **
-**      http://www.apache.org/licenses/LICENSE-2.0
+**  Notes:
+**   1. This file was generated generated from the cFSAT 'Hello World'
+**      app template for the OSK C Application Framework 
 **
-**   Unless required by applicable law or agreed to in writing, software
-**   distributed under the License is distributed on an "AS IS" BASIS,
-**   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-**   See the License for the specific language governing permissions and
-**   limitations under the License.
+**  References:
+**    1. OpenSatKit Object-based Application Developer's Guide
+**    2. cFS Application Developer's Guide
+**
 */
+
 #ifndef _@template@_app_
 #define _@template@_app_
 
@@ -52,43 +56,14 @@
 
 /******************************************************************************
 ** Command Packets
+** - See EDS command definitions in @template@.xml
 */
 
 
 /******************************************************************************
-** Telemetry Packets
+** Telmetery Packets
+** - See EDS command definitions in @template@.xml
 */
-
-typedef struct
-{
-
-   CFE_MSG_TelemetryHeader_t TlmHeader;
-    
-   /*
-   ** CMDMGR Data
-   */
-   uint16  ValidCmdCnt;
-   uint16  InvalidCmdCnt;
- 
-   /*
-   ** Table Data 
-   ** - Loaded with status from the last table action 
-   */
-
-   uint8   LastTblAction;
-   uint8   LastTblActionStatus;
-
-   
-   /*
-   ** EXOBJ Data
-   */
-
-   uint16  ExObjCounterMode;      
-   uint16  ExObjCounterValue;
-
-
-} @TEMPLATE@_HkPkt_t;
-#define @TEMPLATE@_TLM_HK_LEN sizeof (@TEMPLATE@_HkPkt_t)
 
 
 /******************************************************************************
@@ -101,31 +76,30 @@ typedef struct
    ** App Framework
    */ 
     
-   INITBL_Class_t    IniTbl; 
-   CMDMGR_Class_t    CmdMgr;
-   TBLMGR_Class_t    TblMgr;
+   INITBL_Class_t  IniTbl; 
+   CMDMGR_Class_t  CmdMgr;
+   TBLMGR_Class_t  TblMgr;
    
    /*
    ** Command Packets
    */
-
 
  
    /*
    ** Telemetry Packets
    */
    
-   @TEMPLATE@_HkPkt_t  HkPkt;
+   @TEMPLATE@_HkTlm_t  HkTlm;
    
    /*
    ** @TEMPLATE@ State & Contained Objects
    */ 
            
+   uint32           PerfId;
    CFE_SB_PipeId_t  CmdPipe;
    CFE_SB_MsgId_t   CmdMid;
    CFE_SB_MsgId_t   ExecuteMid;
    CFE_SB_MsgId_t   SendHkMid;
-   uint32           PerfId;
 
    EXOBJ_Class_t  ExObj;
    
@@ -155,14 +129,14 @@ void @TEMPLATE@_AppMain(void);
 ** Function: @TEMPLATE@_NoOpCmd
 **
 */
-bool @TEMPLATE@_NoOpCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool @TEMPLATE@_NoOpCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
 ** Function: @TEMPLATE@_ResetAppCmd
 **
 */
-bool @TEMPLATE@_ResetAppCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr);
+bool @TEMPLATE@_ResetAppCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 #endif /* _@template@_ */

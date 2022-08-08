@@ -5,8 +5,8 @@ CFE_APP, kit_to.so,       KIT_TO_AppMain,      KIT_TO,       20,   32768, 0x0, 0
 CFE_APP, sch_lab,         SCH_Lab_AppMain,     SCH_LAB_APP,  80,   16384, 0x0, 0;
 CFE_APP, file_mgr,        FILE_MGR_AppMain,    FILE_MGR,     80,   16384, 0x0, 0;
 CFE_APP, file_xfer,       FILE_XFER_AppMain,   FILE_XFER,    80,   16384, 0x0, 0;
-CFE_APP, osk_c_demo,      OSK_C_DEMO_AppMain,  OSK_C_DEMO,   80,   16384, 0x0, 0;
 CFE_APP, kit_sch.so,      KIT_SCH_AppMain,     KIT_SCH,      10,   32768, 0x0, 0;
+CFE_APP, osk_c_dev,       OSK_C_DEV_AppMain,   OSK_C_DEV, 70, 32768, 0x0, 0;
 !CFSAT-INSERT! - Don't remove this comment. It must be the first comment
 !
 ! The following entries are provided as a convenience for common libs/apps
@@ -14,6 +14,7 @@ CFE_APP, berry_imu,       BERRY_IMU_AppMain,   BERRY_IMU,    70,   16384, 0x0, 0
 CFE_APP, gpio_demo,       GPIO_DEMO_AppMain,   GPIO_DEMO,    70,   16384, 0x0, 0;
 CFE_APP, hello,           HELLO_AppMain,       HELLO,        80,   16384, 0x0, 0;
 CFE_APP, mqtt_gw,         MQTT_GW_AppMain,     MQTT_GW,      70,   32768, 0x0, 0;
+CFE_LIB, mqtt_lib,        MQTT_LibInit,        MQTT_LIB,      0,       0, 0x0, 0;
 CFE_LIB, pi_iolib,        PI_IOLIB_Init,       PI_IOLIB,      0,       0, 0x0, 0;
 CFE_LIB, pl_sim_lib,      PL_SIM_LibInit,      PL_SIM_LIB,    0,       0, 0x0, 0;
 CFE_APP, pl_sim,          PL_SIM_AppMain,      PL_SIM,       70,   16384, 0x0, 0;

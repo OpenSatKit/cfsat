@@ -1,30 +1,32 @@
 /*
-** Purpose: Define Example Object Table
+**  Copyright 2022 bitValence, Inc.
+**  All Rights Reserved.
 **
-** Notes:
+**  This program is free software; you can modify and/or redistribute it
+**  under the terms of the GNU Affero General Public License
+**  as published by the Free Software Foundation; version 3 with
+**  attribution addendums as found in the LICENSE.txt
+**
+**  This program is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**  GNU Affero General Public License for more details.
+**
+**  Purpose:
+**    Define Example Object Table
+**
+**  Notes:
 **   1. Use the Singleton design pattern. A pointer to the table object
 **      is passed to the constructor and saved for all other operations.
 **      This is a table-specific file so it doesn't need to be re-entrant.
 **   2. The first JSON table must define all parameters. After a complete
 **      table has been loaded then partial tables can be loaded.
 **
-** References:
-**   1. OpenSatKit Object-based Application Developer's Guide.
-**   2. cFS Application Developer's Guide.
+**  References:
+**    1. OpenSatKit Object-based Application Developer's Guide
+**    2. cFS Application Developer's Guide
 **
-**   Written by David McComas, licensed under the Apache License, Version 2.0
-**   (the "License"); you may not use this file except in compliance with the
-**   License. You may obtain a copy of the License at
-**
-**      http://www.apache.org/licenses/LICENSE-2.0
-**
-**   Unless required by applicable law or agreed to in writing, software
-**   distributed under the License is distributed on an "AS IS" BASIS,
-**   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-**   See the License for the specific language governing permissions and
-**   limitations under the License.
 */
-
 #ifndef _exobjtbl_
 #define _exobjtbl_
 
@@ -83,7 +85,7 @@ typedef struct
    ** Standard CJSON table data
    */
    
-   const char*  AppName;
+   const char   *AppName;
    bool         Loaded;   /* Has entire table been loaded? */
    uint8        LastLoadStatus;
    uint16       LastLoadCnt;
@@ -110,7 +112,7 @@ typedef struct
 **      registered with the table manager.
 **
 */
-void EXOBJTBL_Constructor(EXOBJTBL_Class_t* TblObj, const INITBL_Class_t* IniTbl);
+void EXOBJTBL_Constructor(EXOBJTBL_Class_t *TblObj, const INITBL_Class_t *IniTbl);
 
 
 /******************************************************************************
@@ -135,7 +137,7 @@ void EXOBJTBL_ResetStatus(void);
 **     the app framework table manager.
 **
 */
-bool EXOBJTBL_LoadCmd(TBLMGR_Tbl_t* Tbl, uint8 LoadType, const char* Filename);
+bool EXOBJTBL_LoadCmd(TBLMGR_Tbl_t *Tbl, uint8 LoadType, const char *Filename);
 
 
 /******************************************************************************
@@ -149,7 +151,7 @@ bool EXOBJTBL_LoadCmd(TBLMGR_Tbl_t* Tbl, uint8 LoadType, const char* Filename);
 **     the app framework table manager.
 **
 */
-bool EXOBJTBL_DumpCmd(TBLMGR_Tbl_t* Tbl, uint8 DumpType, const char* Filename);
+bool EXOBJTBL_DumpCmd(TBLMGR_Tbl_t *Tbl, uint8 DumpType, const char *Filename);
 
 
 #endif /* _exobjtbl_ */

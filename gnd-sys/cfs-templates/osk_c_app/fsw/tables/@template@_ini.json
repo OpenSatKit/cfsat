@@ -6,8 +6,13 @@
       "APP_CFE_NAME": "@TEMPLATE@",
       "APP_PERF_ID":  127,
           
-      "CMD_PIPE_DEPTH": 5,
-      "CMD_PIPE_NAME":  "@TEMPLATE@_CMD",
+      "APP_CMD_PIPE_DEPTH": 5,
+      "APP_CMD_PIPE_NAME":  "@TEMPLATE@_CMD",
+
+      "OSK_DEV_CMD_TOPICID": 0,
+      "OSK_DEV_EXE_TOPICID": 0,
+      "OSK_DEV_SEND_HK_TOPICID": 0,
+      "OSK_DEV_HK_TLM_TOPICID": 0,
 
       "TBL_LOAD_FILE": "/cf/@template@_tbl.json",
       "TBL_DUMP_FILE": "/cf/@template@~.json"

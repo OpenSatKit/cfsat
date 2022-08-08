@@ -1,9 +1,9 @@
 {
-   "name": "SimSat Scheduler Activity Table",
+   "name": "Scheduler Activity Table",
    "description": ["Activities are defined in time slots. There are 4 slots per second", 
-                   "and 15 entries per slot. The topic IDs in cfe-topicids.xml are groupd",
+                   "and 15 entries per slot. The topic IDs in cfe-topicids.xml are grouped",
                    "as follows: cFE, runtime app suite, development apps, community apps.",
-                   "Each groupd is shceudled in a different slot to keep things functionally",
+                   "Each group is scheduled in a different slot to keep things functionally",
                    "organized. The schedule is not designed with a mission in mind"
                    ],
    
@@ -155,7 +155,7 @@
                "name":    "OSK_C_DEMO_SEND_HK_TOPICID",
                "descr":   "",
                "index":   1,
-               "enabled": "true",
+               "enabled": "false",
                "period":  4,
                "offset":  2,
                "msg-idx": 21

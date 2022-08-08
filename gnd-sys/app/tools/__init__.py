@@ -23,7 +23,7 @@ logger.addHandler(logging.NullHandler())
 
 from .appstore import AppStore, AppSpec, ManageUsrApps
 from .apptemplate import CreateApp
-from .picontrol import PiControl
+from .targetcontrol import TargetControl
 from .tutorial import ManageTutorials
 from .texteditor import TextEditor
 from .utils import *

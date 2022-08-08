@@ -1,25 +1,30 @@
 /*
-** Purpose: Implement the @Template@ application
+**  Copyright 2022 bitValence, Inc.
+**  All Rights Reserved.
 **
-** Notes:
-**   1. See header notes. 
+**  This program is free software; you can modify and/or redistribute it
+**  under the terms of the GNU Affero General Public License
+**  as published by the Free Software Foundation; version 3 with
+**  attribution addendums as found in the LICENSE.txt
 **
-** References:
-**   1. OpenSatKit Object-based Application Developer's Guide.
-**   2. cFS Application Developer's Guide.
+**  This program is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**  GNU Affero General Public License for more details.
 **
-**   Written by David McComas, licensed under the Apache License, Version 2.0
-**   (the "License"); you may not use this file except in compliance with the
-**   License. You may obtain a copy of the License at
+**  Purpose:
+**    Implement the @Template@ application
 **
-**      http://www.apache.org/licenses/LICENSE-2.0
+**  Notes:
+**   1. This file was generated generated from the cFSAT 'Hello World'
+**      app template for the OSK C Application Framework 
 **
-**   Unless required by applicable law or agreed to in writing, software
-**   distributed under the License is distributed on an "AS IS" BASIS,
-**   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-**   See the License for the specific language governing permissions and
-**   limitations under the License.
+**  References:
+**    1. OpenSatKit Object-based Application Developer's Guide
+**    2. cFS Application Developer's Guide
+**
 */
+
 
 /*
 ** Includes
@@ -27,7 +32,7 @@
 
 #include <string.h>
 #include "@template@_app.h"
-
+#include "@template@_eds_cc.h"
 
 /***********************/
 /** Macro Definitions **/
@@ -39,13 +44,14 @@
 #define  TBLMGR_OBJ    (&(@Template@.TblMgr))
 #define  EXOBJ_OBJ     (&(@Template@.ExObj))
 
+
 /*******************************/
 /** Local Function Prototypes **/
 /*******************************/
 
 static int32 InitApp(void);
-static int32 ProcessCommands(void);
-static void SendHousekeepingPkt(void);
+static int32 ProcessCmdPipe(void);
+static void SendHousekeepingTlm(void);
 
 
 /**********************/
@@ -88,7 +94,7 @@ void @TEMPLATE@_AppMain(void)
    while (CFE_ES_RunLoop(&RunStatus))
    {
       
-      RunStatus = ProcessCommands();  /* Pends indefinitely & manages CFE_ES_PerfLogEntry() calls */
+      RunStatus = ProcessCmdPipe();  /* Pends indefinitely & manages CFE_ES_PerfLogEntry() calls */
       
    } /* End CFE_ES_RunLoop */
 
@@ -105,7 +111,7 @@ void @TEMPLATE@_AppMain(void)
 ** Function: @TEMPLATE@_NoOpCmd
 **
 */
-bool @TEMPLATE@_NoOpCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool @TEMPLATE@_NoOpCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
    CFE_EVS_SendEvent (@TEMPLATE@_NOOP_EID, CFE_EVS_EventType_INFORMATION,
@@ -126,7 +132,7 @@ bool @TEMPLATE@_NoOpCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
 **      reentrant. Applications use the singleton pattern and store a
 **      reference pointer to the object data during construction.
 */
-bool @TEMPLATE@_ResetAppCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
+bool @TEMPLATE@_ResetAppCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
    CMDMGR_ResetStatus(CMDMGR_OBJ);
@@ -137,46 +143,6 @@ bool @TEMPLATE@_ResetAppCmd(void* ObjDataPtr, const CFE_SB_Buffer_t *SbBufPtr)
    return true;
 
 } /* End @TEMPLATE@_ResetAppCmd() */
-
-
-/******************************************************************************
-** Function: SendHousekeepingPkt
-**
-*/
-static void SendHousekeepingPkt(void)
-{
-
-   /* Good design practice in case app expands to more than one table */
-   const TBLMGR_Tbl_t* LastTbl = TBLMGR_GetLastTblStatus(TBLMGR_OBJ);
-
-   /*
-   ** Framework Data
-   */
-   
-   @Template@.HkPkt.ValidCmdCnt   = @Template@.CmdMgr.ValidCmdCnt;
-   @Template@.HkPkt.InvalidCmdCnt = @Template@.CmdMgr.InvalidCmdCnt;
-   
-   /*
-   ** Table Data 
-   ** - Loaded with status from the last table action 
-   */
-
-   @Template@.HkPkt.LastTblAction       = LastTbl->LastAction;
-   @Template@.HkPkt.LastTblActionStatus = LastTbl->LastActionStatus;
-
-   
-   /*
-   ** Example Object Data
-   */
-
-   @Template@.HkPkt.ExObjCounterMode  = @Template@.ExObj.CounterMode;
-   @Template@.HkPkt.ExObjCounterValue = @Template@.ExObj.CounterValue;
-   
-
-   CFE_SB_TimeStampMsg(CFE_MSG_PTR(@Template@.HkPkt.TlmHeader));
-   CFE_SB_TransmitMsg(CFE_MSG_PTR(@Template@.HkPkt.TlmHeader), true);
-
-} /* End SendHousekeepingPkt() */
 
 
 /******************************************************************************
@@ -199,9 +165,9 @@ static int32 InitApp(void)
       @Template@.PerfId  = INITBL_GetIntConfig(INITBL_OBJ, CFG_APP_PERF_ID);
       CFE_ES_PerfLogEntry(@Template@.PerfId);
 
-      @Template@.CmdMid     = CFE_SB_ValueToMsgId(@TEMPLATE@_CMD_MID);
-      @Template@.ExecuteMid = CFE_SB_ValueToMsgId(@TEMPLATE@_EXE_MID);
-      @Template@.SendHkMid  = CFE_SB_ValueToMsgId(@TEMPLATE@_SEND_HK_MID);
+      @Template@.CmdMid     = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_OSK_DEV_CMD_TOPICID));
+      @Template@.ExecuteMid = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_OSK_DEV_EXE_TOPICID));
+      @Template@.SendHkMid  = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_OSK_DEV_SEND_HK_TOPICID));
       
       Status = CFE_SUCCESS; 
   
@@ -210,40 +176,41 @@ static int32 InitApp(void)
    if (Status == CFE_SUCCESS)
    {
 
+      /* Must constructor table manager prior to any app objects that contained tables */
+      TBLMGR_Constructor(TBLMGR_OBJ);
+   
       /*
       ** Constuct app's contained objects
       */
             
-      EXOBJ_Constructor(EXOBJ_OBJ, INITBL_OBJ);
+      EXOBJ_Constructor(EXOBJ_OBJ, INITBL_OBJ, TBLMGR_OBJ);
       
       /*
       ** Initialize app level interfaces
       */
       
-      CFE_SB_CreatePipe(&@Template@.CmdPipe, INITBL_GetIntConfig(INITBL_OBJ, CFG_CMD_PIPE_DEPTH), INITBL_GetStrConfig(INITBL_OBJ, CFG_CMD_PIPE_NAME));  
+      CFE_SB_CreatePipe(&@Template@.CmdPipe, INITBL_GetIntConfig(INITBL_OBJ, CFG_APP_CMD_PIPE_DEPTH), INITBL_GetStrConfig(INITBL_OBJ, CFG_APP_CMD_PIPE_NAME));  
       CFE_SB_Subscribe(@Template@.CmdMid,     @Template@.CmdPipe);
       CFE_SB_Subscribe(@Template@.ExecuteMid, @Template@.CmdPipe);
       CFE_SB_Subscribe(@Template@.SendHkMid,  @Template@.CmdPipe);
 
       CMDMGR_Constructor(CMDMGR_OBJ);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, CMDMGR_NOOP_CMD_FC,  NULL, @TEMPLATE@_NoOpCmd,     0);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, CMDMGR_RESET_CMD_FC, NULL, @TEMPLATE@_ResetAppCmd, 0);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, @TEMPLATE@_NOOP_CC,  NULL, @TEMPLATE@_NoOpCmd,     0);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, @TEMPLATE@_RESET_CC, NULL, @TEMPLATE@_ResetAppCmd, 0);
       
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, @TEMPLATE@_TBL_LOAD_CMD_FC, TBLMGR_OBJ, TBLMGR_LoadTblCmd, TBLMGR_LOAD_TBL_CMD_DATA_LEN);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, @TEMPLATE@_TBL_DUMP_CMD_FC, TBLMGR_OBJ, TBLMGR_DumpTblCmd, TBLMGR_DUMP_TBL_CMD_DATA_LEN);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, @TEMPLATE@_LOAD_TBL_CC, TBLMGR_OBJ, TBLMGR_LoadTblCmd, TBLMGR_LOAD_TBL_CMD_DATA_LEN);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, @TEMPLATE@_DUMP_TBL_CC, TBLMGR_OBJ, TBLMGR_DumpTblCmd, TBLMGR_DUMP_TBL_CMD_DATA_LEN);
 
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, EXOBJ_SET_MODE_CMD_FC, EXOBJ_OBJ, EXOBJ_SetModeCmd,EXOBJ_SET_MODE_CMD_DATA_LEN);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, @TEMPLATE@_SET_COUNTER_MODE_CC, EXOBJ_OBJ, EXOBJ_SetModeCmd, sizeof(@TEMPLATE@_CounterMode_Payload_t));
 
-
-      /* Contained table object must be constructed prior to table registration because its table load function is called */
-      TBLMGR_Constructor(TBLMGR_OBJ);
-      TBLMGR_RegisterTblWithDef(TBLMGR_OBJ, EXOBJTBL_LoadCmd, EXOBJTBL_DumpCmd, INITBL_GetStrConfig(INITBL_OBJ, CFG_TBL_LOAD_FILE));
 
       /*
       ** Initialize app messages 
       */
 
-      CFE_MSG_Init(CFE_MSG_PTR(@Template@.HkPkt.TlmHeader), CFE_SB_ValueToMsgId(@TEMPLATE@_HK_TLM_MID), @TEMPLATE@_TLM_HK_LEN);
+      CFE_MSG_Init(CFE_MSG_PTR(@Template@.HkTlm.TelemetryHeader), 
+                   CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_OSK_DEV_HK_TLM_TOPICID)),
+                   sizeof(@TEMPLATE@_HkTlm_t));
 
       /*
       ** Application startup event message
@@ -264,13 +231,13 @@ static int32 InitApp(void)
 **
 ** 
 */
-static int32 ProcessCommands(void)
+static int32 ProcessCmdPipe(void)
 {
    
    int32  RetStatus = CFE_ES_RunStatus_APP_RUN;
    int32  SysStatus;
 
-   CFE_SB_Buffer_t* SbBufPtr;
+   CFE_SB_Buffer_t  *SbBufPtr;
    CFE_SB_MsgId_t   MsgId = CFE_SB_INVALID_MSG_ID;
 
 
@@ -287,7 +254,7 @@ static int32 ProcessCommands(void)
 
          if (CFE_SB_MsgId_Equal(MsgId, @Template@.CmdMid))
          {
-            CMDMGR_DispatchFunc(CMDMGR_OBJ, SbBufPtr);
+            CMDMGR_DispatchFunc(CMDMGR_OBJ, &SbBufPtr->Msg);
          } 
          else if (CFE_SB_MsgId_Equal(MsgId, @Template@.ExecuteMid))
          {
@@ -295,7 +262,7 @@ static int32 ProcessCommands(void)
          }
          else if (CFE_SB_MsgId_Equal(MsgId, @Template@.SendHkMid))
          {   
-            SendHousekeepingPkt();
+            SendHousekeepingTlm();
          }
          else
          {   
@@ -313,4 +280,47 @@ static int32 ProcessCommands(void)
 
    return RetStatus;
    
-} /* End ProcessCommands() */
+} /* End ProcessCmdPipe() */
+
+
+/******************************************************************************
+** Function: SendHousekeepingTlm
+**
+*/
+static void SendHousekeepingTlm(void)
+{
+
+   @TEMPLATE@_HkTlm_Payload_t *Payload = &@Template@.HkTlm.Payload;
+
+   /* Good design practice in case app expands to more than one table */
+   const TBLMGR_Tbl_t* LastTbl = TBLMGR_GetLastTblStatus(TBLMGR_OBJ);
+
+   /*
+   ** Framework Data
+   */
+   
+   Payload->ValidCmdCnt   = @Template@.CmdMgr.ValidCmdCnt;
+   Payload->InvalidCmdCnt = @Template@.CmdMgr.InvalidCmdCnt;
+   
+   /*
+   ** Table Data 
+   ** - Loaded with status from the last table action 
+   */
+
+   Payload->LastTblAction       = LastTbl->LastAction;
+   Payload->LastTblActionStatus = LastTbl->LastActionStatus;
+
+   
+   /*
+   ** Example Object Data
+   */
+
+   Payload->CounterMode  = @Template@.ExObj.CounterMode;
+   Payload->CounterValue = @Template@.ExObj.CounterValue;
+   
+
+   CFE_SB_TimeStampMsg(CFE_MSG_PTR(@Template@.HkTlm.TelemetryHeader));
+   CFE_SB_TransmitMsg(CFE_MSG_PTR(@Template@.HkTlm.TelemetryHeader), true);
+
+} /* End SendHousekeepingTlm() */
+

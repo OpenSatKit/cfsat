@@ -80,8 +80,9 @@
   </Package>
 
   <Package name="OSK_C_DEMO" shortDescription="OSK_C_DEMO configurable items">
-    <Define name="MSGLOG_TEXT_LEN" value="16" />
+    <Define name="LOG_ENTRY_TEXT_LEN" value="36" shortDescription="Maximum length of time-stamped data sample log entry" />
   </Package>
+
 
   <!--*********************************-->
   <!--**** CFE_MISSION Definitions ****-->

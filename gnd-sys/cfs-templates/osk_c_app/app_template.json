@@ -9,7 +9,7 @@
    "dir": [
       {
          "path": "",
-         "files": ["CMakeLists.txt"]
+         "files": ["CMakeLists.txt", "@template@.json"]
       },
       {
          "path": "fsw/mission_inc",
@@ -17,7 +17,7 @@
       },
       {
          "path": "fsw/platform_inc",
-         "files": ["@template@_msgids.h", "@template@_platform_cfg.h"]
+         "files": ["@template@_platform_cfg.h"]
       },
       {
          "path": "fsw/src",
@@ -25,7 +25,7 @@
       },
       {
          "path": "fsw/tables",
-         "files": ["cpu1_@template@_ini.json", "cpu1_@template@_tbl.json"]
+         "files": ["@template@_ini.json", "@template@_tbl.json"]
       },
       {
          "path": "eds",

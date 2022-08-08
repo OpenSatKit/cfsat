@@ -46,8 +46,6 @@ TEMPLATE_VAR_LOWER = "@template@"
 TEMPLATE_COMMENT_START = "/*##"
 TEMPLATE_COMMENT_END   = "##*/"
 
-CFS_APPS_RELATIVE_PATH = '../../cfs-apps'
-
 ###############################################################################
 
 class AppTemplateJson(JsonFile):
@@ -137,10 +135,14 @@ class AppTemplate():
                     if e.errno != errno.EEXIST:
                         print("Error creating new app subdirectory" + new_app_file_path)
                         raise  # raises the error again
-            
-                for template_file in subdir_files:
-                    self.instantiate_file(template_file_path, new_app_file_path, template_file)
-                          
+               
+                try:
+                    for template_file in subdir_files:
+                        self.instantiate_file(template_file_path, new_app_file_path, template_file)
+                except Exception as e:
+                    sg.popup("Exception:\n"+str(e), title="Create Application Error", modal=False)
+                    raise  # raises the error again
+                    
             app_created = True
       
         return (app_created, self.new_app_dir)
@@ -189,8 +191,9 @@ class CreateApp():
     one.  App_template titles defined in the JSON files are used as template
     identifiers for screen displays and as dictionary keys 
     """
-    def __init__(self, app_templates_path):
+    def __init__(self, app_templates_path, usr_app_path):
 
+        self.usr_app_path = usr_app_path
         self.app_templates_path = app_templates_path
         self.app_template_titles = []
         self.app_template_lookup = {}  # [title]  => AppTemplate
@@ -269,10 +272,13 @@ class CreateApp():
                         if values['-INPUT-'] is not None:
                             app_name = values['-INPUT-']
                             if len(app_name) > 0:
-                                app_created, new_app_dir = self.selected_app.create_app(app_name, os.path.join(os.getcwd(),CFS_APPS_RELATIVE_PATH))
-                                if app_created:
-                                    sg.popup("Successfully created %s in %s" % (app_name, new_app_dir), 
-                                             title="Create Application", modal=False) 
+                                try:
+                                    app_created, new_app_dir = self.selected_app.create_app(app_name, os.path.join(os.getcwd(),self.usr_app_path))
+                                    if app_created:
+                                        sg.popup("Successfully created %s in %s" % (app_name, new_app_dir), title="Create Application", modal=False)
+                                except:
+                                    pass
+                                     
                     window.close()
                     break
                 else:
@@ -289,10 +295,12 @@ if __name__ == '__main__':
     config.read('../cfsat.ini')
 
     APP_TEMPLATES_PATH = config.get('PATHS','APP_TEMPLATES_PATH')
-
+    USR_APP_PATH  = config.get('PATHS','USR_APP_PATH ')
+    
     templates_dir = os.path.join(os.getcwd(),'..', APP_TEMPLATES_PATH) 
-    print ("templates_dir = " + templates_dir)
-    CreateApp(templates_dir).execute()
+    usr_app_dir   = os.path.join(os.getcwd(),'..', USR_APP_PATH) 
+    print ("Directories: templates_dir: %s, usr_app_dir: %s" + (templates_dir, sr_app_path))
+    CreateApp(templates_dir, usr_app_dir).execute()
     
     #Test without GUI
     #app_template = AppTemplate(template_dir)

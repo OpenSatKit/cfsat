@@ -44,11 +44,11 @@
       "KIT_TO_PKT_TBL_TOPICID"            : "topic-id-35",
       "KIT_TO_PKT_PLBK_TOPICID"           : "topic-id-36",
       
-      "OSK_C_DEMO_HK_TLM_TOPICID"     : "topic-id-40",
-      "OSK_C_DEMO_PLAYBK_TLM_TOPICID" : "topic-id-41",
-      "OSK_DEV_HK_TLM_TOPICID"        : "topic-id-42",
-      "SAMPLE_APP_HK_TLM_TOPICID"     : "topic-id-43",
-      "TEST_HK_TLM_TOPICID"           : "topic-id-44",
+      "OSK_C_DEMO_STATUS_TLM_TOPICID"     : "topic-id-40",
+      "OSK_C_DEMO_BIN_PLAYBK_TLM_TOPICID" : "topic-id-41",
+      "OSK_DEV_HK_TLM_TOPICID"            : "topic-id-42",
+      "SAMPLE_APP_HK_TLM_TOPICID"         : "topic-id-43",
+      "TEST_HK_TLM_TOPICID"               : "topic-id-44",
       
       "BERRY_IMU_HK_TLM_TOPICID"    : "topic-id-50",
       "BERRY_IMU_RATE_TLM_TOPICID"  : "topic-id-51",
@@ -62,16 +62,16 @@
       "PL_MGR_STATUS_TLM_TOPICID"   : "topic-id-59",
       "PL_SIM_STATUS_TLM_TOPICID"   : "topic-id-60",
 
-      "SPARE_TOPICID"   : "topic-id-70",
-      "SPARE_TOPICID"   : "topic-id-71",
-      "SPARE_TOPICID"   : "topic-id-72",
-      "SPARE_TOPICID"   : "topic-id-73",
-      "SPARE_TOPICID"   : "topic-id-74",
-      "SPARE_TOPICID"   : "topic-id-75",
-      "SPARE_TOPICID"   : "topic-id-76",
-      "SPARE_TOPICID"   : "topic-id-77",
-      "SPARE_TOPICID"   : "topic-id-78",
-      "SPARE_TOPICID"   : "topic-id-79"
+      "SPARE_70_TOPICID"   : "topic-id-70",
+      "SPARE_71_TOPICID"   : "topic-id-71",
+      "SPARE_72_TOPICID"   : "topic-id-72",
+      "SPARE_73_TOPICID"   : "topic-id-73",
+      "SPARE_74_TOPICID"   : "topic-id-74",
+      "SPARE_75_TOPICID"   : "topic-id-75",
+      "SPARE_76_TOPICID"   : "topic-id-76",
+      "SPARE_77_TOPICID"   : "topic-id-77",
+      "SPARE_78_TOPICID"   : "topic-id-78",
+      "SPARE_79_TOPICID"   : "topic-id-79",
             
       "end": true
       
@@ -403,17 +403,17 @@
       }},
 
       {"packet": {
-         "name": "OSK_C_DEMO_HK_TLM_TOPICID",
+         "name": "OSK_C_DEMO_STATUS_TLM_TOPICID",
          "topic-id-40": 2144,
          "topic-id": 2144,
          "priority": 0,
          "reliability": 0,
-         "buf-limit": 2,
+         "buf-limit": 4,
          "filter": { "type": 2, "X": 1, "N": 1, "O": 0}
       }},
 
       {"packet": {
-         "name": "OSK_C_DEMO_PLAYBK_TLM_TOPICID",
+         "name": "OSK_C_DEMO_BIN_PLAYBK_TLM_TOPICID",
          "topic-id-41": 2145,
          "topic-id": 2145,
          "priority": 0,
