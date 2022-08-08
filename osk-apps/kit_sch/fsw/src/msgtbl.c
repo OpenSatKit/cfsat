@@ -100,8 +100,8 @@ void MSGTBL_Constructor(MSGTBL_Class_t*  ObjPtr, const char* AppName)
    MsgTbl->LastLoadStatus = TBLMGR_STATUS_UNDEF;
 
    CFE_EVS_SendEvent(KIT_SCH_INIT_DEBUG_EID, KIT_SCH_INIT_EVS_TYPE,
-                    "MSGTBL_MAX_MSG_WORDS: %d, sizeof(CFE_MSG_CommandHeader_t): %ld, sizeof(MSGTBL_Cmd_t): %ld",
-                    MSGTBL_MAX_MSG_WORDS, sizeof(CFE_MSG_CommandHeader_t), sizeof(MSGTBL_CmdMsg_t));    
+                    "MSGTBL_MAX_MSG_WORDS: %d, sizeof(CFE_MSG_CommandHeader_t): %d, sizeof(MSGTBL_Cmd_t): %d",
+                    MSGTBL_MAX_MSG_WORDS, (unsigned int)sizeof(CFE_MSG_CommandHeader_t), (unsigned int)sizeof(MSGTBL_CmdMsg_t));    
    CFE_EVS_SendEvent(KIT_SCH_INIT_DEBUG_EID, KIT_SCH_INIT_EVS_TYPE,
                     "CFE_ES_SEND_HK_MID: 0x%04X (%d)", CFE_ES_SEND_HK_MID, CFE_ES_SEND_HK_MID);
    CFE_EVS_SendEvent(KIT_SCH_INIT_DEBUG_EID, KIT_SCH_INIT_EVS_TYPE,
@@ -208,8 +208,8 @@ bool MSGTBL_DumpCmd(TBLMGR_Tbl_t* Tbl, uint8 DumpType, const char* Filename)
          {
             
             CFE_EVS_SendEvent(MSGTBL_DUMP_ERR_EID, CFE_EVS_EventType_ERROR,
-                              "Error creating dump file message entry %d. Message word length %d is greater than max data buffer %ld",
-                              i, DataWords, PKTUTIL_CMD_HDR_WORDS);         
+                              "Error creating dump file message entry %d. Message word length %d is greater than max data buffer %d",
+                              i, DataWords, (unsigned int)PKTUTIL_CMD_HDR_WORDS);         
          }
          else
          {
