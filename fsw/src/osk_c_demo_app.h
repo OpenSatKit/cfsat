@@ -34,7 +34,8 @@
 */
 
 #include "app_cfg.h"
-#include "msglog.h"
+#include "device.h"
+#include "histogram.h"
 
 /***********************/
 /** Macro Definitions **/
@@ -57,52 +58,14 @@
 
 /******************************************************************************
 ** Command Packets
+** - See EDS command definitions in osk_c_demo.xml
 */
 
 
 /******************************************************************************
-** Telemetry Packets
+** Telmetery Packets
+** - See EDS command definitions in osk_c_demo.xml
 */
-
-typedef struct
-{
-
-   CFE_MSG_TelemetryHeader_t TlmHeader;
-    
-   /*
-   ** CMDMGR Data
-   */
-   uint16  ValidCmdCnt;
-   uint16  InvalidCmdCnt;
- 
-   /*
-   ** CHILDMGR Data
-   */
-   uint16  ChildValidCmdCnt;
-   uint16  ChildInvalidCmdCnt;
- 
-   /*
-   ** Table Data 
-   ** - Loaded with status from the last table action 
-   */
-
-   uint8   LastTblAction;
-   uint8   LastTblActionStatus;
-
-   
-   /*
-   ** MSGLOG Data
-   */
-
-   bool    MsgLogEna;
-   bool    MsgPlaybkEna;
-
-   uint16  MsgLogCnt;      
-   char    MsgLogFilename[OS_MAX_PATH_LEN];
-
-
-} OSK_C_DEMO_HkPkt_t;
-#define OSK_C_DEMO_TLM_HK_LEN sizeof (OSK_C_DEMO_HkPkt_t)
 
 
 /******************************************************************************
@@ -120,29 +83,29 @@ typedef struct
    CMDMGR_Class_t    CmdMgr;
    TBLMGR_Class_t    TblMgr;
    CHILDMGR_Class_t  ChildMgr;
-   
+    
    /*
    ** Command Packets
    */
 
-   CMDMGR_NoParamCmdMsg_t MsgLogRunChildFuncCmd;
- 
+   OSK_C_DEMO_RunHistogramLogChildTask_t  RunHistogramLogChildTask;
+
    /*
    ** Telemetry Packets
    */
    
-   OSK_C_DEMO_HkPkt_t  HkPkt;
-   
+   OSK_C_DEMO_StatusTlm_t  StatusTlm;
+
    /*
    ** OSK_C_DEMO State & Contained Objects
    */ 
            
-   uint32           PerfId;
-   CFE_SB_MsgId_t   CmdMid;
-   CFE_SB_MsgId_t   ExecuteMid;
-   CFE_SB_MsgId_t   SendHkMid;
+   uint32            PerfId;
+   CFE_SB_MsgId_t    CmdMid;
+   CFE_SB_MsgId_t    ExecuteMid;
    
-   MSGLOG_Class_t  MsgLog;
+   DEVICE_Class_t    Device;
+   HISTOGRAM_Class_t Histogram;
    
 } OSK_C_DEMO_Class_t;
 
@@ -170,14 +133,14 @@ void OSK_C_DEMO_AppMain(void);
 ** Function: OSK_C_DEMO_NoOpCmd
 **
 */
-bool OSK_C_DEMO_NoOpCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
+bool OSK_C_DEMO_NoOpCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
 ** Function: OSK_C_DEMO_ResetAppCmd
 **
 */
-bool OSK_C_DEMO_ResetAppCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
+bool OSK_C_DEMO_ResetAppCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 #endif /* _osk_c_demo_ */

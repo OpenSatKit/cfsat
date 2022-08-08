@@ -31,12 +31,12 @@
       <!--**** DataTypeSet:  Entry Types ****-->
       <!--***********************************-->
 
-      <StringDataType name="MsgLogText" length="${OSK_C_DEMO/MSGLOG_TEXT_LEN}" />
+      <StringDataType name="LogEntryText" length="${OSK_C_DEMO/LOG_ENTRY_TEXT_LEN}" />
 
       <EnumeratedDataType name="TblId" shortDescription="Identifies different app tables" >
         <IntegerDataEncoding sizeInBits="8" encoding="unsigned" />
         <EnumerationList>
-          <Enumeration label="MSG_LOG" value="0" shortDescription="Message log table" />
+          <Enumeration label="HISTOGRAM_BIN" value="0" shortDescription="Histogram bin definitions" />
         </EnumerationList>
       </EnumeratedDataType>
 
@@ -60,9 +60,17 @@
        </EntryList>
       </ContainerDataType>
 
-      <ContainerDataType name="StartLog_Payload" shortDescription="Start logging the command message ID packet headers">
+      <ContainerDataType name="StartHistogramLog_Payload" shortDescription="Start logging data samples for a specific bin to a text log file">
         <EntryList>
-          <Entry name="MsgId" type="BASE_TYPES/uint16" shortDescription="Message ID that will be logged." />
+          <Entry name="BinNum"     type="BASE_TYPES/uint16" shortDescription="Bin number to be logged. Bins are defined by the histogram bin table" />
+          <Entry name="MaxEntries" type="BASE_TYPES/uint16" shortDescription="Maximum number of data samples to store in the log file" />
+       </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="RunHistogramLogChildTask_Payload" shortDescription="Internal app command to run the histogram log child task">
+        <EntryList>
+          <Entry name="BinNum"     type="BASE_TYPES/uint16" shortDescription="Data sample to be logged" />
+          <Entry name="DataSample" type="BASE_TYPES/uint16" shortDescription="Data sample to be logged" />
        </EntryList>
       </ContainerDataType>
 
@@ -70,7 +78,7 @@
       <!--**** DataTypeSet: Telemetry Payloads ****-->
       <!--*****************************************-->
     
-      <ContainerDataType name="HkTlm_Payload" shortDescription="App's state and status summary, 'housekeeping data'">
+      <ContainerDataType name="StatusTlm_Payload" shortDescription="App's state and status summary">
         <EntryList>
           <Entry name="ValidCmdCnt"         type="BASE_TYPES/uint16" />
           <Entry name="InvalidCmdCnt"       type="BASE_TYPES/uint16" />
@@ -78,17 +86,26 @@
           <Entry name="ChildInvalidCmdCnt"  type="BASE_TYPES/uint16" />
           <Entry name="LastTblAction"       type="OSK_C_FW/TblActions"      shortDescription="Last table action" />
           <Entry name="LastTblActionStatus" type="OSK_C_FW/TblActionStatus" shortDescription="Last table action status" />
-          <Entry name="MsgLogEna"           type="BASE_TYPES/uint8" />
-          <Entry name="MsgPlaybkEna"        type="BASE_TYPES/uint8" />
-          <Entry name="MsgLogCnt"           type="BASE_TYPES/uint16"        shortDescription="Number of message log file entries" />
-          <Entry name="MsgLogFilename"      type="BASE_TYPES/PathName"      shortDescription="Number of message log file entries" />
+          <Entry name="DeviceData"          type="BASE_TYPES/uint16"        shortDescription="Number of message log file entries" />
+          <Entry name="DeviceDataModulo"    type="BASE_TYPES/uint16"        shortDescription="Number of message log file entries" />
+          <Entry name="HistEna"             type="BASE_TYPES/uint16" />
+          <Entry name="HistMaxValue"        type="BASE_TYPES/uint16" />
+          <Entry name="HistSampleCnt"       type="BASE_TYPES/uint32" />
+          <Entry name="HistBinCntStr"       type="BASE_TYPES/PathName"      shortDescription="CSV text string for each bin count" />
+          <Entry name="HistLogEna"          type="BASE_TYPES/uint16" />
+          <Entry name="HistLogBinNum"       type="BASE_TYPES/uint16" />
+          <Entry name="HistLogCnt"          type="BASE_TYPES/uint16" />
+          <Entry name="HistLogMaxEntries"   type="BASE_TYPES/uint16" />
+          <Entry name="HistLogPlaybkEna"    type="BASE_TYPES/uint16" />
+          <Entry name="HistLogPlaybkCnt"    type="BASE_TYPES/uint16" />
+          <Entry name="HistLogFilename"     type="BASE_TYPES/PathName" />
         </EntryList>
       </ContainerDataType>
-      
-      <ContainerDataType name="Playbk_Payload" shortDescription="">
+
+      <ContainerDataType name="BinPlaybkTlm_Payload" shortDescription="">
         <EntryList>
-          <Entry name="LogFileEntry" type="BASE_TYPES/uint16" shortDescription="Log file line number of the text in this message" />
-          <Entry name="MsgTxt"       type="MsgLogText"        shortDescription="Message ID and sequence in hex text "/>
+          <Entry name="LogFileEntry"  type="BASE_TYPES/uint16" shortDescription="Log file line number of the text in this message" />
+          <Entry name="DataSampleTxt" type="LogEntryText"      shortDescription="Timestamped data sample"/>
        </EntryList>
       </ContainerDataType>
 
@@ -129,52 +146,67 @@
         </EntryList>
       </ContainerDataType>
 
-      <ContainerDataType name="StartLog" baseType="CommandBase" shortDescription="Start logging the command message ID packet headers">
+      <ContainerDataType name="StartHistogram" baseType="CommandBase" shortDescription="Start populating the histogram">
         <ConstraintSet>
           <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 0" />
         </ConstraintSet>
-        <EntryList>
-          <Entry type="StartLog_Payload" name="Payload" />
-        </EntryList>
       </ContainerDataType>
 
-      <ContainerDataType name="StopLog" baseType="CommandBase" shortDescription="Stop logging packets">
+      <ContainerDataType name="StopHistogram" baseType="CommandBase" shortDescription="Stop populating the histogram">
         <ConstraintSet>
           <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 1" />
         </ConstraintSet>
       </ContainerDataType>
 
-      <ContainerDataType name="StartPlaybk" baseType="CommandBase" shortDescription="Start playing back in telemetry the last log file created">
+      <ContainerDataType name="StartHistogramLog" baseType="CommandBase" shortDescription="Start logging data samples for a specific histogram bin">
         <ConstraintSet>
           <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 2" />
         </ConstraintSet>
+        <EntryList>
+          <Entry type="StartHistogramLog_Payload" name="Payload" />
+        </EntryList>
       </ContainerDataType>
 
-      <ContainerDataType name="StopPlaybk" baseType="CommandBase" shortDescription="Stop a play back that is in progress">
+      <ContainerDataType name="StopHistogramLog" baseType="CommandBase" shortDescription="Stop logging data samples">
         <ConstraintSet>
           <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 3" />
         </ConstraintSet>
       </ContainerDataType>
 
-      <ContainerDataType name="RunChildTask" baseType="CommandBase" shortDescription="Onboard command used to run child task">
+      <ContainerDataType name="StartHistogramLogPlaybk" baseType="CommandBase" shortDescription="Start sending telemetry packets for each log entry">
         <ConstraintSet>
           <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 4" />
         </ConstraintSet>
+      </ContainerDataType>
+
+      <ContainerDataType name="StopHistogramLogPlaybk" baseType="CommandBase" shortDescription="Stop a play back that is in progress">
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 5" />
+        </ConstraintSet>
+      </ContainerDataType>
+
+      <ContainerDataType name="RunHistogramLogChildTask" baseType="CommandBase" shortDescription="Internal app command to execute app's child task">
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 6" />
+        </ConstraintSet>
+        <EntryList>
+          <Entry type="RunHistogramLogChildTask_Payload" name="Payload" />
+        </EntryList>
       </ContainerDataType>
 
       <!--****************************************-->
       <!--**** DataTypeSet: Telemetry Packets ****-->
       <!--****************************************-->
 
-      <ContainerDataType name="HkTlm" baseType="CFE_HDR/TelemetryHeader">
+      <ContainerDataType name="StatusTlm" baseType="CFE_HDR/TelemetryHeader">
         <EntryList>
-          <Entry type="HkTlm_Payload" name="Payload" />
+          <Entry type="StatusTlm_Payload" name="Payload" />
         </EntryList>
       </ContainerDataType>
      
-      <ContainerDataType name="PlaybkTlm" baseType="CFE_HDR/TelemetryHeader">
+      <ContainerDataType name="BinPlaybkTlm" baseType="CFE_HDR/TelemetryHeader">
         <EntryList>
-          <Entry type="Playbk_Payload" name="Payload" />
+          <Entry type="BinPlaybkTlm_Payload" name="Payload" />
         </EntryList>
       </ContainerDataType>
 
@@ -200,21 +232,15 @@
                 <GenericTypeMap name="TelecommandDataType" type="CFE_HDR/CommandHeader" />
              </GenericTypeMapSet>
           </Interface>
-          <Interface name="SEND_HK" shortDescription="Signal app to send its housekeeping telemetry command interface" type="CFE_SB/Telecommand">
-            <!-- This uses a bare spacepacket with no payload -->
-            <GenericTypeMapSet>
-              <GenericTypeMap name="TelecommandDataType" type="CFE_HDR/CommandHeader" />
-            </GenericTypeMapSet>
-          </Interface>
           
-          <Interface name="HK_TLM" shortDescription="Software bus housekeeping telemetry interface" type="CFE_SB/Telemetry">
+          <Interface name="STATUS_TLM" shortDescription="Software bus status telemetry interface" type="CFE_SB/Telemetry">
             <GenericTypeMapSet>
-              <GenericTypeMap name="TelemetryDataType" type="HkTlm" />
+              <GenericTypeMap name="TelemetryDataType" type="StatusTlm" />
             </GenericTypeMapSet>
           </Interface>
-          <Interface name="PLAYBK_TLM" shortDescription="Message log playback telemetry interface" type="CFE_SB/Telemetry">
+          <Interface name="BIN_PLAYBK_TLM" shortDescription="Histogram bin playback telemetry interface" type="CFE_SB/Telemetry">
             <GenericTypeMapSet>
-              <GenericTypeMap name="TelemetryDataType" type="PlaybkTlm" />
+              <GenericTypeMap name="TelemetryDataType" type="BinPlaybkTlm" />
             </GenericTypeMapSet>
           </Interface>
         </RequiredInterfaceSet>
@@ -225,19 +251,17 @@
 
         <Implementation>
           <VariableSet>
-            <Variable type="BASE_TYPES/uint16" readOnly="true" name="CmdTopicId"       initialValue="${CFE_MISSION/OSK_C_DEMO_CMD_TOPICID}" />
-            <Variable type="BASE_TYPES/uint16" readOnly="true" name="ExeAppTopicId"    initialValue="${CFE_MISSION/OSK_C_DEMO_EXE_TOPICID}" />
-            <Variable type="BASE_TYPES/uint16" readOnly="true" name="SendHkTopicId"    initialValue="${CFE_MISSION/OSK_C_DEMO_SEND_HK_TOPICID}" />
-            <Variable type="BASE_TYPES/uint16" readOnly="true" name="HkTlmTopicId"     initialValue="${CFE_MISSION/OSK_C_DEMO_HK_TLM_TOPICID}" />
-            <Variable type="BASE_TYPES/uint16" readOnly="true" name="PlaybkTlmTopicId" initialValue="${CFE_MISSION/OSK_C_DEMO_PLAYBK_TLM_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="CmdTopicId"          initialValue="${CFE_MISSION/OSK_C_DEMO_CMD_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="ExeAppTopicId"       initialValue="${CFE_MISSION/OSK_C_DEMO_EXE_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="StatusTlmTopicId"    initialValue="${CFE_MISSION/OSK_C_DEMO_STATUS_TLM_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="BinPlaybkTlmTopicId" initialValue="${CFE_MISSION/OSK_C_DEMO_BIN_PLAYBK_TLM_TOPICID}" />
           </VariableSet>
           <!-- Assign fixed numbers to the "TopicId" parameter of each interface -->
           <ParameterMapSet>          
-            <ParameterMap interface="CMD"        parameter="TopicId" variableRef="CmdTopicId" />
-            <ParameterMap interface="EXE_APP"    parameter="TopicId" variableRef="ExeAppTopicId" />
-            <ParameterMap interface="SEND_HK"    parameter="TopicId" variableRef="SendHkTopicId" />
-            <ParameterMap interface="HK_TLM"     parameter="TopicId" variableRef="HkTlmTopicId" />
-            <ParameterMap interface="PLAYBK_TLM" parameter="TopicId" variableRef="PlaybkTlmTopicId" />
+            <ParameterMap interface="CMD"             parameter="TopicId" variableRef="CmdTopicId" />
+            <ParameterMap interface="EXE_APP"         parameter="TopicId" variableRef="ExeAppTopicId" />
+            <ParameterMap interface="STATUS_TLM"      parameter="TopicId" variableRef="StatusTlmTopicId" />
+            <ParameterMap interface="BIN_PLAYBK_TLM"  parameter="TopicId" variableRef="BinPlaybkTlmTopicId" />
           </ParameterMapSet>
         </Implementation>
       </Component>

@@ -13,23 +13,21 @@
 **  GNU Affero General Public License for more details.
 **
 **  Purpose:
-**    Define the Message Log table
+**    Manage the Histogram defintion table
 **
 **  Notes:
 **    1. Use the Singleton design pattern. A pointer to the table object
 **       is passed to the constructor and saved for all other operations.
 **       This is a table-specific file so it doesn't need to be re-entrant.
-**    2. The first JSON table must define all parameters. After a complete
-**       table has been loaded then partial tables can be loaded.
 **
 **  References:
-**    1. OpenSatKit Object-based Application Developer's Guide.
-**    2. cFS Application Developer's Guide.
+**    1. OpenSatKit Object-based Application Developer's Guide
+**    2. cFS Application Developer's Guide
 **
 */
 
-#ifndef _msglogtbl_
-#define _msglogtbl_
+#ifndef _histogram_tbl_
+#define _histogram_tbl_
 
 /*
 ** Includes
@@ -45,13 +43,18 @@
 ** Event Message IDs
 */
 
-#define MSGLOGTBL_DUMP_ERR_EID   (MSGLOGTBL_BASE_EID + 0)
-#define MSGLOGTBL_LOAD_ERR_EID   (MSGLOGTBL_BASE_EID + 1)
+#define HISTOGRAM_TBL_DUMP_EID  (HISTOGRAM_TBL_BASE_EID + 0)
+#define HISTOGRAM_TBL_LOAD_EID  (HISTOGRAM_TBL_BASE_EID + 1)
 
 
 /**********************/
 /** Type Definitions **/
 /**********************/
+
+/*
+** Table load callback function
+*/
+typedef void (*HISTOGRAM_TBL_LoadFunc_t)(void);
 
 
 /******************************************************************************
@@ -62,34 +65,34 @@
 typedef struct
 {
 
-   char     PathBaseName[OS_MAX_PATH_LEN];
-   char     Extension[MSGLOGTBL_FILE_EXT_MAX_LEN];
-   uint16   EntryCnt;
+   uint16  LoLim;
+   uint16  HiLim;
 
-} MSGLOGTBL_File_t;
+} HISTOGRAM_TBL_Bin_t;
 
 
 typedef struct
 {
 
-   MSGLOGTBL_File_t  File;
-   uint16            PlaybkDelay;
+   uint16               BinCnt;
+   HISTOGRAM_TBL_Bin_t  Bin[HISTOGRAM_MAX_BINS];
    
-} MSGLOGTBL_Data_t;
+} HISTOGRAM_TBL_Data_t;
 
 
-/* Return pointer to owner's table data */
-typedef MSGLOGTBL_Data_t* (*MSGLOGTBL_GetDataPtr_t)(void);
-
+/******************************************************************************
+** Class
+*/
 
 typedef struct
 {
 
    /*
-   ** Table parameter data
+   ** Table Data
    */
    
-   MSGLOGTBL_Data_t Data;
+   HISTOGRAM_TBL_Data_t     Data;
+   HISTOGRAM_TBL_LoadFunc_t LoadFunc; 
    
    /*
    ** Standard CJSON table data
@@ -101,10 +104,10 @@ typedef struct
    uint16       LastLoadCnt;
    
    size_t       JsonObjCnt;
-   char         JsonBuf[MSGLOGTBL_JSON_FILE_MAX_CHAR];   
+   char         JsonBuf[HISTOGRAM_TBL_JSON_FILE_MAX_CHAR];   
    size_t       JsonFileLen;
    
-} MSGLOGTBL_Class_t;
+} HISTOGRAM_TBL_Class_t;
 
 
 /************************/
@@ -113,22 +116,24 @@ typedef struct
 
 
 /******************************************************************************
-** Function: MSGLOGTBL_Constructor
+** Function: HISTOGRAM_TBL_Constructor
 **
-** Initialize the message log table object.
+** Initialize the Histogram table object.
 **
 ** Notes:
 **   1. The table values are not populated. This is done when the table is 
 **      registered with the table manager.
 **
 */
-void MSGLOGTBL_Constructor(MSGLOGTBL_Class_t* TblObj, const INITBL_Class_t* IniTbl);
+void HISTOGRAM_TBL_Constructor(HISTOGRAM_TBL_Class_t *TblObj, 
+                               HISTOGRAM_TBL_LoadFunc_t LoadFunc,
+                               const char *AppName);
 
 
 /******************************************************************************
-** Function: MSGLOGTBL_DumpCmd
+** Function: HISTOGRAM_TBL_DumpCmd
 **
-** Command to dump the table.
+** Command to write the table data from memory to a JSON file.
 **
 ** Notes:
 **  1. Function signature must match TBLMGR_DumpTblFuncPtr_t.
@@ -136,13 +141,13 @@ void MSGLOGTBL_Constructor(MSGLOGTBL_Class_t* TblObj, const INITBL_Class_t* IniT
 **     the app framework table manager.
 **
 */
-bool MSGLOGTBL_DumpCmd(TBLMGR_Tbl_t* Tbl, uint8 DumpType, const char* Filename);
+bool HISTOGRAM_TBL_DumpCmd(TBLMGR_Tbl_t *Tbl, uint8 DumpType, const char *Filename);
 
 
 /******************************************************************************
-** Function: MSGLOGTBL_LoadCmd
+** Function: HISTOGRAM_TBL_LoadCmd
 **
-** Command to load the table.
+** Command to copy the table data from a JSON file to memory.
 **
 ** Notes:
 **  1. Function signature must match TBLMGR_LoadTblFuncPtr_t.
@@ -150,19 +155,19 @@ bool MSGLOGTBL_DumpCmd(TBLMGR_Tbl_t* Tbl, uint8 DumpType, const char* Filename);
 **     the app framework table manager.
 **
 */
-bool MSGLOGTBL_LoadCmd(TBLMGR_Tbl_t* Tbl, uint8 LoadType, const char* Filename);
+bool HISTOGRAM_TBL_LoadCmd(TBLMGR_Tbl_t *Tbl, uint8 LoadType, const char *Filename);
 
 
 /******************************************************************************
-** Function: MSGLOGTBL_ResetStatus
+** Function: HISTOGRAM_TBL_ResetStatus
 **
 ** Reset counters and status flags to a known reset state.  The behavior of
 ** the table manager should not be impacted. The intent is to clear counters
 ** and flags to a known default state for telemetry.
 **
 */
-void MSGLOGTBL_ResetStatus(void);
+void HISTOGRAM_TBL_ResetStatus(void);
 
 
-#endif /* _msglogtbl_ */
+#endif /* _histogram_tbl_ */
 

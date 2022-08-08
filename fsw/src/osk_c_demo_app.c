@@ -30,7 +30,7 @@
 
 #include <string.h>
 #include "osk_c_demo_app.h"
-#include "osk_c_demo_msgids.h"
+#include "osk_c_demo_eds_cc.h"
 
 /***********************/
 /** Macro Definitions **/
@@ -41,16 +41,18 @@
 #define  CMDMGR_OBJ    (&(OskCDemo.CmdMgr))
 #define  TBLMGR_OBJ    (&(OskCDemo.TblMgr))
 #define  CHILDMGR_OBJ  (&(OskCDemo.ChildMgr))
-#define  MSGLOG_OBJ    (&(OskCDemo.MsgLog))
 
+#define  DEVICE_OBJ        (&(OskCDemo.Device))
+#define  HISTOGRAM_OBJ     (&(OskCDemo.Histogram))
+#define  HISTOGRAM_LOG_OBJ (&(OskCDemo.Histogram.Log))
 
 /*******************************/
 /** Local Function Prototypes **/
 /*******************************/
 
 static int32 InitApp(void);
-static int32 ProcessCommands(void);
-static void SendHousekeepingPkt(void);
+static int32 ProcessCmdPipe(void);
+static void SendStatusTlm(void);
 
 
 /**********************/
@@ -93,7 +95,7 @@ void OSK_C_DEMO_AppMain(void)
    while (CFE_ES_RunLoop(&RunStatus))
    {
       
-      RunStatus = ProcessCommands();  /* Pends indefinitely & manages CFE_ES_PerfLogEntry() calls */
+      RunStatus = ProcessCmdPipe();  /* Pends indefinitely & manages CFE_ES_PerfLogEntry() calls */
       
    } /* End CFE_ES_RunLoop */
 
@@ -110,7 +112,7 @@ void OSK_C_DEMO_AppMain(void)
 ** Function: OSK_C_DEMO_NoOpCmd
 **
 */
-bool OSK_C_DEMO_NoOpCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
+bool OSK_C_DEMO_NoOpCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
    CFE_EVS_SendEvent (OSK_C_DEMO_NOOP_EID, CFE_EVS_EventType_INFORMATION,
@@ -131,63 +133,19 @@ bool OSK_C_DEMO_NoOpCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 **      reentrant. Applications use the singleton pattern and store a
 **      reference pointer to the object data during construction.
 */
-bool OSK_C_DEMO_ResetAppCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
+bool OSK_C_DEMO_ResetAppCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
    CMDMGR_ResetStatus(CMDMGR_OBJ);
    TBLMGR_ResetStatus(TBLMGR_OBJ);
    CHILDMGR_ResetStatus(CHILDMGR_OBJ);
    
-   MSGLOG_ResetStatus();
+   DEVICE_ResetStatus();
+   HISTOGRAM_ResetStatus();
 	  
    return true;
 
 } /* End OSK_C_DEMO_ResetAppCmd() */
-
-
-/******************************************************************************
-** Function: SendHousekeepingPkt
-**
-*/
-static void SendHousekeepingPkt(void)
-{
-
-   /* Good design practice in case app expands to more than one table */
-   const TBLMGR_Tbl_t* LastTbl = TBLMGR_GetLastTblStatus(TBLMGR_OBJ);
-
-   /*
-   ** Framework Data
-   */
-   
-   OskCDemo.HkPkt.ValidCmdCnt   = OskCDemo.CmdMgr.ValidCmdCnt;
-   OskCDemo.HkPkt.InvalidCmdCnt = OskCDemo.CmdMgr.InvalidCmdCnt;
-   
-   OskCDemo.HkPkt.ChildValidCmdCnt   = OskCDemo.ChildMgr.ValidCmdCnt;
-   OskCDemo.HkPkt.ChildInvalidCmdCnt = OskCDemo.ChildMgr.InvalidCmdCnt;
-   
-   /*
-   ** Table Data 
-   ** - Loaded with status from the last table action 
-   */
-
-   OskCDemo.HkPkt.LastTblAction       = LastTbl->LastAction;
-   OskCDemo.HkPkt.LastTblActionStatus = LastTbl->LastActionStatus;
-
-   
-   /*
-   ** MSGLOG Data
-   */
-
-   OskCDemo.HkPkt.MsgLogEna    = OskCDemo.MsgLog.LogEna;
-   OskCDemo.HkPkt.MsgPlaybkEna = OskCDemo.MsgLog.PlaybkEna;
-   OskCDemo.HkPkt.MsgLogCnt    = OskCDemo.MsgLog.LogCnt;
-   
-   strncpy(OskCDemo.HkPkt.MsgLogFilename, OskCDemo.MsgLog.Filename, OS_MAX_PATH_LEN);
-
-   CFE_SB_TimeStampMsg(CFE_MSG_PTR(OskCDemo.HkPkt.TlmHeader));
-   CFE_SB_TransmitMsg(CFE_MSG_PTR(OskCDemo.HkPkt.TlmHeader), true);
-
-} /* End SendHousekeepingPkt() */
 
 
 /******************************************************************************
@@ -213,7 +171,6 @@ static int32 InitApp(void)
 
       OskCDemo.CmdMid     = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_OSK_C_DEMO_CMD_TOPICID));
       OskCDemo.ExecuteMid = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_OSK_C_DEMO_EXE_TOPICID));
-      OskCDemo.SendHkMid  = CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_OSK_C_DEMO_SEND_HK_TOPICID));
 
       /* Child Manager constructor sends error events */
       ChildTaskInit.TaskName  = INITBL_GetStrConfig(INITBL_OBJ, CFG_CHILD_NAME);
@@ -222,70 +179,75 @@ static int32 InitApp(void)
       ChildTaskInit.PerfId    = INITBL_GetIntConfig(INITBL_OBJ, CHILD_PERF_ID);
 
       RetStatus = CHILDMGR_Constructor(CHILDMGR_OBJ, 
-                                    ChildMgr_TaskMainCmdDispatch,
-                                    NULL, 
-                                    &ChildTaskInit); 
+                                       ChildMgr_TaskMainCmdDispatch,
+                                       NULL, 
+                                       &ChildTaskInit); 
   
    } /* End if INITBL Constructed */
   
    if (RetStatus == CFE_SUCCESS)
    {
 
+      /* Mut constructor table manager prior to any app objects that contained tables */
+      TBLMGR_Constructor(TBLMGR_OBJ);
+
       /*
       ** Constuct app's contained objects
       */
-            
-      MSGLOG_Constructor(MSGLOG_OBJ, &OskCDemo.IniTbl);
+           
+      DEVICE_Constructor(DEVICE_OBJ, INITBL_GetIntConfig(INITBL_OBJ, CFG_DEVICE_DATA_MODULO));
+      HISTOGRAM_Constructor(HISTOGRAM_OBJ, INITBL_OBJ, TBLMGR_OBJ);
       
       /*
       ** Initialize app level interfaces
       */
       
-      CFE_SB_CreatePipe(&OskCDemo.CmdPipe, INITBL_GetIntConfig(INITBL_OBJ, CFG_CMD_PIPE_DEPTH), INITBL_GetStrConfig(INITBL_OBJ, CFG_CMD_PIPE_NAME));  
+      CFE_SB_CreatePipe(&OskCDemo.CmdPipe, INITBL_GetIntConfig(INITBL_OBJ, CFG_APP_CMD_PIPE_DEPTH), INITBL_GetStrConfig(INITBL_OBJ, CFG_APP_CMD_PIPE_NAME));  
       CFE_SB_Subscribe(OskCDemo.CmdMid,     OskCDemo.CmdPipe);
       CFE_SB_Subscribe(OskCDemo.ExecuteMid, OskCDemo.CmdPipe);
-      CFE_SB_Subscribe(OskCDemo.SendHkMid,  OskCDemo.CmdPipe);
 
       CMDMGR_Constructor(CMDMGR_OBJ);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, CMDMGR_NOOP_CMD_FC,   NULL, OSK_C_DEMO_NoOpCmd,     0);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, CMDMGR_RESET_CMD_FC,  NULL, OSK_C_DEMO_ResetAppCmd, 0);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, OSK_C_DEMO_NOOP_CC,  NULL, OSK_C_DEMO_NoOpCmd,     0);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, OSK_C_DEMO_RESET_CC, NULL, OSK_C_DEMO_ResetAppCmd, 0);
       
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, CMDMGR_LOAD_TBL_CMD_FC, TBLMGR_OBJ, TBLMGR_LoadTblCmd, TBLMGR_LOAD_TBL_CMD_DATA_LEN);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, CMDMGR_DUMP_TBL_CMD_FC, TBLMGR_OBJ, TBLMGR_DumpTblCmd, TBLMGR_DUMP_TBL_CMD_DATA_LEN);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, OSK_C_DEMO_LOAD_TBL_CC, TBLMGR_OBJ, TBLMGR_LoadTblCmd, TBLMGR_LOAD_TBL_CMD_DATA_LEN);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, OSK_C_DEMO_DUMP_TBL_CC, TBLMGR_OBJ, TBLMGR_DumpTblCmd, TBLMGR_DUMP_TBL_CMD_DATA_LEN);
+
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, OSK_C_DEMO_START_HISTOGRAM_CC, HISTOGRAM_OBJ, HISTOGRAM_StartCmd, 0);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, OSK_C_DEMO_STOP_HISTOGRAM_CC,  HISTOGRAM_OBJ, HISTOGRAM_StopCmd,  0);
 
       /*
-      ** The following commands are executed within the context of a chld task. See the OSK App Dev Guide for details.
+      ** The following commands are executed within the context of a child task. See the OSK App Dev Guide for details.
       */
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, MSGLOG_START_LOG_CMD_FC,    CHILDMGR_OBJ, CHILDMGR_InvokeChildCmd, MSGLOG_START_LOG_CMD_DATA_LEN);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, MSGLOG_STOP_LOG_CMD_FC,     CHILDMGR_OBJ, CHILDMGR_InvokeChildCmd, MSGLOG_STOP_LOG_CMD_DATA_LEN);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, MSGLOG_START_PLAYBK_CMD_FC, CHILDMGR_OBJ, CHILDMGR_InvokeChildCmd, MSGLOG_START_PLAYBK_CMD_DATA_LEN);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, MSGLOG_STOP_PLAYBK_CMD_FC,  CHILDMGR_OBJ, CHILDMGR_InvokeChildCmd, MSGLOG_STOP_PLAYBK_CMD_DATA_LEN);
-      CHILDMGR_RegisterFunc(CHILDMGR_OBJ, MSGLOG_START_LOG_CMD_FC,    MSGLOG_OBJ, MSGLOG_StartLogCmd);
-      CHILDMGR_RegisterFunc(CHILDMGR_OBJ, MSGLOG_STOP_LOG_CMD_FC,     MSGLOG_OBJ, MSGLOG_StopLogCmd);
-      CHILDMGR_RegisterFunc(CHILDMGR_OBJ, MSGLOG_START_PLAYBK_CMD_FC, MSGLOG_OBJ, MSGLOG_StartPlaybkCmd);
-      CHILDMGR_RegisterFunc(CHILDMGR_OBJ, MSGLOG_STOP_PLAYBK_CMD_FC,  MSGLOG_OBJ, MSGLOG_StopPlaybkCmd);
+      
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, OSK_C_DEMO_START_HISTOGRAM_LOG_CC,        CHILDMGR_OBJ, CHILDMGR_InvokeChildCmd, sizeof(OSK_C_DEMO_StartHistogramLog_Payload_t));
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, OSK_C_DEMO_STOP_HISTOGRAM_LOG_CC,         CHILDMGR_OBJ, CHILDMGR_InvokeChildCmd, 0);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, OSK_C_DEMO_START_HISTOGRAM_LOG_PLAYBK_CC, CHILDMGR_OBJ, CHILDMGR_InvokeChildCmd, 0);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, OSK_C_DEMO_STOP_HISTOGRAM_LOG_PLAYBK_CC,  CHILDMGR_OBJ, CHILDMGR_InvokeChildCmd, 0);
+      CHILDMGR_RegisterFunc(CHILDMGR_OBJ, OSK_C_DEMO_START_HISTOGRAM_LOG_CC,        HISTOGRAM_LOG_OBJ, HISTOGRAM_LOG_StartLogCmd);
+      CHILDMGR_RegisterFunc(CHILDMGR_OBJ, OSK_C_DEMO_STOP_HISTOGRAM_LOG_CC,         HISTOGRAM_LOG_OBJ, HISTOGRAM_LOG_StopLogCmd);
+      CHILDMGR_RegisterFunc(CHILDMGR_OBJ, OSK_C_DEMO_START_HISTOGRAM_LOG_PLAYBK_CC, HISTOGRAM_LOG_OBJ, HISTOGRAM_LOG_StartPlaybkCmd);
+      CHILDMGR_RegisterFunc(CHILDMGR_OBJ, OSK_C_DEMO_STOP_HISTOGRAM_LOG_PLAYBK_CC,  HISTOGRAM_LOG_OBJ, HISTOGRAM_LOG_StopPlaybkCmd);
 
       /* 
       ** Alternative commands don't increment the main command counters, but they do increment the child command counters.
       ** This "command" is used by the app's main loop to perform periodic processing 
       */
-      CMDMGR_RegisterFuncAltCnt(CMDMGR_OBJ, MSGLOG_RUN_CHILD_ALT_CMD_FC, CHILDMGR_OBJ, CHILDMGR_InvokeChildCmd, MSGLOG_RUN_CHILD_CMD_DATA_LEN);
-      CHILDMGR_RegisterFunc(CHILDMGR_OBJ, MSGLOG_RUN_CHILD_ALT_CMD_FC, MSGLOG_OBJ, MSGLOG_RunChildFuncCmd);
+      CMDMGR_RegisterFuncAltCnt(CMDMGR_OBJ, OSK_C_DEMO_RUN_HISTOGRAM_LOG_CHILD_TASK_CC, CHILDMGR_OBJ,      CHILDMGR_InvokeChildCmd, sizeof(OSK_C_DEMO_RunHistogramLogChildTask_Payload_t));
+      CHILDMGR_RegisterFunc(CHILDMGR_OBJ,   OSK_C_DEMO_RUN_HISTOGRAM_LOG_CHILD_TASK_CC, HISTOGRAM_LOG_OBJ, HISTOGRAM_LOG_RunChildTaskCmd);
 
-      /* Contained table object must be constructed prior to table registration because its table load function is called */
-      TBLMGR_Constructor(TBLMGR_OBJ);
-      TBLMGR_RegisterTblWithDef(TBLMGR_OBJ, MSGLOGTBL_LoadCmd, MSGLOGTBL_DumpCmd, INITBL_GetStrConfig(INITBL_OBJ, CFG_TBL_LOAD_FILE));
 
       /*
       ** Initialize app messages 
       */
 
 
-      CFE_MSG_Init(CFE_MSG_PTR(OskCDemo.MsgLogRunChildFuncCmd.CmdHeader), CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_OSK_C_DEMO_EXE_TOPICID)), 
-                   sizeof(OskCDemo.MsgLogRunChildFuncCmd.CmdHeader)-2);  //todo: Why is user data length 2 with just size of header?
-      CFE_MSG_SetFcnCode(CFE_MSG_PTR(OskCDemo.MsgLogRunChildFuncCmd.CmdHeader), (CFE_MSG_FcnCode_t)MSGLOG_RUN_CHILD_ALT_CMD_FC);
-      CFE_MSG_GenerateChecksum(CFE_MSG_PTR(OskCDemo.MsgLogRunChildFuncCmd.CmdHeader));
-      CFE_MSG_Init(CFE_MSG_PTR(OskCDemo.HkPkt.TlmHeader), CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_OSK_C_DEMO_HK_TLM_TOPICID)), OSK_C_DEMO_TLM_HK_LEN);
+      CFE_MSG_Init(CFE_MSG_PTR(OskCDemo.RunHistogramLogChildTask.CommandBase), OskCDemo.CmdMid, sizeof(OSK_C_DEMO_RunHistogramLogChildTask_t));
+      CFE_MSG_SetFcnCode(CFE_MSG_PTR(OskCDemo.RunHistogramLogChildTask.CommandBase), (CFE_MSG_FcnCode_t)OSK_C_DEMO_RUN_HISTOGRAM_LOG_CHILD_TASK_CC);
+
+      CFE_MSG_Init(CFE_MSG_PTR(OskCDemo.StatusTlm.TelemetryHeader), 
+                   CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_OSK_C_DEMO_STATUS_TLM_TOPICID)),
+                   sizeof(OSK_C_DEMO_StatusTlm_t));
 
       /*
       ** Application startup event message
@@ -302,16 +264,17 @@ static int32 InitApp(void)
 
 
 /******************************************************************************
-** Function: ProcessCommands
+** Function: ProcessCmdPipe
 **
 ** 
 */
-static int32 ProcessCommands(void)
+static int32 ProcessCmdPipe(void)
 {
    
    int32  RetStatus = CFE_ES_RunStatus_APP_RUN;
    int32  SysStatus;
-
+   uint16 BinNum;
+   uint16 DataSample;
    CFE_SB_Buffer_t* SbBufPtr;
    CFE_SB_MsgId_t   MsgId = CFE_SB_INVALID_MSG_ID;
 
@@ -333,11 +296,20 @@ static int32 ProcessCommands(void)
          } 
          else if (CFE_SB_MsgId_Equal(MsgId, OskCDemo.ExecuteMid))
          {
-            CMDMGR_DispatchFunc(CMDMGR_OBJ, (CFE_MSG_Message_t *)&OskCDemo.MsgLogRunChildFuncCmd.CmdHeader);
-         }
-         else if (CFE_SB_MsgId_Equal(MsgId, OskCDemo.SendHkMid))
-         {   
-            SendHousekeepingPkt();
+
+            DataSample = DEVICE_ReadData();
+       
+
+            if (HISTOGRAM_AddDataSample(DataSample, &BinNum))
+            {
+
+               OskCDemo.RunHistogramLogChildTask.Payload.BinNum     = BinNum;
+               OskCDemo.RunHistogramLogChildTask.Payload.DataSample = DataSample;
+               CFE_MSG_GenerateChecksum(CFE_MSG_PTR(OskCDemo.RunHistogramLogChildTask.CommandBase));
+               CMDMGR_DispatchFunc(CMDMGR_OBJ, CFE_MSG_PTR(OskCDemo.RunHistogramLogChildTask.CommandBase));
+            }
+            SendStatusTlm();
+         
          }
          else
          {   
@@ -355,4 +327,69 @@ static int32 ProcessCommands(void)
 
    return RetStatus;
    
-} /* End ProcessCommands() */
+} /* End ProcessCmdPipe() */
+
+
+/******************************************************************************
+** Function: SendStatusTlm
+**
+*/
+static void SendStatusTlm(void)
+{
+
+   /* Good design practice in case app expands to more than one table */
+   const TBLMGR_Tbl_t* LastTbl = TBLMGR_GetLastTblStatus(TBLMGR_OBJ);
+
+   OSK_C_DEMO_StatusTlm_Payload_t *Payload = &OskCDemo.StatusTlm.Payload;
+   
+   /*
+   ** Framework Data
+   */
+   
+   Payload->ValidCmdCnt   = OskCDemo.CmdMgr.ValidCmdCnt;
+   Payload->InvalidCmdCnt = OskCDemo.CmdMgr.InvalidCmdCnt;
+   
+   Payload->ChildValidCmdCnt   = OskCDemo.ChildMgr.ValidCmdCnt;
+   Payload->ChildInvalidCmdCnt = OskCDemo.ChildMgr.InvalidCmdCnt;
+   
+   /*
+   ** Table Data 
+   ** - Loaded with status from the last table action 
+   */
+
+   Payload->LastTblAction       = LastTbl->LastAction;
+   Payload->LastTblActionStatus = LastTbl->LastActionStatus;
+          
+   /*
+   ** Device Data
+   */
+
+   Payload->DeviceData       = OskCDemo.Device.Data;
+   Payload->DeviceDataModulo = OskCDemo.Device.DataMod;
+   
+   /*
+   ** Histogram Data
+   */
+
+   Payload->HistEna       = OskCDemo.Histogram.Ena;
+   Payload->HistMaxValue  = OskCDemo.Histogram.DataSampleMaxValue;
+   Payload->HistSampleCnt = OskCDemo.Histogram.SampleCnt;
+   strncpy(Payload->HistBinCntStr, OskCDemo.Histogram.BinCntStr, OS_MAX_PATH_LEN);
+   
+   /*
+   ** Histogram Log Data
+   */
+   
+   Payload->HistLogEna         = OskCDemo.Histogram.Log.Ena;
+   Payload->HistLogBinNum      = OskCDemo.Histogram.Log.BinNum;
+   Payload->HistLogCnt         = OskCDemo.Histogram.Log.Cnt;
+   Payload->HistLogMaxEntries  = OskCDemo.Histogram.Log.MaxEntries;
+   Payload->HistLogPlaybkEna   = OskCDemo.Histogram.Log.PlaybkEna;
+   Payload->HistLogPlaybkCnt   = OskCDemo.Histogram.Log.PlaybkCnt;
+   strncpy(Payload->HistLogFilename, OskCDemo.Histogram.Log.Filename, OS_MAX_PATH_LEN);
+
+   CFE_SB_TimeStampMsg(CFE_MSG_PTR(OskCDemo.StatusTlm.TelemetryHeader));
+   CFE_SB_TransmitMsg(CFE_MSG_PTR(OskCDemo.StatusTlm.TelemetryHeader), true);
+
+} /* End SendStatusTlm() */
+
