@@ -72,6 +72,9 @@ from tools import AppStore, ManageUsrApps, AppSpec, TargetControl
 # Shell script names should not change and are considered part of the application
 # Therefore they can be defined here and not in a configuration file
 
+DEFAULT_TARGET_NAME = 'cpu1'
+
+SH_BUILD_CFS_TOPICIDS = './build_cfs_topicids.sh'
 SH_BUILD_CFS = './build_cfs.sh'
 SH_STOP_CFS  = './stop_cfs.sh'
 SH_START_CFS = './start_cfs.sh'
@@ -92,7 +95,7 @@ class TelecommandGui(TelecommandInterface):
         eds_mission -
         eds_target  - String containing the identical target name used in the EDS  
         host        - String containing the socket address, e.g. '127.0.0.1:1234'
-        port        - Integer containing socket port
+        port        - Integer containing socket pManageUsrAppsort
         """
         self.NULL_STR = self.eds_mission.NULL_STR
        
@@ -154,7 +157,7 @@ class TelecommandGui(TelecommandInterface):
         Inputs:
         payload_struct - The payload structure output from mission_db.GetPayload()
         """
-        return_str = ""
+        return_str = ""        
         if isinstance(payload_struct, dict):
             return_str = "Recursively extracting dictionary"
             for item in list(payload_struct.keys()):
@@ -205,7 +208,7 @@ class TelecommandGui(TelecommandInterface):
         See SendCmd() payload_layout definition comment for initial payload display
         When there are no payload paramaters (zero length) hide all rows except the first parameter.
         """
-        
+        ManageUsrApps
         for row in range(self.PAYLOAD_ROWS):
             self.window["-PAYLOAD_%d_NAME-"%row].update(visible=False)
             self.window["-PAYLOAD_%d_TYPE-"%row].update(visible=False)
@@ -243,7 +246,7 @@ class TelecommandGui(TelecommandInterface):
         from a derived class source: GUI or command line
         """
         logger.debug("load_payload_entry_value() - Entry")
-        logger.debug("payload_name=%s, payload_eds_entry=%s, payload_type=%s, payload_list=%s"%(payload_name, payload_eds_entry, payload_type, payload_list))
+        logger.debug("payload_naManageUsrAppsme=%s, payload_eds_entry=%s, payload_type=%s, payload_list=%s"%(payload_name, payload_eds_entry, payload_type, payload_list))
         logger.debug("self.payload_gui_entries = " + str(self.payload_gui_entries))
         logger.debug("self.sg_values = " + str(self.sg_values))
         #todo: Add type check error reporting
@@ -697,7 +700,7 @@ class ManageCfs():
         window.close()       
               
     
-    def integrate_app_gui(self, usr_app_spec):
+    def integrate_app_gui(self):
         """
         Provide steps for the user to integrate an app. This is only invoked
         after an app has been selected.
@@ -709,18 +712,18 @@ class ManageCfs():
         #TODO - Use a loop to construct the layout
         layout = [
                   [sg.Text("Perform the following steps to add an app using the 'Auto' (automatically) or 'Man' (manually) buttons.\n", font=self.t_font)],
-                  [sg.Text('1.Stop the cFS prior to modifying or adding an app', font=self.step_font, pad=self.b_pad)],
+                  [sg.Text('1. Stop the cFS prior to modifying or adding an app', font=self.step_font, pad=self.b_pad)],
                   [sg.Text('', size=self.b_size), sg.Button('Auto', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-1_AUTO-'),
                    sg.Button('Man',  size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-1_MAN-')],
                   
                   [sg.Text('2. Update cFS build configuration', font=self.step_font, pad=self.b_pad)],
                   [sg.Text('', size=self.b_size), sg.Button('Auto', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-2_AUTO-'),
                    sg.Text('Automatically perform all steps', font=self.t_font)],
-                  [sg.Text('', size=self.b_size), sg.Button('Man',  size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-2_MAN-'),
+                  [sg.Text('', size=self.b_size), sg.Button('Man',  size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-2A_MAN-'),
                    sg.Text('Copy table files to cfsat_defs', font=self.t_font)],
-                  [sg.Text('', size=self.b_size), sg.Button('Man',  size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-3_MAN-'),
+                  [sg.Text('', size=self.b_size), sg.Button('Man',  size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-2B_MAN-'),
                    sg.Text("Update targets.cmake's %s and %s" % (self.cmake_app_list, self.cmake_file_list), font=self.t_font)],
-                  [sg.Text('', size=self.b_size), sg.Button('Man',  size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-4_MAN-'),
+                  [sg.Text('', size=self.b_size), sg.Button('Man',  size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-2C_MAN-'),
                    sg.Text('Update cpu1_cfe_es_startup.scr', font=self.t_font)],
                  
                   [sg.Text('3. Update Electronic Data Sheet Files', font=self.step_font, pad=self.b_pad)],
@@ -738,12 +741,11 @@ class ManageCfs():
                   [sg.Text('5. Build the cfS', font=self.step_font, pad=self.b_pad)],
                   [sg.Text('', size=self.b_size), sg.Button('Start', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-9_AUTO-')],
                   
-                  [sg.Text('6. Manually exit and restrt cFSAT', font=self.step_font, pad=self.b_pad)],
-                  [sg.Text('', size=self.b_size), sg.Button('Exit', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-9_AUTO-')],
-                  #[sg.Text('', size=self.b_size), sg.Button('Exit', enable_events=True, key='-EXIT-', image_data=image_grey1, button_color=('black', sg.theme_background_color()), border_width=0)]
+                  [sg.Text('6. Manually exit and restart cFSAT', font=self.step_font, pad=self.b_pad)],
+                  [sg.Text('', size=self.b_size), sg.Button('Exit', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-EXIT-')],
                  ]
         # sg.Button('Exit', enable_events=True, key='-EXIT-')
-        self.window = sg.Window('Integrate %s with the cFS' % usr_app_spec.app_name, layout, resizable=True, modal=True)
+        self.window = sg.Window('Integrate %s with the cFS' % self.usr_app_spec.app_name, layout, resizable=True, modal=True)
         
         while True:
         
@@ -751,7 +753,9 @@ class ManageCfs():
         
             if self.event in (sg.WIN_CLOSED, 'Exit', '-EXIT-') or self.event is None:
                 break
-                
+            
+            ## Step 1 - Stop the cFS prior to modifying or adding an app
+            
             elif self.event == '-1_AUTO-': # Stop the cFS prior to modifying or adding an app
                 status = subprocess.run(SH_STOP_CFS, shell=True, cwd=self.cfsat_abs_path)
                 popup_text = "'%s' executed with return status %s" % (SH_STOP_CFS, status.returncode) 
@@ -761,89 +765,21 @@ class ManageCfs():
                 popup_text = "Open a terminal window and kill any running cFS processes. See '%s' for guidance" % SH_STOP_CFS 
                 sg.popup(popup_text, title='Manually Stop the cFS', grab_anywhere=True, modal=True)
 
-
-            elif self.event in ['-2_AUTO-', '-2_MAN-']: # Copy table files to cfsat_defs
-                cmake_files = usr_app_spec.get_targets_cmake_files()
-                table_list_str = ""
-                table_list = []
-                for table in cmake_files['tables']:
-                    table_list_str += "%s, " % table
-                    table_list.append(table)      
-                if len(table_list) == 0:
-                   popup_text = "This app does not have any table files to copy"
-                else:
-                    app_table_path = os.path.join(self.usr_app_path, self.selected_app, 'fsw', 'tables')
-                    if self.event == '-2_AUTO-':
-                        try:
-                            src=""   # Init for excepion
-                            dst=""
-                            for table in table_list:
-                                src = os.path.join(app_table_path, table)
-                                print("##src: " + src)
-                                # Crude check for cFS target name like cpu1. Doesn't protect against a target name mismatch
-                                if self.cfs_target not in table:
-                                    table = self.cfs_target + '_' + table                                
-                                dst = os.path.join(self.cfs_abs_defs_path, table)
-                                print("##dst: " + dst)
-                                shutil.copyfile(src, dst)
-                            popup_text = "Copied table files '%s'\n\nFROM %s\n\nTO %s\n" % (table_list_str[:-2], app_table_path, self.cfs_abs_defs_path)
-                        except IOError:
-                            popup_text = "Error copying table file\nFROM\n  %s\nTO\n  %s\n" % (src,dst)  
-                    else:
-                        popup_text = "Copy table files '%s'\n\nFROM %s\n\nTO %s\n" % (table_list_str[:-2], app_table_path, self.cfs_abs_defs_path)
-                sg.popup(popup_text, title='Copy table files', grab_anywhere=True, modal=True)
+            ## Step 2 - Update cFS build configuration
             
-            elif self.event in ['-3_AUTO-', '-3_MAN-']: # Update targets.cmake
-                cmake_files = usr_app_spec.get_targets_cmake_files()
-                table_list_str = ""
-                table_list = []
-                for table in cmake_files['tables']:
-                    table_list_str += "%s, " % table
-                    table_list.append(table)                
-                if self.event == '-3_AUTO-':
-                    #TODO - Add auto targets.cmake update
-                    popup_text = "Auto update targets.cmake feature not implemented"
-                    sg.popup(popup_text, title='Update targets.cmake', grab_anywhere=True, modal=True)
-                    #with open(self.targets_cmake_file) as f:
-                    #if len(table_list) == 0:
-                else:
-                    popup_text = "After this dialogue, targets.cmake will open in an editor.\nMake the following changes:\n\n1. Add '%s' to '%s_APPLIST'\n" % (cmake_files['obj-file'],self.cfs_target)
-                    if len(table_list) > 0:
-                        popup_text += "2. Add '%s' to '%s_FILELIST'\n" % (table_list_str[:len(table_list)-2], self.cfs_target)
-                    sg.popup(popup_text, title='Update targets.cmake', grab_anywhere=True, modal=True)
-                    self.text_editor = sg.execute_py_file("texteditor.py", parms=self.targets_cmake_file, cwd=self.cfsat_tools_path)
-        
-            elif self.event == '-4_AUTO-': # Update target cfe_es_startup.scr
-                startup_script_entry = usr_app_spec.get_startup_scr_entry()
-                original_entry = ""
-                check_for_entry = True
-                file_modified = False
-                instantiated_text = ""                
-                with open(self.startup_scr_file) as f:
-                    for line in f:
-                        if check_for_entry:
-                            if self.selected_app in line:
-                                check_for_entry = False
-                                original_entry = line
-                            if INSERT_KEYWORD in line:
-                                line = startup_script_entry+'\n'+line
-                                check_for_entry = False
-                                file_modified = True
-                        instantiated_text += line               
-                if file_modified:
-                    with open(self.startup_scr_file, 'w') as f:
-                        f.write(instantiated_text)
-                    popup_text = 'Startup script modified. Added  %s entry:\n%s' % (self.selected_app, original_entry)
-                else:
-                    popup_text = 'Startup script not modified. already contains %s entry:\n%s' % (self.selected_app, original_entry)
-                sg.popup(popup_text, title='Update '+self.startup_scr_filename, grab_anywhere=True, modal=True)
-
-            elif self.event == '-4_MAN-': # Update target cfe_es_startup.scr
-                startup_script_entry = usr_app_spec.get_startup_scr_entry()
-                sg.clipboard_set(startup_script_entry)
-                popup_text = "After this dialogue, %s will open in an editor.\nPaste the following entry from the clipboard:\n\n'%s'\n" % (self.startup_scr_filename, startup_script_entry)
-                sg.popup(popup_text, title='Update '+self.startup_scr_filename, grab_anywhere=True, modal=True)
-                self.text_editor = sg.execute_py_file("texteditor.py", parms=self.startup_scr_file, cwd=self.cfsat_tools_path)
+            elif self.event == '-2_AUTO-': # Autonomously perform step 2 
+                self.copy_app_tables(auto_copy=True)
+                self.update_targets_cmake(auto_update=True)
+                self.update_startup_scr(auto_update=True)
+                
+            elif self.event == '-2A_MAN-':
+                self.copy_app_tables(auto_copy=False)  # Copy table files from app dir to cfsat_defs
+            elif self.event == '-2B_MAN-':
+                self.update_targets_cmake(auto_update=False)
+            elif self.event == '-2C_MAN-':
+                self.update_startup_scr(auto_update=False)
+                
+            ## Step 3 - Update Electronic Data Sheet Files
             
             elif self.event == '-5_AUTO-': # Update EDS cfe-topicids.xml
                 #TODO - Add auto update EDS cfe-topicids.xml
@@ -862,6 +798,8 @@ class ManageCfs():
             elif self.event == '-6_MAN-': # Update EDS config.xml
                 path_filename = os.path.join(self.cfs_abs_base_path, 'cfsat_defs', 'eds', 'config.xml')
                 self.text_editor = sg.execute_py_file("texteditor.py", parms=path_filename, cwd=self.cfsat_tools_path)
+
+            ## Step 4 - Update runtime app suite tables
 
             elif self.event == '-7_AUTO-': # Update scheduler app table
                 #TODO - Add auto update scheduler app table
@@ -888,8 +826,10 @@ class ManageCfs():
                 path_filename = os.path.join(self.cfs_abs_defs_path, pkt_tbl_name)
                 self.text_editor = sg.execute_py_file("texteditor.py", parms=path_filename, cwd=self.cfsat_tools_path)
             
+            ## Step 5 - Build the cFS
+
             elif self.event == '-9_AUTO-': # Build the cfS
-                build_cfs_sh = os.path.join(self.cfsat_abs_path, SH_BUILD_CFS)
+                build_cfs_sh = os.path.join(self.cfsat_abs_path, SH_BUILD_CFS_TOPICIDS)
                 self.build_subprocess = subprocess.Popen('%s %s' % (build_cfs_sh, self.cfs_abs_base_path),
                                                        stdout=subprocess.PIPE, shell=True, bufsize=1, universal_newlines=True)
                 if self.build_subprocess is not None:
@@ -897,8 +837,10 @@ class ManageCfs():
                     self.cfs_stdout.start()
             
             elif self.event == '-9_MAN-': # Build the cfS
-                popup_text = "Open a terminal window, change directory to %s and build the cFS. See '%s' for guidance" % (self.cfs_abs_base_path, SH_BUILD_CFS) 
+                popup_text = "Open a terminal window, change directory to %s and build the cFS. See '%s' for guidance" % (self.cfs_abs_base_path, SH_BUILD_CFS_TOPICIDS) 
                 sg.popup(popup_text, title='Manually Stop the cFS', grab_anywhere=True, modal=True)            
+
+            ## Step 6 - Restart cFSAT
 
             elif self.event == '-10_AUTO-': # Reload cFS python EDS definitions                
                 sg.popup('This feature has not been implemented. You must restart the cfsat applicaton.', title='Reload cFS EDS definitions', grab_anywhere=True, modal=True)
@@ -914,9 +856,134 @@ class ManageCfs():
         if len(self.cfs_app_specs) > 0:
             self.select_app_gui(list(self.cfs_app_specs.keys()))
             if self.selected_app is not None:
-                self.integrate_app_gui(self.manage_usr_apps.get_app_spec(self.selected_app))
+                self.usr_app_spec = self.manage_usr_apps.get_app_spec(self.selected_app)
+                self.integrate_app_gui()
         else:
             sg.popup('Your usr/apps directory is empty', title='Error', grab_anywhere=True, modal=True)
+
+    def copy_app_tables(self, auto_copy):
+        """
+        An app's JSON spec table filename should not have a target prefix.  The default table filename in an
+        app's tables directory should have a defaul target name. 
+        There may be extra table files in an apps table directory so only copy the tables that are defined
+        in th JSON app spec
+        """
+        cmake_files = self.usr_app_spec.get_targets_cmake_files()
+        table_list_str = ""
+        table_list = []
+        for table in cmake_files['tables']:
+            table_list_str += "%s, " % table
+            table_list.append(table)
+        if len(table_list) == 0:
+            popup_text = "This app does not have any table files to copy"
+        else:
+            app_table_path = os.path.join(self.usr_app_path, self.selected_app, 'fsw', 'tables')
+            if auto_copy:
+                target_equals_default = (DEFAULT_TARGET_NAME == self.cfs_target)
+                try:
+                    src=""   # Init for excepion
+                    dst=""
+                    for table in os.listdir(app_table_path):
+                        src_table = table.replace(DEFAULT_TARGET_NAME+'_','')
+                        if src_table in table_list:
+                            src = os.path.join(app_table_path, src_table)
+                        print("##src: " + src)
+                        dst_table = self.cfs_target + '_' + table                                
+                        dst = os.path.join(self.cfs_abs_defs_path, dst_table)
+                        print("##dst: " + dst)
+                        shutil.copyfile(src, dst)
+                    popup_text = "Copied table files '%s'\n\nFROM %s\n\nTO %s\n" % (table_list_str[:-2], app_table_path, self.cfs_abs_defs_path)
+                except IOError:
+                    popup_text = "Error copying table file\nFROM\n  %s\nTO\n  %s\n" % (src,dst)  
+            else:
+                popup_text = "Copy table files '%s'\n\nFROM %s\n\nTO %s\n" % (table_list_str[:-2], app_table_path, self.cfs_abs_defs_path)
+        sg.popup(popup_text, title='Copy table files', grab_anywhere=True, modal=True)
+
+    def update_targets_cmake(self, auto_update):
+        """
+        The following two variables list need to be updated:
+           SET(cpu1_APPLIST app1 app2 app3) #!CFSAT-INSERT!
+           SET(cpu1_FILELIST file1 file2) #!CFSAT-INSERT!
+        The logic assuems there is only oe uncommented APPLIST and
+        FILELIST line that needs to be updated. 
+        """
+        
+        cmake_files = self.usr_app_spec.get_targets_cmake_files()
+
+        if auto_update:
+            file_modified = False
+            instantiated_text = ""                
+            with open(self.targets_cmake_file) as f:
+                for line in f:
+                    (line_modified, newline) = self.update_targets_cmake_line(cmake_files, line)
+                    instantiated_text += newline
+                    if line_modified:
+                        file_modified = True
+            
+            if file_modified:
+                with open(self.targets_cmake_file, 'w') as f:
+                    f.write(instantiated_text)
+                popup_text = 'targets_cmake updated with %s and %s' % (cmake_files['obj-file'], str(cmake_files['tables']))
+            else:
+                popup_text = 'targets_cmake not modified. it already contains %s and %s' % (cmake_files['obj-file'], str(cmake_files['tables']))
+            sg.popup(popup_text, title='Update '+self.startup_scr_filename, grab_anywhere=True, modal=True)
+        else:
+            sg.clipboard_set(cmake_files['obj-file'] + ',' + str(cmake_files['tables']))
+            popup_text = "After this dialogue, %s will open in an editor. Paste\n  %s\ninto\n  %s\n\nPaste filenames with spaces\n  %s\ninto\n  %s" % \
+            (self.targets_cmake_file, cmake_files['obj-file'], self.cmake_app_list, str(cmake_files['tables']), self.cmake_file_list)
+            sg.popup(popup_text, title='Update '+self.startup_scr_filename, grab_anywhere=True, modal=True)
+            self.text_editor = sg.execute_py_file("texteditor.py", parms=self.targets_cmake_file, cwd=self.cfsat_tools_path)
+        
+    def update_targets_cmake_line(self, cmake_files, line):
+        line_modified = False
+        if INSERT_KEYWORD in line:
+            if self.cmake_app_list in line:
+                if not line.strip().startswith('#'):  # Non-commented line
+                    if not cmake_files['obj-file'] in line:
+                        i = line.find(')')
+                        line = line[:i] + ' ' + cmake_files['obj-file'] + line[i:]     
+                        line_modified = True
+                        print('app_list_new: ' + line)
+            elif self.cmake_file_list in line:
+                if not line.strip().startswith('#'):  # Non-commented line
+                    for table in cmake_files['tables']:
+                        if not table in line:
+                            i = line.find(')')
+                            line = line[:i] + ' ' + table + line[i:]     
+                            line_modified = True
+                            print('file_list_new: ' + line)
+        return (line_modified, line)
+        
+    def update_startup_scr(self, auto_update):
+        startup_script_entry = self.usr_app_spec.get_startup_scr_entry()
+        if auto_update:
+            original_entry = ""
+            check_for_entry = True
+            file_modified = False
+            instantiated_text = ""                
+            with open(self.startup_scr_file) as f:
+                for line in f:
+                    if check_for_entry:
+                        if self.selected_app in line:
+                            check_for_entry = False
+                            original_entry = line
+                        if INSERT_KEYWORD in line:
+                            line = startup_script_entry+'\n'+line
+                            check_for_entry = False
+                            file_modified = True
+                    instantiated_text += line               
+            if file_modified:
+                with open(self.startup_scr_file, 'w') as f:
+                    f.write(instantiated_text)
+                popup_text = 'Startup script modified. Added  %s entry:\n%s' % (self.selected_app, original_entry)
+            else:
+                popup_text = 'Startup script not modified. already contains %s entry:\n%s' % (self.selected_app, original_entry)
+            sg.popup(popup_text, title='Update '+self.startup_scr_filename, grab_anywhere=True, modal=True)
+        else:
+            sg.clipboard_set(startup_script_entry)
+            popup_text = "After this dialogue, %s will open in an editor.\nPaste the following entry from the clipboard:\n\n'%s'\n" % (self.startup_scr_filename, startup_script_entry)
+            sg.popup(popup_text, title='Update '+self.startup_scr_filename, grab_anywhere=True, modal=True)
+            self.text_editor = sg.execute_py_file("texteditor.py", parms=self.startup_scr_file, cwd=self.cfsat_tools_path)
 
   
 class CfsStdout(threading.Thread):
@@ -1001,18 +1068,10 @@ class App():
         self.config = configparser.ConfigParser()
         self.config.read(ini_file)
 
-        self.cfs_exe_file       = 'core-cpu1'
-        self.cfs_abs_base_path  = compress_abs_path(os.path.join(self.path, self.config.get('CFS_TARGET','BASE_PATH')))
-        self.cfs_subprocess     = None
-        self.cfs_subprocess_log = ""
-        self.cfs_stdout         = None
-        self.cfe_time_event_filter = False  #todo: Retaining the state here doesn't work if user starts and stops the cFS and doesn't restart cFSAT
-        self.cfs_build_subprocess  = None
-
         self.APP_VERSION = self.config.get('APP','VERSION')
 
-        self.EDS_MISSION_NAME    = self.config.get('CFS_TARGET','MISSION_EDS_NAME')
-        self.EDS_CFS_TARGET_NAME = self.config.get('CFS_TARGET','CPU_EDS_NAME')
+        self.EDS_MISSION_NAME       = self.config.get('CFS_TARGET','MISSION_EDS_NAME')
+        self.EDS_CFS_TARGET_NAME    = self.config.get('CFS_TARGET','CPU_EDS_NAME')
 
         self.CFS_TARGET_HOST_ADDR   = self.config.get('NETWORK','CFS_HOST_ADDR')
         self.CFS_TARGET_CMD_PORT    = self.config.getint('NETWORK','CFS_SEND_CMD_PORT')
@@ -1020,6 +1079,15 @@ class App():
         self.CFS_TARGET_TLM_TIMEOUT = float(self.config.getint('CFS_TARGET','RECV_TLM_TIMEOUT'))/1000.0
         
         self.GUI_CMD_PAYLOAD_TABLE_ROWS = self.config.getint('GUI','CMD_PAYLOAD_TABLE_ROWS')
+
+        self.cfs_exe_rel_path   = 'build/exe/' + self.EDS_CFS_TARGET_NAME.lower()
+        self.cfs_exe_file       = 'core-' + self.EDS_CFS_TARGET_NAME.lower()
+        self.cfs_abs_base_path  = compress_abs_path(os.path.join(self.path, self.config.get('CFS_TARGET','BASE_PATH')))
+        self.cfs_subprocess     = None
+        self.cfs_subprocess_log = ""
+        self.cfs_stdout         = None
+        self.cfe_time_event_filter = False  #todo: Retaining the state here doesn't work if user starts and stops the cFS and doesn't restart cFSAT
+        self.cfs_build_subprocess  = None
 
         self.event_log   = ""        
         self.event_queue = queue.Queue()
@@ -1134,11 +1202,12 @@ class App():
         pri_hdr_font = ('Arial bold',14)
         sec_hdr_font = ('Arial',12)
         log_font = ('Courier',12)
+        # Buttone options: image_data=red, image_subsample=2, or image_data=green, image_subsample=2,
         layout = [
                      [sg.Menu(menu_def, tearoff=False, pad=(50, 50))],
-                     [sg.Button('Build cFS', key='-BUILD_CFS-', image_data=image_grey1, font='Helvetica 12 bold italic', button_color=('black', sg.theme_background_color()), border_width=0, ),
-                      sg.Button('Start cFS', enable_events=True, key='-START_CFS-',  image_data=green, image_subsample=2, button_color=('black', sg.theme_background_color()), border_width=0),
-                      sg.Button('Stop cFS', enable_events=True, key='-STOP_CFS-', image_data=red, image_subsample=2, button_color=('black', sg.theme_background_color()), border_width=0),
+                     [sg.Button('Build cFS', key='-BUILD_CFS-', image_data=image_grey1, button_color=('black', sg.theme_background_color()), border_width=0),
+                      sg.Button('Start cFS', enable_events=True, key='-START_CFS-', image_data=image_grey1, button_color=('black', sg.theme_background_color()), border_width=0),
+                      sg.Button('Stop cFS', enable_events=True, key='-STOP_CFS-', image_data=image_grey1, button_color=('black', sg.theme_background_color()), border_width=0),
                       sg.Text('Mission:', font=pri_hdr_font),
                       sg.Text(self.EDS_MISSION_NAME, font=sec_hdr_font, text_color='blue'),
                       sg.Text('Target:', font=pri_hdr_font, pad=(10,1)),
@@ -1259,7 +1328,7 @@ class App():
                 app_store.execute()
  
             elif self.event == 'Add App to cFS':
-                manage_cfs = ManageCfs(self.path, self.cfs_abs_base_path, self.config.get('PATHS', 'USR_APP_PATH'), self.window,self.config.get('CFS_TARGET', 'CPU_EDS_NAME').lower())
+                manage_cfs = ManageCfs(self.path, self.cfs_abs_base_path, self.config.get('PATHS', 'USR_APP_PATH'), self.window, self.EDS_CFS_TARGET_NAME)
                 manage_cfs.execute()
 
             if self.event == 'Certify App':
@@ -1341,7 +1410,7 @@ class App():
                 
                 """
                 start_cfs_sh     = os.path.join(self.path, SH_START_CFS)
-                cfs_abs_exe_path = os.path.join(self.cfs_abs_base_path, "build/exe/cpu1") 
+                cfs_abs_exe_path = os.path.join(self.cfs_abs_base_path, self.cfs_exe_rel_path) 
                 #self.cfs_subprocess = subprocess.Popen('%s %s %s' % (start_cfs_sh, cfs_abs_exe_path, self.cfs_exe_file), shell=True)
                 #self.cfs_subprocess = subprocess.Popen('%s %s %s' % (start_cfs_sh, cfs_abs_exe_path, self.cfs_exe_file),
                 #                                       stdout=self.cfs_pty_slave, stderr=self.cfs_pty_slave, close_fds=True,

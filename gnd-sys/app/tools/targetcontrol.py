@@ -90,7 +90,7 @@ class TargetControl():
         print("Connected with result code {0}".format(str(rc)))  # Print result of connection attempt 
         print("Subscribing to %s" % self.tlm_topic)
         self.client.subscribe(self.tlm_topic)
-        self.connected = True 
+        self.client_connected = True 
  
     def client_on_disconnect(self, client, userdata, flags, rc):
         """
@@ -118,7 +118,7 @@ class TargetControl():
         This method will be called on the MQTT initiating a disconnect. Ithas not been detmereined whether calling
         the client's diconnect in this scenario causes an issue 
         """
-        self.connected=False
+        self.client_connected=False
         self.client.disconnect()
 
 
@@ -226,9 +226,9 @@ class TargetControl():
                 break
 
             if self.client_connected:
-               self.window['-CLIENT_STATE-'].Update(text_color='black')
+               self.window['-CLIENT_STATE-'].Update('Connected', text_color='white')
             else:
-               self.window['-CLIENT_STATE-'].Update(text_color='red')
+               self.window['-CLIENT_STATE-'].Update('Disconnected', text_color='red')
                                        
             if self.event == '-CLIENT_CONNECT-':
                self.client_connect();

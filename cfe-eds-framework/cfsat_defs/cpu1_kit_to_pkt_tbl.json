@@ -423,7 +423,7 @@
       }},
      
       {"packet": {
-         "name": "OSK_DEV_HK_TLM_TOPICID",
+         "name": "PROTO_HK_TLM_TOPICID",
          "topic-id-42": 2146,
          "topic-id": 2146,
          "priority": 0,

@@ -6,7 +6,7 @@ CFE_APP, sch_lab,         SCH_Lab_AppMain,     SCH_LAB_APP,  80,   16384, 0x0, 0
 CFE_APP, file_mgr,        FILE_MGR_AppMain,    FILE_MGR,     80,   16384, 0x0, 0;
 CFE_APP, file_xfer,       FILE_XFER_AppMain,   FILE_XFER,    80,   16384, 0x0, 0;
 CFE_APP, kit_sch.so,      KIT_SCH_AppMain,     KIT_SCH,      10,   32768, 0x0, 0;
-CFE_APP, osk_c_dev,       OSK_C_DEV_AppMain,   OSK_C_DEV, 70, 32768, 0x0, 0;
+CFE_APP, proto, PROTO_AppMain, PROTO, 70, 32768, 0x0, 0;
 !CFSAT-INSERT! - Don't remove this comment. It must be the first comment
 !
 ! The following entries are provided as a convenience for common libs/apps

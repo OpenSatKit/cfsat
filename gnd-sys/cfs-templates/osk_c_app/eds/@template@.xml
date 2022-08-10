@@ -184,10 +184,10 @@
 
         <Implementation>
           <VariableSet>
-            <Variable type="BASE_TYPES/uint16" readOnly="true" name="CmdTopicId" initialValue="${CFE_MISSION/OSK_DEV_CMD_TOPICID}" />
-            <Variable type="BASE_TYPES/uint16" readOnly="true" name="ExecuteAppTopicId" initialValue="${CFE_MISSION/OSK_DEV_EXE_TOPICID}" />
-            <Variable type="BASE_TYPES/uint16" readOnly="true" name="SendHkTopicId" initialValue="${CFE_MISSION/OSK_DEV_SEND_HK_TOPICID}" />
-            <Variable type="BASE_TYPES/uint16" readOnly="true" name="HkTlmTopicId" initialValue="${CFE_MISSION/OSK_DEV_HK_TLM_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="CmdTopicId" initialValue="${CFE_MISSION/PROTO_CMD_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="ExecuteAppTopicId" initialValue="${CFE_MISSION/PROTO_EXE_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="SendHkTopicId" initialValue="${CFE_MISSION/PROTO_SEND_HK_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="HkTlmTopicId" initialValue="${CFE_MISSION/PROTO_HK_TLM_TOPICID}" />
           </VariableSet>
           <!-- Assign fixed numbers to the "TopicId" parameter of each interface -->
           <ParameterMapSet>          

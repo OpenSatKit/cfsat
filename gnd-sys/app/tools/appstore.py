@@ -148,7 +148,7 @@ class AppSpec():
         try:
             self.cfs = self.json['app']['cfs']
         except:
-            sg.popup("The JSON spec file %s does not contain the required 'cfs' object" % self.file, title='Error', grab_anywhere=True, modal=False)
+            sg.popup("The JSON spec file %s does not contain the required 'cfs' object" % self.json_file, title='Error', grab_anywhere=True, modal=False)
             return False
         
         #todo print('self.cfs = ' + str(self.cfs))
@@ -197,9 +197,9 @@ class AppSpec():
                         self.cfs['name']          + ', ' + \
                         str(self.cfs['priority']) + ', ' + \
                         str(self.cfs['stack'])    + ', 0x0, ' + \
-                        str(self.cfs['exception-action']) 
+                        str(self.cfs['exception-action']) + ';' 
         except:
-            sg.popup("Error creating targets.cmake entry due to missing or malformed JSON file.\nPartial entry string = %s" % self.file, title='Error', grab_anywhere=True, modal=False)
+            sg.popup("Error creating targets.cmake entry due to missing or malformed JSON file.\nPartial entry string = %s" % self.json_file, title='Error', grab_anywhere=True, modal=False)
         
         return entry_str
 
