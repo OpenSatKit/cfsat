@@ -65,7 +65,7 @@ static HISTOGRAM_Class_t*  Histogram = NULL;
 **      TBLMGR_RegisterTblWithDef() because its table load function is called
 */
 void HISTOGRAM_Constructor(HISTOGRAM_Class_t *HistogramPtr, 
-                           const INITBL_Class_t *IniTbl,
+                           INITBL_Class_t *IniTbl,
                            TBLMGR_Class_t *TblMgr)
 {
  
