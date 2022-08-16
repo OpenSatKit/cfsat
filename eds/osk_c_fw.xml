@@ -40,6 +40,24 @@
       <!--***********************************-->
       <!--**** DataTypeSet:  Entry Types ****-->
       <!--***********************************-->
+
+      <!-- General -->
+
+      <EnumeratedDataType name="BooleanUint8" shortDescription="8-bit Boolean" >
+        <IntegerDataEncoding sizeInBits="8" encoding="unsigned" />
+        <EnumerationList>
+          <Enumeration label="FALSE" value="0" shortDescription="" />
+          <Enumeration label="TRUE"  value="1" shortDescription="" />
+        </EnumerationList>
+      </EnumeratedDataType>
+
+      <EnumeratedDataType name="BooleanUint16" shortDescription="16-bit Boolean" >
+        <IntegerDataEncoding sizeInBits="16" encoding="unsigned" />
+        <EnumerationList>
+          <Enumeration label="FALSE" value="0" shortDescription="" />
+          <Enumeration label="TRUE"  value="1" shortDescription="" />
+        </EnumerationList>
+      </EnumeratedDataType>
     
       <!-- OSK_C_FW::FileUtil -->
 
