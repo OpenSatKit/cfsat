@@ -51,7 +51,7 @@
 /*******************************/
 
 static int32 InitApp(void);
-static int32 ProcessCmdPipe(void);
+static int32 ProcessCommands(void);
 static void SendStatusTlm(void);
 
 
@@ -95,7 +95,7 @@ void OSK_C_DEMO_AppMain(void)
    while (CFE_ES_RunLoop(&RunStatus))
    {
       
-      RunStatus = ProcessCmdPipe();  /* Pends indefinitely & manages CFE_ES_PerfLogEntry() calls */
+      RunStatus = ProcessCommands();  /* Pends indefinitely & manages CFE_ES_PerfLogEntry() calls */
       
    } /* End CFE_ES_RunLoop */
 
@@ -264,11 +264,11 @@ static int32 InitApp(void)
 
 
 /******************************************************************************
-** Function: ProcessCmdPipe
+** Function: ProcessCommands
 **
 ** 
 */
-static int32 ProcessCmdPipe(void)
+static int32 ProcessCommands(void)
 {
    
    int32  RetStatus = CFE_ES_RunStatus_APP_RUN;
@@ -327,7 +327,7 @@ static int32 ProcessCmdPipe(void)
 
    return RetStatus;
    
-} /* End ProcessCmdPipe() */
+} /* End ProcessCommands() */
 
 
 /******************************************************************************
