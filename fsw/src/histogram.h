@@ -111,7 +111,7 @@ typedef struct
 **
 */
 void HISTOGRAM_Constructor(HISTOGRAM_Class_t *HistogramPtr, 
-                           const INITBL_Class_t *IniTbl,
+                           INITBL_Class_t *IniTbl,
                            TBLMGR_Class_t *TblMgr);
 
 
