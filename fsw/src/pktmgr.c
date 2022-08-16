@@ -95,9 +95,9 @@ void PKTMGR_Constructor(PKTMGR_Class_t *PktMgrPtr, INITBL_Class_t *IniTbl)
                      INITBL_GetIntConfig(IniTbl, CFG_PKTMGR_PIPE_DEPTH),
                      INITBL_GetStrConfig(IniTbl, CFG_PKTMGR_PIPE_NAME));
       
-   CFE_MSG_Init(CFE_MSG_PTR(PktMgr->PktTlm), 
+   CFE_MSG_Init(CFE_MSG_PTR(PktMgr->PktTblTlm), 
                 CFE_SB_ValueToMsgId(INITBL_GetIntConfig(IniTbl, CFG_KIT_TO_PKT_TBL_TLM_TOPICID)), 
-                PKTMGR_PKT_TLM_LEN);
+                sizeof(KIT_TO_PktTblTlm_t));
    
    OS_TaskInstallDeleteHandler(&DestructorCallback); /* Called when application terminates */
 
@@ -114,26 +114,28 @@ void PKTMGR_Constructor(PKTMGR_Class_t *PktMgrPtr, INITBL_Class_t *IniTbl)
 **   2. Only update the table if the software bus subscription successful.  
 ** 
 */
-bool PKTMGR_AddPktCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
+bool PKTMGR_AddPktCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
-   const PKTMGR_AddPktCmdMsg_t *AddPktCmd = (const PKTMGR_AddPktCmdMsg_t *) MsgPtr;
-   PKTTBL_Pkt_t  NewPkt;
+   const KIT_TO_AddPkt_Payload_t *AddPkt = CMDMGR_PAYLOAD_PTR(MsgPtr, KIT_TO_AddPkt_t);
    bool          RetStatus = true;
+   PKTTBL_Pkt_t  NewPkt;
    int32         Status;
    uint16        AppId;
 
    
-   AppId = AddPktCmd->MsgId & PKTTBL_APP_ID_MASK;
+   AppId = AddPkt->MsgId & PKTTBL_APP_ID_MASK;
    
    if (PktMgr->PktTbl.Data.Pkt[AppId].MsgId == PKTTBL_UNUSED_MSG_ID)
    {
       
-      NewPkt.MsgId        = AddPktCmd->MsgId;
-      NewPkt.Qos          = AddPktCmd->Qos;
-      NewPkt.BufLim       = AddPktCmd->BufLim;
-      NewPkt.Filter.Type  = AddPktCmd->FilterType;
-      NewPkt.Filter.Param = AddPktCmd->FilterParam;
+      NewPkt.MsgId          = AddPkt->MsgId;
+      NewPkt.Qos            = AddPkt->Qos;
+      NewPkt.BufLim         = AddPkt->BufLim;
+      NewPkt.Filter.Type    = AddPkt->FilterType;
+      NewPkt.Filter.Param.N = AddPkt->FilterParam.N;
+      NewPkt.Filter.Param.X = AddPkt->FilterParam.X;
+      NewPkt.Filter.Param.O = AddPkt->FilterParam.O;
    
       Status = SubscribeNewPkt(&NewPkt);
    
@@ -151,7 +153,7 @@ bool PKTMGR_AddPktCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
    
          CFE_EVS_SendEvent(PKTMGR_ADD_PKT_ERROR_EID, CFE_EVS_EventType_ERROR,
                            "Error adding message ID 0x%04X. Software Bus subscription failed with return status 0x%8x",
-                           AddPktCmd->MsgId, Status);
+                           AddPkt->MsgId, Status);
       }
    
    } /* End if packet entry unused */
@@ -160,7 +162,7 @@ bool PKTMGR_AddPktCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
    
       CFE_EVS_SendEvent(PKTMGR_ADD_PKT_ERROR_EID, CFE_EVS_EventType_ERROR,
                         "Error adding message ID 0x%04X. Packet already exists in the packet table",
-                        AddPktCmd->MsgId);
+                        AddPkt->MsgId);
    }
    
    return RetStatus;
@@ -172,14 +174,14 @@ bool PKTMGR_AddPktCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 ** Function: PKTMGR_EnableOutputCmd
 **
 */
-bool PKTMGR_EnableOutputCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
+bool PKTMGR_EnableOutputCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
-   const PKTMGR_EnableOutputCmdMsg_t *EnableOutputCmd = (const PKTMGR_EnableOutputCmdMsg_t *) MsgPtr;
+   const KIT_TO_EnableOutput_Payload_t *EnableOutput = CMDMGR_PAYLOAD_PTR(MsgPtr, KIT_TO_EnableOutput_t);
    bool  RetStatus = true;
    int32 OsStatus;
    
-   strncpy(PktMgr->TlmDestIp, EnableOutputCmd->DestIp, PKTMGR_IP_STR_LEN);
+   strncpy(PktMgr->TlmDestIp, EnableOutput->DestIp, PKTMGR_IP_STR_LEN);
 
    PktMgr->SuppressSend = false;
    CFE_EVS_SendEvent(PKTMGR_TLM_OUTPUT_ENA_INFO_EID, CFE_EVS_EventType_INFORMATION,
@@ -331,7 +333,7 @@ uint16 PKTMGR_OutputTelemetry(void)
 **      sure why this is done and I'm not sure how the command is used. This 
 **      command is intended to help manage TO telemetry packets.
 */
-bool PKTMGR_RemoveAllPktsCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
+bool PKTMGR_RemoveAllPktsCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
    uint16   AppId;
@@ -394,35 +396,35 @@ bool PKTMGR_RemoveAllPktsCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 ** Function: PKTMGR_RemovePktCmd
 **
 */
-bool PKTMGR_RemovePktCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
+bool PKTMGR_RemovePktCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
-   const PKTMGR_RemovePktCmdMsg_t *RemovePktCmd = (const PKTMGR_RemovePktCmdMsg_t *) MsgPtr;
+   const KIT_TO_RemovePkt_Payload_t *RemovePkt = CMDMGR_PAYLOAD_PTR(MsgPtr, KIT_TO_RemovePkt_t);
+   bool    RetStatus = true;
    uint16  AppId;
    int32   Status;
-   bool    RetStatus = true;
   
    
-   AppId = RemovePktCmd->MsgId & PKTTBL_APP_ID_MASK;
+   AppId = RemovePkt->MsgId & PKTTBL_APP_ID_MASK;
   
    if (PktMgr->PktTbl.Data.Pkt[AppId].MsgId != PKTTBL_UNUSED_MSG_ID)
    {
 
       PKTTBL_SetPacketToUnused(&(PktMgr->PktTbl.Data.Pkt[AppId]));
       
-      Status = CFE_SB_Unsubscribe(CFE_SB_ValueToMsgId(RemovePktCmd->MsgId), PktMgr->TlmPipe);
+      Status = CFE_SB_Unsubscribe(CFE_SB_ValueToMsgId(RemovePkt->MsgId), PktMgr->TlmPipe);
       if(Status == CFE_SUCCESS)
       {
          CFE_EVS_SendEvent(PKTMGR_REMOVE_PKT_SUCCESS_EID, CFE_EVS_EventType_INFORMATION,
                            "Succesfully removed message ID 0x%04X from the packet table",
-                           RemovePktCmd->MsgId);
+                           RemovePkt->MsgId);
       }
       else
       {
          RetStatus = false;
          CFE_EVS_SendEvent(PKTMGR_REMOVE_PKT_ERROR_EID, CFE_EVS_EventType_ERROR,
                            "Removed message ID 0x%04X from packet table, but SB unsubscribe failed with return status 0x%8x",
-                           RemovePktCmd->MsgId, Status);
+                           RemovePkt->MsgId, Status);
       }
 
    } /* End if found message ID in table */
@@ -431,7 +433,7 @@ bool PKTMGR_RemovePktCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 
       CFE_EVS_SendEvent(PKTMGR_REMOVE_PKT_ERROR_EID, CFE_EVS_EventType_ERROR,
                         "Error removing message ID 0x%04X. Packet not defined in packet table.",
-                        RemovePktCmd->MsgId);
+                        RemovePkt->MsgId);
 
    } /* End if didn't find message ID in table */
 
@@ -455,29 +457,31 @@ void PKTMGR_ResetStatus(void)
 /*******************************************************************
 ** Function: PKTMGR_SendPktTblTlmCmd
 **
-** Any command 
 */
-bool PKTMGR_SendPktTblTlmCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
+bool PKTMGR_SendPktTblTlmCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
-   const PKTMGR_SendPktTblTlmCmdMsg_t *SendPktTblTlmCmd = (const PKTMGR_SendPktTblTlmCmdMsg_t *) MsgPtr;
+   const KIT_TO_SendPktTblTlm_Payload_t *SendPktTblTlm = CMDMGR_PAYLOAD_PTR(MsgPtr, KIT_TO_SendPktTblTlm_t);
    uint16        AppId;
    PKTTBL_Pkt_t* PktPtr;
    int32         Status;
+   KIT_TO_PktTblTlm_Payload_t *Payload = &PktMgr->PktTblTlm.Payload;
   
   
-   AppId  = SendPktTblTlmCmd->MsgId & PKTTBL_APP_ID_MASK;
+   AppId  = SendPktTblTlm->MsgId & PKTTBL_APP_ID_MASK;
    PktPtr = &(PktMgr->PktTbl.Data.Pkt[AppId]);
    
-   PktMgr->PktTlm.MsgId  = PktPtr->MsgId;
-   PktMgr->PktTlm.Qos    = PktPtr->Qos;
-   PktMgr->PktTlm.BufLim = PktPtr->BufLim;
+   Payload->MsgId  = PktPtr->MsgId;
+   Payload->Qos    = PktPtr->Qos;
+   Payload->BufLim = PktPtr->BufLim;
+   
+   Payload->FilterType    = PktPtr->Filter.Type;
+   Payload->FilterParam.N = PktPtr->Filter.Param.N;
+   Payload->FilterParam.X = PktPtr->Filter.Param.X;
+   Payload->FilterParam.O = PktPtr->Filter.Param.O;
 
-   PktMgr->PktTlm.FilterType  = PktPtr->Filter.Type;
-   PktMgr->PktTlm.FilterParam = PktPtr->Filter.Param;
-
-   CFE_SB_TimeStampMsg(CFE_MSG_PTR(PktMgr->PktTlm));
-   Status = CFE_SB_TransmitMsg(CFE_MSG_PTR(PktMgr->PktTlm), true);
+   CFE_SB_TimeStampMsg(CFE_MSG_PTR(PktMgr->PktTblTlm));
+   Status = CFE_SB_TransmitMsg(CFE_MSG_PTR(PktMgr->PktTblTlm), true);
     
    return (Status == CFE_SUCCESS);
 
@@ -485,40 +489,42 @@ bool PKTMGR_SendPktTblTlmCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 
 
 /******************************************************************************
-** Function: PKTMGR_UpdateFilterCmd
+** Function: PKTMGR_UpdatePktFilterCmd
 **
 ** Notes:
 **   1. Command rejected if AppId packet entry has not been loaded 
 **   2. The filter type is verified but the filter parameter values are not 
 ** 
 */
-bool PKTMGR_UpdateFilterCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
+bool PKTMGR_UpdatePktFilterCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
-   const PKTMGR_UpdateFilterCmdMsg_t *UpdateFilterCmd = (const PKTMGR_UpdateFilterCmdMsg_t *) MsgPtr;
-   bool    RetStatus = false;
-   uint16  AppId;
+   const  KIT_TO_UpdatePktFilter_Payload_t *UpdatePktFilter = CMDMGR_PAYLOAD_PTR(MsgPtr, KIT_TO_UpdatePktFilter_t);
+   bool   RetStatus = false;
+   uint16 AppId;
 
    
-   AppId = UpdateFilterCmd->MsgId & PKTTBL_APP_ID_MASK;
+   AppId = UpdatePktFilter->MsgId & PKTTBL_APP_ID_MASK;
    
    if (PktMgr->PktTbl.Data.Pkt[AppId].MsgId != PKTTBL_UNUSED_MSG_ID)
    {
       
-      if (PktUtil_IsFilterTypeValid(UpdateFilterCmd->FilterType))
+      if (PktUtil_IsFilterTypeValid(UpdatePktFilter->FilterType))
       {
         
          PktUtil_Filter_t *TblFilter = &(PktMgr->PktTbl.Data.Pkt[AppId].Filter);
          
          CFE_EVS_SendEvent(PKTMGR_UPDATE_FILTER_CMD_SUCCESS_EID, CFE_EVS_EventType_INFORMATION,
                            "Successfully changed message ID 0x%04X's filter (Type,N,X,O) from (%d,%d,%d,%d) to (%d,%d,%d,%d)",
-                           UpdateFilterCmd->MsgId,
+                           UpdatePktFilter->MsgId,
                            TblFilter->Type, TblFilter->Param.N, TblFilter->Param.X, TblFilter->Param.O,
-                           UpdateFilterCmd->FilterType,   UpdateFilterCmd->FilterParam.N,
-                           UpdateFilterCmd->FilterParam.X,UpdateFilterCmd->FilterParam.O);
+                           UpdatePktFilter->FilterType,    UpdatePktFilter->FilterParam.N,
+                           UpdatePktFilter->FilterParam.X, UpdatePktFilter->FilterParam.O);
                            
-         TblFilter->Type  = UpdateFilterCmd->FilterType;
-         TblFilter->Param = UpdateFilterCmd->FilterParam;         
+         TblFilter->Type    = UpdatePktFilter->FilterType;
+         TblFilter->Param.N = UpdatePktFilter->FilterParam.N;      
+         TblFilter->Param.X = UpdatePktFilter->FilterParam.X;      
+         TblFilter->Param.O = UpdatePktFilter->FilterParam.O;      
         
          RetStatus = true;
       
@@ -528,7 +534,7 @@ bool PKTMGR_UpdateFilterCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
    
          CFE_EVS_SendEvent(PKTMGR_UPDATE_FILTER_CMD_ERR_EID, CFE_EVS_EventType_ERROR,
                            "Error updating filter for message ID 0x%04X. Invalid filter type %d",
-                           UpdateFilterCmd->MsgId, UpdateFilterCmd->FilterType);
+                           UpdatePktFilter->MsgId, UpdatePktFilter->FilterType);
       }
    
    } /* End if packet entry unused */
@@ -537,12 +543,12 @@ bool PKTMGR_UpdateFilterCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
    
       CFE_EVS_SendEvent(PKTMGR_UPDATE_FILTER_CMD_ERR_EID, CFE_EVS_EventType_ERROR,
                         "Error updating filter for message ID 0x%04X. Packet not in use",
-                        UpdateFilterCmd->MsgId);
+                        UpdatePktFilter->MsgId);
    }
    
    return RetStatus;
 
-} /* End of PKTMGR_UpdateFilterCmd() */
+} /* End of PKTMGR_UpdatePktFilterCmd() */
 
 
 /******************************************************************************

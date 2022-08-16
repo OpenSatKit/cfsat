@@ -61,9 +61,10 @@
 /******************************************************************************
 ** Command Packets
 **
+** - See EDS command definitions in osk_c_demo.xml
 ** - Use separate configuration command so start/stop commands do not require
 **   any parameters
-** - No limit check performed on HkCyclesPerPkt becuase no harmful affects it
+** - No limit check performed on HkCyclesPerPkt because no harmful affects it
 **   unreasonable value sent. 
 */
 
