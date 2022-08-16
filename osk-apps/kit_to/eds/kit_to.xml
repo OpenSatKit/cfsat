@@ -33,18 +33,31 @@
 
       <StringDataType name="char_x_10" length="10" />
       <StringDataType name="char_x_16" length="16" />
+
+      <EnumeratedDataType name="TblId" shortDescription="Identifies different app tables" >
+        <IntegerDataEncoding sizeInBits="8" encoding="unsigned" />
+        <EnumerationList>
+          <Enumeration label="PACKET_FILTER" value="0" shortDescription="Define packets/filters for output " />
+        </EnumerationList>
+      </EnumeratedDataType>
       
       <!--***************************************-->
       <!--**** DataTypeSet: Command Payloads ****-->
       <!--***************************************-->
 
-      <ContainerDataType name="AddPkt_Payload" shortDescription="Add a packet to packet table in memory">
+      <ContainerDataType name="LoadTbl_Payload" shortDescription="Load an app's JSON table">
         <EntryList>
-          <Entry name="MsgId"       type="BASE_TYPES/uint16"            shortDescription="Message Id" />
-          <Entry name="Qos"         type="CFE_SB/Qos"                   shortDescription="Qos for subscription" />
-          <Entry name="BufLim"      type="BASE_TYPES/uint16"            shortDescription="SB queue depth" />
-          <Entry name="FilterType"  type="OSK_C_FW/PktFilterOptions"    shortDescription="SB queue depth" />
-          <Entry name="FilterParam" type="OSK_C_FW/PktUtil_FilterParam" shortDescription="SB queue depth" />
+          <Entry name="Id"       type="TblId"                   shortDescription="Table identifier" />
+          <Entry name="Type"     type="OSK_C_FW/TblLoadOptions" shortDescription="Replace entire table or perform sparse entry updates" />
+          <Entry name="Filename" type="BASE_TYPES/PathName"     shortDescription="Full path and file name of table to be loaded" />
+       </EntryList>
+      </ContainerDataType>
+      
+      <ContainerDataType name="DumpTbl_Payload" shortDescription="Dump an app's JSON table">
+        <EntryList>
+          <Entry name="Id"       type="TblId"               shortDescription="Table identifier" />
+          <Entry name="Unused"   type="BASE_TYPES/uint8"    shortDescription="Unused" />
+          <Entry name="Filename" type="BASE_TYPES/PathName" shortDescription="Full path and file name of table to be dumped" />
        </EntryList>
       </ContainerDataType>
 
@@ -52,6 +65,56 @@
         <EntryList>
           <Entry name="DestIp" type="char_x_16" shortDescription="IP address to send to" />
         </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="AddPkt_Payload" shortDescription="Add a packet to packet table in memory, not the JSON file">
+        <EntryList>
+          <Entry name="MsgId"       type="BASE_TYPES/uint16"            shortDescription="Message Id" />
+          <Entry name="Qos"         type="CFE_SB/Qos"                   shortDescription="Qos for subscription" />
+          <Entry name="BufLim"      type="BASE_TYPES/uint16"            shortDescription="SB queue depth" />
+          <Entry name="FilterType"  type="OSK_C_FW/PktFilterOptions"    shortDescription="" />
+          <Entry name="FilterParam" type="OSK_C_FW/PktUtil_FilterParam" shortDescription="" />
+       </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="RemovePkt_Payload" shortDescription="Remove a packet from the packet table in memory, not the JSON file">
+        <EntryList>
+          <Entry name="MsgId" type="BASE_TYPES/uint16" shortDescription="Message Id" />
+       </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="SendPktTblTlm_Payload" shortDescription="Send the table entry for the specified message ID">
+        <EntryList>
+          <Entry name="MsgId" type="BASE_TYPES/uint16" shortDescription="Message Id" />
+       </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="UpdatePktFilter_Payload" shortDescription="Send the table entry for the specified message ID">
+        <EntryList>
+          <Entry name="MsgId" type="BASE_TYPES/uint16" shortDescription="Message Id" />
+          <Entry name="FilterType"  type="OSK_C_FW/PktFilterOptions"    shortDescription="" />
+          <Entry name="FilterParam" type="OSK_C_FW/PktUtil_FilterParam" shortDescription="" />
+       </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="SetRunLoopDelay_Payload" shortDescription="">
+        <EntryList>
+          <Entry name="RunLoopDelay" type="BASE_TYPES/uint16" shortDescription="" />
+       </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="TestPktFilter_Payload" shortDescription="">
+        <EntryList>
+          <Entry name="FilterType"  type="OSK_C_FW/PktFilterOptions"    shortDescription="" />
+          <Entry name="FilterParam" type="OSK_C_FW/PktUtil_FilterParam" shortDescription="" />
+       </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="CfgEvtLogPlbk_Payload" shortDescription="">
+        <EntryList>
+          <Entry name="EvsLogFilename" type="BASE_TYPES/PathName" shortDescription="Filename to use when this command writes EVS log to a file" />
+          <Entry name="HkCyclesPerPkt" type="BASE_TYPES/uint16"   shortDescription="Number of HK request cycles between event log telemetry packets" />
+       </EntryList>
       </ContainerDataType>
 
       <!--*****************************************-->
@@ -76,7 +139,38 @@
           <Entry name="EvtPlbkHkPeriod"      type="BASE_TYPES/uint8"  />
         </EntryList>
       </ContainerDataType>
-  
+ 
+      <ContainerDataType name="DataTypesTlm_Payload" shortDescription="TO data types">
+        <EntryList>
+          <Entry name="synch" type="BASE_TYPES/uint16" />
+          <Entry name="bl1"   type="BASE_TYPES/uint8" />
+          <Entry name="bl2"   type="BASE_TYPES/uint8" />
+          <Entry name="b1"    type="BASE_TYPES/int8" />
+          <Entry name="b2"    type="BASE_TYPES/int8" />
+          <Entry name="b3"    type="BASE_TYPES/int8" />
+          <Entry name="b4"    type="BASE_TYPES/int8" />
+          <Entry name="w1"    type="BASE_TYPES/uint16" />
+          <Entry name="w2"    type="BASE_TYPES/uint16" />
+          <Entry name="dw1"   type="BASE_TYPES/uint32" />
+          <Entry name="dw2"   type="BASE_TYPES/uint32" />
+          <Entry name="f1"    type="BASE_TYPES/float" />
+          <Entry name="f2"    type="BASE_TYPES/float" />
+          <Entry name="df1"   type="BASE_TYPES/double" />
+          <Entry name="df2"   type="BASE_TYPES/double" />
+          <Entry name="str"   type="char_x_10" />
+        </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="PktTblTlm_Payload" shortDescription="Contains one packet table entry">
+        <EntryList>
+          <Entry name="MsgId"       type="BASE_TYPES/uint16" />
+          <Entry name="Qos"         type="CFE_SB/Qos" />
+          <Entry name="BufLim"      type="BASE_TYPES/uint16" />
+          <Entry name="FilterType"  type="OSK_C_FW/PktFilterOptions"    shortDescription="" />
+          <Entry name="FilterParam" type="OSK_C_FW/PktUtil_FilterParam" shortDescription="" />
+        </EntryList>
+      </ContainerDataType>
+
       <!--**************************************-->
       <!--**** DataTypeSet: Command Packets ****-->
       <!--**************************************-->
@@ -94,6 +188,24 @@
         <ConstraintSet>
           <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/RESET_CC}" />
         </ConstraintSet>
+      </ContainerDataType>
+
+      <ContainerDataType name="LoadTbl" baseType="CommandBase">
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/LOAD_TBL_CC}" />
+        </ConstraintSet>
+        <EntryList>
+          <Entry type="LoadTbl_Payload" name="Payload" />
+        </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="DumpTbl" baseType="CommandBase">
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/DUMP_TBL_CC}" />
+        </ConstraintSet>
+        <EntryList>
+          <Entry type="DumpTbl_Payload" name="Payload" />
+        </EntryList>
       </ContainerDataType>
 
       <ContainerDataType name="AddPkt" baseType="CommandBase" shortDescription="Add a packet to packet table in memory">
@@ -114,6 +226,83 @@
         </EntryList>
       </ContainerDataType>
 
+      <ContainerDataType name="RemoveAllPkts" baseType="CommandBase" shortDescription="Remove all telemetry packets from the filter table. ">
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 2" />
+        </ConstraintSet>
+      </ContainerDataType>
+
+      <ContainerDataType name="RemovePkt" baseType="CommandBase" shortDescription="Remove all telemetry packets from the filter table. ">
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 3" />
+        </ConstraintSet>
+        <EntryList>
+          <Entry type="RemovePkt_Payload" name="Payload" />
+        </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="SendPktTblTlm" baseType="CommandBase" shortDescription="Send the table entry for the specified message ID">
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 4" />
+        </ConstraintSet>
+        <EntryList>
+          <Entry type="SendPktTblTlm_Payload" name="Payload" />
+        </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="UpdatePktFilter" baseType="CommandBase" shortDescription="Update a packet's filter parameters">
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 5" />
+        </ConstraintSet>
+        <EntryList>
+          <Entry type="UpdatePktFilter_Payload" name="Payload" />
+        </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="SendDataTypesTlm" baseType="CommandBase" shortDescription="Send the data types telemetry packet">
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 6" />
+        </ConstraintSet>
+      </ContainerDataType>
+
+      <ContainerDataType name="SetRunLoopDelay" baseType="CommandBase" shortDescription="">
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 7" />
+        </ConstraintSet>
+        <EntryList>
+          <Entry type="SetRunLoopDelay_Payload" name="Payload" />
+        </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="TestPktFilter" baseType="CommandBase" shortDescription="">
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 8" />
+        </ConstraintSet>
+        <EntryList>
+          <Entry type="TestPktFilter_Payload" name="Payload" />
+        </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="CfgEvtLogPlbk" baseType="CommandBase" shortDescription="">
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 9" />
+        </ConstraintSet>
+        <EntryList>
+          <Entry type="CfgEvtLogPlbk_Payload" name="Payload" />
+        </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="StartEvtLogPlbk" baseType="CommandBase" shortDescription="">
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 10" />
+        </ConstraintSet>
+      </ContainerDataType>
+
+      <ContainerDataType name="StopEvtLogPlbk" baseType="CommandBase" shortDescription="">
+        <ConstraintSet>
+          <ValueConstraint entry="Sec.FunctionCode" value="${OSK_C_FW/APP_BASE_CC} + 11" />
+        </ConstraintSet>
+      </ContainerDataType>
 
       <!--****************************************-->
       <!--**** DataTypeSet: Telemetry Packets ****-->
@@ -125,6 +314,18 @@
         </EntryList>
       </ContainerDataType>
      
+      <ContainerDataType name="DataTypesTlm" baseType="CFE_HDR/TelemetryHeader">
+        <EntryList>
+          <Entry type="DataTypesTlm_Payload" name="Payload" />
+        </EntryList>
+      </ContainerDataType>
+
+      <ContainerDataType name="PktTblTlm" baseType="CFE_HDR/TelemetryHeader">
+        <EntryList>
+          <Entry type="PktTblTlm_Payload" name="Payload" />
+        </EntryList>
+      </ContainerDataType>
+
     </DataTypeSet>
     
     <ComponentSet>
@@ -154,6 +355,18 @@
             </GenericTypeMapSet>
           </Interface>
 
+          <Interface name="DATA_TYPES_TLM" shortDescription="Software bus housekeeping telemetry interface" type="CFE_SB/Telemetry">
+            <GenericTypeMapSet>
+              <GenericTypeMap name="TelemetryDataType" type="DataTypesTlm" />
+            </GenericTypeMapSet>
+          </Interface>
+
+          <Interface name="PKT_TBL_TLM" shortDescription="Software bus housekeeping telemetry interface" type="CFE_SB/Telemetry">
+            <GenericTypeMapSet>
+              <GenericTypeMap name="TelemetryDataType" type="PktTblTlm" />
+            </GenericTypeMapSet>
+          </Interface>
+
         </RequiredInterfaceSet>
 
         <!--***************************************-->
@@ -162,15 +375,19 @@
 
         <Implementation>
           <VariableSet>
-            <Variable type="BASE_TYPES/uint16" readOnly="true" name="CmdTopicId"       initialValue="${CFE_MISSION/KIT_TO_CMD_TOPICID}" />
-            <Variable type="BASE_TYPES/uint16" readOnly="true" name="SendHkTopicId"    initialValue="${CFE_MISSION/KIT_TO_SEND_HK_TOPICID}" />
-            <Variable type="BASE_TYPES/uint16" readOnly="true" name="HkTlmTopicId"     initialValue="${CFE_MISSION/KIT_TO_HK_TLM_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="CmdTopicId"          initialValue="${CFE_MISSION/KIT_TO_CMD_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="SendHkTopicId"       initialValue="${CFE_MISSION/KIT_TO_SEND_HK_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="HkTlmTopicId"        initialValue="${CFE_MISSION/KIT_TO_HK_TLM_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="DataTypesTlmTopicId" initialValue="${CFE_MISSION/KIT_TO_DATA_TYPES_TLM_TOPICID}" />
+            <Variable type="BASE_TYPES/uint16" readOnly="true" name="PktTblTlmTopicId"    initialValue="${CFE_MISSION/KIT_TO_PKT_TBL_TLM_TOPICID}" />
           </VariableSet>
           <!-- Assign fixed numbers to the "TopicId" parameter of each interface -->
           <ParameterMapSet>          
-            <ParameterMap interface="CMD"        parameter="TopicId" variableRef="CmdTopicId" />
-            <ParameterMap interface="SEND_HK"    parameter="TopicId" variableRef="SendHkTopicId" />
-            <ParameterMap interface="HK_TLM"     parameter="TopicId" variableRef="HkTlmTopicId" />
+            <ParameterMap interface="CMD"            parameter="TopicId" variableRef="CmdTopicId" />
+            <ParameterMap interface="SEND_HK"        parameter="TopicId" variableRef="SendHkTopicId" />
+            <ParameterMap interface="HK_TLM"         parameter="TopicId" variableRef="HkTlmTopicId" />
+            <ParameterMap interface="DATA_TYPES_TLM" parameter="TopicId" variableRef="DataTypesTlmTopicId" />
+            <ParameterMap interface="PKT_TBL_TLM"    parameter="TopicId" variableRef="PktTblTlmTopicId" />
           </ParameterMapSet>
         </Implementation>
       </Component>

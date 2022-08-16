@@ -36,9 +36,9 @@
 */
 
 #include "cfe_platform_cfg.h"
-#include "kit_to_platform_cfg.h"
 #include "osk_c_fw.h"
-
+#include "kit_to_platform_cfg.h"
+#include "kit_to_eds_typedefs.h"
 
 /******************************************************************************
 ** Versions
@@ -129,16 +129,6 @@ DECLARE_ENUM(Config,APP_CONFIG)
 ** Command Macros
 */
 
-#define KIT_TO_ADD_PKT_CMD_FC            (CMDMGR_APP_START_FC +  0)
-#define KIT_TO_ENABLE_OUTPUT_CMD_FC      (CMDMGR_APP_START_FC +  1)
-#define KIT_TO_REMOVE_ALL_PKTS_CMD_FC    (CMDMGR_APP_START_FC +  2)
-#define KIT_TO_REMOVE_PKT_CMD_FC         (CMDMGR_APP_START_FC +  3)
-#define KIT_TO_SEND_PKT_TBL_TLM_CMD_FC   (CMDMGR_APP_START_FC +  4)
-#define KIT_TO_UPDATE_FILTER_CMD_FC      (CMDMGR_APP_START_FC +  5)
-
-#define KIT_TO_SEND_DATA_TYPES_CMD_FC    (CMDMGR_APP_START_FC +  6)
-#define KIT_TO_SET_RUN_LOOP_DELAY_CMD_FC (CMDMGR_APP_START_FC +  7)
-#define KIT_TO_TEST_FILTER_CMD_FC        (CMDMGR_APP_START_FC +  8)
 
 #define KIT_TO_EVT_PLBK_CONFIG_CMD_FC    (CMDMGR_APP_START_FC +  9)
 #define KIT_TO_EVT_PLBK_START_CMD_FC     (CMDMGR_APP_START_FC + 10)

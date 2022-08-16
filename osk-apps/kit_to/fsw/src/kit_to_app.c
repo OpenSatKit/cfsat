@@ -39,7 +39,7 @@
 #include <string.h>
 #include <math.h>
 #include "kit_to_app.h"
-
+#include "kit_to_eds_cc.h"
 
 /***********************/
 /** Macro Definitions **/
@@ -60,7 +60,7 @@
 static int32 InitApp(void);
 static void  InitDataTypePkt(void);
 static int32 ProcessCommands(void);
-static void  SendHousekeepingPkt(void);
+static void  SendHousekeepingTlm(void);
 
 
 /**********************/
@@ -179,21 +179,21 @@ bool KIT_TO_ResetAppCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 
 
 /******************************************************************************
-** Function: KIT_TO_SendDataTypeTlmCmd
+** Function: KIT_TO_SendDataTypesTlmCmd
 **
 */
 
-bool KIT_TO_SendDataTypeTlmCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
+bool KIT_TO_SendDataTypesTlmCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
    int32 Status;
 
-   CFE_SB_TimeStampMsg(CFE_MSG_PTR(KitTo.DataTypePkt));
-   Status = CFE_SB_TransmitMsg(CFE_MSG_PTR(KitTo.DataTypePkt), true);
+   CFE_SB_TimeStampMsg(CFE_MSG_PTR(KitTo.DataTypesTlm.TelemetryHeader));
+   Status = CFE_SB_TransmitMsg(CFE_MSG_PTR(KitTo.DataTypesTlm.TelemetryHeader), true);
    
    return (Status == CFE_SUCCESS);
 
-} /* End KIT_TO_SendDataTypeTlmCmd() */
+} /* End KIT_TO_SendDataTypesTlmCmd() */
 
 
 /******************************************************************************
@@ -203,19 +203,21 @@ bool KIT_TO_SendDataTypeTlmCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr
 bool KIT_TO_SetRunLoopDelayCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
-   const KIT_TO_SetRunLoopDelayCmdMsg_t *CmdMsg = (const KIT_TO_SetRunLoopDelayCmdMsg_t *) MsgPtr;
-   KIT_TO_Class_t *KitToPtr = (KIT_TO_Class_t *)ObjDataPtr;
+   const KIT_TO_SetRunLoopDelay_Payload_t *SetRunLoopDelay = CMDMGR_PAYLOAD_PTR(MsgPtr, KIT_TO_SetRunLoopDelay_t);
    bool RetStatus = false;
+
+   KIT_TO_Class_t *KitToPtr = (KIT_TO_Class_t *)ObjDataPtr;
+
    
-   if ((CmdMsg->RunLoopDelay >= KitTo.RunLoopDelayMin) &&
-       (CmdMsg->RunLoopDelay <= KitTo.RunLoopDelayMax))
+   if ((SetRunLoopDelay->RunLoopDelay >= KitTo.RunLoopDelayMin) &&
+       (SetRunLoopDelay->RunLoopDelay <= KitTo.RunLoopDelayMax))
    {
    
       CFE_EVS_SendEvent(KIT_TO_SET_RUN_LOOP_DELAY_EID, CFE_EVS_EventType_INFORMATION,
                         "Run loop delay changed from %d to %d", 
-                        KitToPtr->RunLoopDelay, CmdMsg->RunLoopDelay);
+                        KitToPtr->RunLoopDelay, SetRunLoopDelay->RunLoopDelay);
    
-      KitToPtr->RunLoopDelay = CmdMsg->RunLoopDelay;
+      KitToPtr->RunLoopDelay = SetRunLoopDelay->RunLoopDelay;
       
       PKTMGR_InitStats(KitToPtr->RunLoopDelay,INITBL_GetIntConfig(INITBL_OBJ, CFG_PKTMGR_STATS_CONFIG_DELAY));
 
@@ -227,7 +229,7 @@ bool KIT_TO_SetRunLoopDelayCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr
       
       CFE_EVS_SendEvent(KIT_TO_INVALID_RUN_LOOP_DELAY_EID, CFE_EVS_EventType_ERROR,
                         "Invalid commanded run loop delay of %d ms. Valid inclusive range: [%d,%d] ms", 
-                        CmdMsg->RunLoopDelay,KitTo.RunLoopDelayMin,KitTo.RunLoopDelayMax);
+                        SetRunLoopDelay->RunLoopDelay,KitTo.RunLoopDelayMin,KitTo.RunLoopDelayMax);
       
    }
    
@@ -237,10 +239,10 @@ bool KIT_TO_SetRunLoopDelayCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr
 
 
 /******************************************************************************
-** Function: KIT_TO_TestFilterCmd
+** Function: KIT_TO_TestPktFilterCmd
 **
 */
-bool KIT_TO_TestFilterCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
+bool KIT_TO_TestPktFilterCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
    return true;
@@ -322,7 +324,7 @@ bool KIT_TO_TestFilterCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 
    return true;
 
-} // End KIT_TO_TestFilterCmd() */
+} // End KIT_TO_TestPktFilterCmd() */
 
 
 /******************************************************************************
@@ -385,32 +387,33 @@ static int32 InitApp(void)
       }
    
       CMDMGR_Constructor(CMDMGR_OBJ);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, CMDMGR_NOOP_CMD_FC,     NULL,       KIT_TO_NoOpCmd,     0);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, CMDMGR_RESET_CMD_FC,    NULL,       KIT_TO_ResetAppCmd, 0);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_TO_NOOP_CC,     NULL,       KIT_TO_NoOpCmd,     0);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_TO_RESET_CC,    NULL,       KIT_TO_ResetAppCmd, 0);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_TO_LOAD_TBL_CC, TBLMGR_OBJ, TBLMGR_LoadTblCmd,  TBLMGR_LOAD_TBL_CMD_DATA_LEN);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_TO_DUMP_TBL_CC, TBLMGR_OBJ, TBLMGR_DumpTblCmd,  TBLMGR_DUMP_TBL_CMD_DATA_LEN);
 
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, CMDMGR_LOAD_TBL_CMD_FC, TBLMGR_OBJ, TBLMGR_LoadTblCmd,  TBLMGR_LOAD_TBL_CMD_DATA_LEN);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, CMDMGR_DUMP_TBL_CMD_FC, TBLMGR_OBJ, TBLMGR_DumpTblCmd,  TBLMGR_DUMP_TBL_CMD_DATA_LEN);
-
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_TO_ADD_PKT_CMD_FC,          PKTMGR_OBJ, PKTMGR_AddPktCmd,        PKKTMGR_ADD_PKT_CMD_DATA_LEN);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_TO_ENABLE_OUTPUT_CMD_FC,    PKTMGR_OBJ, PKTMGR_EnableOutputCmd,  PKKTMGR_ENABLE_OUTPUT_CMD_DATA_LEN);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_TO_REMOVE_ALL_PKTS_CMD_FC,  PKTMGR_OBJ, PKTMGR_RemoveAllPktsCmd, 0);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_TO_REMOVE_PKT_CMD_FC,       PKTMGR_OBJ, PKTMGR_RemovePktCmd,     PKKTMGR_REMOVE_PKT_CMD_DATA_LEN);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_TO_SEND_PKT_TBL_TLM_CMD_FC, PKTMGR_OBJ, PKTMGR_SendPktTblTlmCmd, PKKTMGR_SEND_PKT_TBL_TLM_CMD_DATA_LEN);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_TO_UPDATE_FILTER_CMD_FC,    PKTMGR_OBJ, PKTMGR_UpdateFilterCmd,  PKKTMGR_UPDATE_FILTER_CMD_DATA_LEN);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_TO_ADD_PKT_CC,           PKTMGR_OBJ, PKTMGR_AddPktCmd,          sizeof(KIT_TO_AddPkt_Payload_t));
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_TO_ENABLE_OUTPUT_CC,     PKTMGR_OBJ, PKTMGR_EnableOutputCmd,    sizeof(KIT_TO_EnableOutput_Payload_t));
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_TO_REMOVE_ALL_PKTS_CC,   PKTMGR_OBJ, PKTMGR_RemoveAllPktsCmd,   0);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_TO_REMOVE_PKT_CC,        PKTMGR_OBJ, PKTMGR_RemovePktCmd,       sizeof(KIT_TO_RemovePkt_Payload_t));
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_TO_SEND_PKT_TBL_TLM_CC,  PKTMGR_OBJ, PKTMGR_SendPktTblTlmCmd,   sizeof(KIT_TO_SendPktTblTlm_Payload_t));
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_TO_UPDATE_PKT_FILTER_CC, PKTMGR_OBJ, PKTMGR_UpdatePktFilterCmd, sizeof(KIT_TO_UpdatePktFilter_Payload_t));
       
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_TO_SEND_DATA_TYPES_CMD_FC,    &KitTo, KIT_TO_SendDataTypeTlmCmd, 0);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_TO_SET_RUN_LOOP_DELAY_CMD_FC, &KitTo, KIT_TO_SetRunLoopDelayCmd, KIT_TO_SET_RUN_LOOP_DELAY_CMD_DATA_LEN);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_TO_TEST_FILTER_CMD_FC,        &KitTo, KIT_TO_TestFilterCmd,      KIT_TO_TEST_FILTER_CMD_DATA_LEN);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_TO_SEND_DATA_TYPES_TLM_CC, &KitTo, KIT_TO_SendDataTypesTlmCmd, 0);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_TO_SET_RUN_LOOP_DELAY_CC,  &KitTo, KIT_TO_SetRunLoopDelayCmd,  sizeof(KIT_TO_SetRunLoopDelay_Payload_t));
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_TO_TEST_PKT_FILTER_CC,     &KitTo, KIT_TO_TestPktFilterCmd,    sizeof(KIT_TO_TestPktFilter_Payload_t));
 
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_TO_EVT_PLBK_CONFIG_CMD_FC,  EVTPLBK_OBJ, EVT_PLBK_ConfigCmd, EVT_PLBK_CONFIG_CMD_DATA_LEN);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_TO_EVT_PLBK_START_CMD_FC,   EVTPLBK_OBJ, EVT_PLBK_StartCmd,  EVT_PLBK_START_CMD_DATA_LEN);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_TO_EVT_PLBK_STOP_CMD_FC,    EVTPLBK_OBJ, EVT_PLBK_StopCmd,   EVT_PLBK_STOP_CMD_DATA_LEN);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_TO_CFG_EVT_LOG_PLBK_CC,   EVTPLBK_OBJ, EVT_PLBK_ConfigCmd, sizeof(KIT_TO_CfgEvtLogPlbk_Payload_t));
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_TO_START_EVT_LOG_PLBK_CC, EVTPLBK_OBJ, EVT_PLBK_StartCmd,  0);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_TO_STOP_EVT_LOG_PLBK_CC,  EVTPLBK_OBJ, EVT_PLBK_StopCmd,   0);
 
       CFE_EVS_SendEvent(KIT_TO_INIT_DEBUG_EID, KIT_TO_INIT_EVS_TYPE, "KIT_TO_InitApp() Before TBLMGR calls\n");
       TBLMGR_Constructor(TBLMGR_OBJ);
       TBLMGR_RegisterTblWithDef(TBLMGR_OBJ, PKTTBL_LoadCmd, PKTTBL_DumpCmd, INITBL_GetStrConfig(INITBL_OBJ, CFG_PKTTBL_LOAD_FILE));
 
-      CFE_MSG_Init(CFE_MSG_PTR(KitTo.HkPkt), CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_KIT_TO_HK_TLM_TOPICID)), KIT_TO_TLM_HK_LEN);
+      CFE_MSG_Init(CFE_MSG_PTR(KitTo.HkTlm.TelemetryHeader), CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_KIT_TO_HK_TLM_TOPICID)), 
+                   sizeof(KIT_TO_HkTlm_t));
+                   
       InitDataTypePkt();
 
       /*
@@ -437,37 +440,29 @@ static void InitDataTypePkt(void)
 
    int16  i;
    char   StringVariable[10] = "ABCDEFGHIJ";
-   KIT_TO_DataTypePkt_t *DataTypePkt = &KitTo.DataTypePkt;
+   KIT_TO_DataTypesTlm_Payload_t *Payload = &KitTo.DataTypesTlm.Payload;
 
-   CFE_MSG_Init(CFE_MSG_PTR(KitTo.DataTypePkt), CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_KIT_TO_DATA_TYPES_TOPICID)),
-                KIT_TO_TLM_DATA_TYPE_LEN);
+   CFE_MSG_Init(CFE_MSG_PTR(KitTo.DataTypesTlm.TelemetryHeader), 
+                CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_KIT_TO_DATA_TYPES_TOPICID)),
+                sizeof(KIT_TO_DataTypesTlm_t));
 
-   DataTypePkt->synch = 0x6969;
-   #if 0
-      DataTypePkt->bit1    = 1;
-      DataTypePkt->bit2    = 0;
-      DataTypePkt->bit34   = 2;
-      DataTypePkt->bit56   = 3;
-      DataTypePkt->bit78   = 1;
-      DataTypePkt->nibble1 = 0xA;
-      DataTypePkt->nibble2 = 0x4;
-   #endif
-      DataTypePkt->bl1 = false;
-      DataTypePkt->bl2 = true;
-      DataTypePkt->b1  = 16;
-      DataTypePkt->b2  = 127;
-      DataTypePkt->b3  = 0x7F;
-      DataTypePkt->b4  = 0x45;
-      DataTypePkt->w1  = 0x2468;
-      DataTypePkt->w2  = 0x7FFF;
-      DataTypePkt->dw1 = 0x12345678;
-      DataTypePkt->dw2 = 0x87654321;
-      DataTypePkt->f1  = 90.01;
-      DataTypePkt->f2  = .0000045;
-      DataTypePkt->df1 = 99.9;
-      DataTypePkt->df2 = .4444;
+   Payload->synch = 0x6969;
+   Payload->bl1 = false;
+   Payload->bl2 = true;
+   Payload->b1  = 16;
+   Payload->b2  = 127;
+   Payload->b3  = 0x7F;
+   Payload->b4  = 0x45;
+   Payload->w1  = 0x2468;
+   Payload->w2  = 0x7FFF;
+   Payload->dw1 = 0x12345678;
+   Payload->dw2 = 0x87654321;
+   Payload->f1  = 90.01;
+   Payload->f2  = .0000045;
+   Payload->df1 = 99.9;
+   Payload->df2 = .4444;
 
-   for (i=0; i < 10; i++) DataTypePkt->str[i] = StringVariable[i];
+   for (i=0; i < 10; i++) Payload->str[i] = StringVariable[i];
 
 } /* End InitDataTypePkt() */
 
@@ -501,7 +496,7 @@ static int32 ProcessCommands(void)
          } 
          else if (CFE_SB_MsgId_Equal(MsgId, KitTo.SendHkMid))
          {   
-            SendHousekeepingPkt();
+            SendHousekeepingTlm();
          }
          else
          {   
@@ -524,29 +519,30 @@ static int32 ProcessCommands(void)
 
 
 /******************************************************************************
-** Function: SendHousekeepingPkt
+** Function: SendHousekeepingTlm
 **
 */
-static void SendHousekeepingPkt(void)
+static void SendHousekeepingTlm(void)
 {
 
-   KIT_TO_HkPkt_t *HkPkt = &KitTo.HkPkt;
+   KIT_TO_HkTlm_Payload_t *Payload = &KitTo.HkTlm.Payload;
+
    
    /*
    ** KIT_TO Data
    */
 
-   HkPkt->ValidCmdCnt   = KitTo.CmdMgr.ValidCmdCnt;
-   HkPkt->InvalidCmdCnt = KitTo.CmdMgr.InvalidCmdCnt;
+   Payload->ValidCmdCnt   = KitTo.CmdMgr.ValidCmdCnt;
+   Payload->InvalidCmdCnt = KitTo.CmdMgr.InvalidCmdCnt;
 
-   HkPkt->RunLoopDelay  = KitTo.RunLoopDelay;
+   Payload->RunLoopDelay  = KitTo.RunLoopDelay;
 
    /*
    ** PKTTBL Data
    */
 
-   HkPkt->PktTblLastLoadStatus  = KitTo.PktTbl.LastLoadStatus;
-   HkPkt->PktTblAttrErrCnt      = KitTo.PktTbl.LastLoadCnt;
+   Payload->PktTblLastLoadStatus  = KitTo.PktTbl.LastLoadStatus;
+   Payload->PktTblAttrErrCnt      = KitTo.PktTbl.LastLoadCnt;
 
    /*
    ** PKTMGR Data
@@ -555,18 +551,18 @@ static void SendHousekeepingPkt(void)
    **   separate diagnostic. Also easier for the user not to have to command it.
    */
 
-   HkPkt->StatsValid  = (KitTo.PktMgr.Stats.State == PKTMGR_STATS_VALID);
-   HkPkt->PktsPerSec  = round(KitTo.PktMgr.Stats.AvgPktsPerSec);
-   HkPkt->BytesPerSec = round(KitTo.PktMgr.Stats.AvgBytesPerSec);
+   Payload->StatsValid  = (KitTo.PktMgr.Stats.State == PKTMGR_STATS_VALID);
+   Payload->PktsPerSec  = round(KitTo.PktMgr.Stats.AvgPktsPerSec);
+   Payload->BytesPerSec = round(KitTo.PktMgr.Stats.AvgBytesPerSec);
 
-   HkPkt->TlmSockId = (uint16)KitTo.PktMgr.TlmSockId;
-   strncpy(HkPkt->TlmDestIp, KitTo.PktMgr.TlmDestIp, PKTMGR_IP_STR_LEN);
+   Payload->TlmSockId = (uint16)KitTo.PktMgr.TlmSockId;
+   strncpy(Payload->TlmDestIp, KitTo.PktMgr.TlmDestIp, PKTMGR_IP_STR_LEN);
 
-   HkPkt->EvtPlbkEna      = KitTo.EvtPlbk.Enabled;
-   HkPkt->EvtPlbkHkPeriod = (uint8)KitTo.EvtPlbk.HkCyclePeriod;
+   Payload->EvtPlbkEna      = KitTo.EvtPlbk.Enabled;
+   Payload->EvtPlbkHkPeriod = (uint8)KitTo.EvtPlbk.HkCyclePeriod;
    
-   CFE_SB_TimeStampMsg(CFE_MSG_PTR(KitTo.HkPkt.TlmHeader));
-   CFE_SB_TransmitMsg(CFE_MSG_PTR(KitTo.HkPkt.TlmHeader), true);
+   CFE_SB_TimeStampMsg(CFE_MSG_PTR(KitTo.HkTlm.TelemetryHeader));
+   CFE_SB_TransmitMsg(CFE_MSG_PTR(KitTo.HkTlm.TelemetryHeader), true);
 
-} /* End SendHousekeepingPkt() */
+} /* End SendHousekeepingTlm() */
 

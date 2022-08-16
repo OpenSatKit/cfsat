@@ -80,83 +80,14 @@
 
 /******************************************************************************
 ** Command Packets
+** - See EDS command definitions in osk_c_demo.xml
 */
-
-typedef struct
-{
-
-   CFE_MSG_CommandHeader_t  CmdHeader;
-   char    DestIp[PKTMGR_IP_STR_LEN];
-
-} PKTMGR_EnableOutputCmdMsg_t;
-#define PKKTMGR_ENABLE_OUTPUT_CMD_DATA_LEN  (sizeof(PKTMGR_EnableOutputCmdMsg_t) - sizeof(CFE_MSG_CommandHeader_t))
-
-
-typedef struct
-{
-
-   CFE_MSG_CommandHeader_t CmdHeader;
-   uint16                  MsgId;
-   CFE_SB_Qos_t            Qos;
-   uint8                   BufLim;
-   uint16                  FilterType;
-   PktUtil_FilterParam_t   FilterParam;
-
-} PKTMGR_AddPktCmdMsg_t;
-#define PKKTMGR_ADD_PKT_CMD_DATA_LEN  (sizeof(PKTMGR_AddPktCmdMsg_t) - sizeof(CFE_MSG_CommandHeader_t))
-
-
-typedef struct
-{
-
-   CFE_MSG_CommandHeader_t  CmdHeader;
-   uint16                   MsgId;
-
-} PKTMGR_RemovePktCmdMsg_t;
-#define PKKTMGR_REMOVE_PKT_CMD_DATA_LEN  (sizeof(PKTMGR_RemovePktCmdMsg_t) - sizeof(CFE_MSG_CommandHeader_t))
-
-
-typedef struct
-{
-
-   CFE_MSG_CommandHeader_t  CmdHeader;
-   uint16                   MsgId;
-
-} PKTMGR_SendPktTblTlmCmdMsg_t;
-#define PKKTMGR_SEND_PKT_TBL_TLM_CMD_DATA_LEN  (sizeof(PKTMGR_SendPktTblTlmCmdMsg_t) - sizeof(CFE_MSG_CommandHeader_t))
-
-
-typedef struct
-{
-
-   CFE_MSG_CommandHeader_t CmdHeader;
-   uint16                  MsgId;
-   uint16                  FilterType;
-   PktUtil_FilterParam_t   FilterParam;
-
-} PKTMGR_UpdateFilterCmdMsg_t;
-#define PKKTMGR_UPDATE_FILTER_CMD_DATA_LEN  (sizeof(PKTMGR_UpdateFilterCmdMsg_t) - sizeof(CFE_MSG_CommandHeader_t))
 
 
 /******************************************************************************
-** Telemetry Packets
+** Telmetery Packets
+** - See EDS command definitions in osk_c_demo.xml
 */
-
-typedef struct
-{
-
-   CFE_MSG_TelemetryHeader_t TlmHeader;
-   
-   uint16        MsgId;
-   CFE_SB_Qos_t  Qos;
-   uint16        BufLim;
-
-   uint16                 FilterType;
-   PktUtil_FilterParam_t  FilterParam;
-
-} PKTMGR_PktTlm_t;
-
-#define PKTMGR_PKT_TLM_LEN sizeof (PKTMGR_PktTlm_t)
 
 
 /******************************************************************************
@@ -211,7 +142,7 @@ typedef struct
    ** Telemetry Packets
    */
    
-   PKTMGR_PktTlm_t   PktTlm;
+   KIT_TO_PktTblTlm_t   PktTblTlm;
 
    /*
    ** PktMgr Data
@@ -343,14 +274,14 @@ bool PKTMGR_SendPktTblTlmCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
-** Function: PKTMGR_UpdateFilterCmd
+** Function: PKTMGR_UpdatePktFilterCmd
 **
 ** Notes:
 **   1. Command rejected if AppId packet entry has not been loaded 
 **   2. The filter type is verified but the filter parameter values are not 
 ** 
 */
-bool PKTMGR_UpdateFilterCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
+bool PKTMGR_UpdatePktFilterCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 #endif /* _pktmgr_ */

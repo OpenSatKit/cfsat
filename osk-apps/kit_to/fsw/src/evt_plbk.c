@@ -169,20 +169,19 @@ void EVT_PLBK_Execute(void)
 bool EVT_PLBK_ConfigCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
-   const EVT_PLBK_ConfigCmdMsg_t *ConfigCmd = (const EVT_PLBK_ConfigCmdMsg_t *) MsgPtr;
-
+   const KIT_TO_CfgEvtLogPlbk_Payload_t *CfgEvtLogPlbk = CMDMGR_PAYLOAD_PTR(MsgPtr, KIT_TO_CfgEvtLogPlbk_t);
    bool  RetStatus = false;
 
-   EvtPlbk->HkCyclePeriod = ConfigCmd->HkCyclesPerPkt;
+   EvtPlbk->HkCyclePeriod = CfgEvtLogPlbk->HkCyclesPerPkt;
 
-   if (FileUtil_VerifyFilenameStr(ConfigCmd->EvsLogFilename))
+   if (FileUtil_VerifyFilenameStr(CfgEvtLogPlbk->EvsLogFilename))
    {
       
-      strncpy(EvtPlbk->EvsLogFilename, ConfigCmd->EvsLogFilename, CFE_MISSION_MAX_PATH_LEN);
+      strncpy(EvtPlbk->EvsLogFilename, CfgEvtLogPlbk->EvsLogFilename, CFE_MISSION_MAX_PATH_LEN);
    
       CFE_EVS_SendEvent(EVT_PLBK_CFG_CMD_EID, CFE_EVS_EventType_INFORMATION, 
                         "Config playback command accepted with log file %s and HK period %d",
-                        WriteEvsLogFileCmd.Payload.LogFilename, ConfigCmd->HkCyclesPerPkt);
+                        WriteEvsLogFileCmd.Payload.LogFilename, CfgEvtLogPlbk->HkCyclesPerPkt);
 
       RetStatus = true;
       
@@ -208,7 +207,7 @@ bool EVT_PLBK_ConfigCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 ** Remove log file if it exists because the playback logic checks to see if the
 ** log exists and don't want an old playback file confusing the logic. 
 */
-bool EVT_PLBK_StartCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
+bool EVT_PLBK_StartCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
    FileUtil_FileInfo_t FileInfo;

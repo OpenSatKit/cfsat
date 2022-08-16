@@ -66,102 +66,14 @@
 
 /******************************************************************************
 ** Command Packets
+** - See EDS command definitions in osk_c_demo.xml
 */
-
-typedef struct
-{
-
-   CFE_MSG_CommandHeader_t  CmdHeader;
-   uint16   RunLoopDelay;
-
-} KIT_TO_SetRunLoopDelayCmdMsg_t;
-#define KIT_TO_SET_RUN_LOOP_DELAY_CMD_DATA_LEN  (sizeof(KIT_TO_SetRunLoopDelayCmdMsg_t) - sizeof(CFE_MSG_CommandHeader_t))
-
-
-typedef struct
-{
-
-   CFE_MSG_CommandHeader_t  CmdHeader;
-   uint16                   FilterType;
-   PktUtil_FilterParam_t    FilterParam;
-
-}  KIT_TO_TestFilterCmdMsg_t;
-#define KIT_TO_TEST_FILTER_CMD_DATA_LEN  (sizeof(KIT_TO_TestFilterCmdMsg_t) - sizeof(CFE_MSG_CommandHeader_t))
 
 
 /******************************************************************************
-** Telemetry Packets
+** Telmetery Packets
+** - See EDS command definitions in osk_c_demo.xml
 */
-typedef struct
-{
-
-   CFE_MSG_TelemetryHeader_t TlmHeader;
-
-   /*
-   ** CMDMGR Data
-   */
-   uint16   ValidCmdCnt;
-   uint16   InvalidCmdCnt;
-
-
-   uint16   RunLoopDelay;
-
-   /*
-   ** PKTTBL Data
-   */
-
-   uint8    PktTblLastLoadStatus;
-   uint8    PktTblSpareAlignByte;
-   uint16   PktTblAttrErrCnt;
-
-   /*
-   ** PKTMGR Data
-   */
-
-   uint8    StatsValid;
-   uint8    PktMgrSpareAlignByte;
-   uint16   PktsPerSec;
-   uint32   BytesPerSec;
-   uint16   TlmSockId;
-   char     TlmDestIp[PKTMGR_IP_STR_LEN];
-   
-   /*
-   ** EVT_PLBK Data
-   */
-   
-   uint8    EvtPlbkEna;
-   uint8    EvtPlbkHkPeriod;
-   
-} KIT_TO_HkPkt_t;
-#define KIT_TO_TLM_HK_LEN sizeof (KIT_TO_HkPkt_t)
-
-
-
-typedef struct
-{
-
-   CFE_MSG_TelemetryHeader_t TlmHeader;
-   uint16             synch;
-#if 0
-   bit_field          bit1:1;
-   bit_field          bit2:1;
-   bit_field          bit34:2;
-   bit_field          bit56:2;
-   bit_field          bit78:2;
-
-   bit_field          nibble1:4;
-   bit_field          nibble2:4;
-#endif
-   uint8              bl1, bl2;       /* boolean */
-   int8               b1, b2, b3, b4;
-   int16              w1,w2;
-   int32              dw1, dw2;
-   float              f1, f2;
-   double             df1, df2;
-   char               str[10];
-
-} KIT_TO_DataTypePkt_t;
-#define KIT_TO_TLM_DATA_TYPE_LEN   sizeof (KIT_TO_DataTypePkt_t)
 
 
 /******************************************************************************
@@ -182,9 +94,9 @@ typedef struct
    /*
    ** Telemetry Packets
    */
-
-   KIT_TO_HkPkt_t        HkPkt;
-   KIT_TO_DataTypePkt_t  DataTypePkt;
+   
+   KIT_TO_HkTlm_t         HkTlm;
+   KIT_TO_DataTypesTlm_t  DataTypesTlm;
 
 
    /*
@@ -231,7 +143,7 @@ void KIT_TO_AppMain(void);
 **   1. Function signature must match the CMDMGR_CmdFuncPtr_t definition
 **
 */
-bool KIT_TO_NoOpCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
+bool KIT_TO_NoOpCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
@@ -241,7 +153,14 @@ bool KIT_TO_NoOpCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 **   1. Function signature must match the CMDMGR_CmdFuncPtr_t definition
 **
 */
-bool KIT_TO_ResetAppCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
+bool KIT_TO_ResetAppCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
+
+
+/******************************************************************************
+** Function: KIT_TO_SendDataTypesTlmCmd
+**
+*/
+bool KIT_TO_SendDataTypesTlmCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
@@ -251,13 +170,14 @@ bool KIT_TO_ResetAppCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 **   1. Function signature must match the CMDMGR_CmdFuncPtr_t definition
 **
 */
-bool KIT_TO_SetRunLoopDelayCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
+bool KIT_TO_SetRunLoopDelayCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
 ** Function: KIT_TO_TestFilterCmd
 **
 */
-bool KIT_TO_TestFilterCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
+bool KIT_TO_TestPktFilterCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
+
 
 #endif /* _kit_to_app_ */
