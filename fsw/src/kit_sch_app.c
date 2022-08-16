@@ -42,7 +42,7 @@
 */
 
 #include "kit_sch_app.h"
-
+#include "kit_sch_eds_cc.h"
 
 /***********************/
 /** Macro Definitions **/
@@ -61,7 +61,7 @@
 
 static int32 InitApp(void);
 static int32 ProcessCommands(void);
-static void  SendHousekeepingPkt(void);
+static void  SendHousekeepingTlm(void);
 
 
 /**********************/
@@ -138,7 +138,7 @@ void KIT_SCH_AppMain(void)
 ** Function: KIT_SCH_NoOpCmd
 **
 */
-bool KIT_SCH_NoOpCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
+bool KIT_SCH_NoOpCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
    CFE_EVS_SendEvent (KIT_SCH_APP_NOOP_EID, CFE_EVS_EventType_INFORMATION,
@@ -206,20 +206,21 @@ static int32 InitApp(void)
       CFE_SB_Subscribe(KitSch.SendHkMid, KitSch.CmdPipe);
 
       CMDMGR_Constructor(CMDMGR_OBJ);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, CMDMGR_NOOP_CMD_FC,  NULL, KIT_SCH_NoOpCmd,     0);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, CMDMGR_RESET_CMD_FC, NULL, KIT_SCH_ResetAppCmd, 0);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_SCH_NOOP_CC,     NULL,       KIT_SCH_NoOpCmd,     0);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_SCH_RESET_CC,    NULL,       KIT_SCH_ResetAppCmd, 0);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_SCH_LOAD_TBL_CC, TBLMGR_OBJ, TBLMGR_LoadTblCmd,   TBLMGR_LOAD_TBL_CMD_DATA_LEN);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_SCH_DUMP_TBL_CC, TBLMGR_OBJ, TBLMGR_DumpTblCmd,   TBLMGR_DUMP_TBL_CMD_DATA_LEN);
 
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_SCH_LOAD_TBL_CMD_FC,      TBLMGR_OBJ, TBLMGR_LoadTblCmd, TBLMGR_LOAD_TBL_CMD_DATA_LEN);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_SCH_DUMP_TBL_CMD_FC,      TBLMGR_OBJ, TBLMGR_DumpTblCmd, TBLMGR_DUMP_TBL_CMD_DATA_LEN);
-
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, SCHEDULER_CFG_SCH_TBL_ENTRY_CMD_FC,  SCHEDULER_OBJ, SCHEDULER_ConfigSchEntryCmd, SCHEDULER_CFG_SCH_ENTRY_CMD_DATA_LEN);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, SCHEDULER_LOAD_SCH_TBL_ENTRY_CMD_FC, SCHEDULER_OBJ, SCHEDULER_LoadSchEntryCmd,   SCHEDULER_LOAD_SCH_ENTRY_CMD_DATA_LEN);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, SCHEDULER_SEND_SCH_TBL_ENTRY_CMD_FC, SCHEDULER_OBJ, SCHEDULER_SendSchEntryCmd,   SCHEDULER_SEND_SCH_ENTRY_CMD_DATA_LEN);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, SCHEDULER_LOAD_MSG_TBL_ENTRY_CMD_FC, SCHEDULER_OBJ, SCHEDULER_LoadMsgEntryCmd,   SCHEDULER_LOAD_MSG_ENTRY_CMD_DATA_LEN);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, SCHEDULER_SEND_MSG_TBL_ENTRY_CMD_FC, SCHEDULER_OBJ, SCHEDULER_SendMsgEntryCmd,   SCHEDULER_SEND_MSG_ENTRY_CMD_DATA_LEN);
-      CMDMGR_RegisterFunc(CMDMGR_OBJ, SCHEDULER_SEND_DIAG_TLM_CMD_FC,      SCHEDULER_OBJ, SCHEDULER_SendDiagTlmCmd,    SCHEDULER_SEND_DIAG_TLM_CMD_DATA_LEN);
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_SCH_LOAD_MSG_TBL_ENTRY_CC, SCHEDULER_OBJ, SCHEDULER_LoadMsgTblEntryCmd, sizeof(KIT_SCH_LoadMsgTblEntry_Payload_t));
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_SCH_SEND_MSG_TBL_ENTRY_CC, SCHEDULER_OBJ, SCHEDULER_SendMsgTblEntryCmd, sizeof(KIT_SCH_SendMsgTblEntry_Payload_t));
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_SCH_CFG_SCH_TBL_ENTRY_CC,  SCHEDULER_OBJ, SCHEDULER_CfgSchTblEntryCmd,  sizeof(KIT_SCH_CfgSchTblEntry_Payload_t));
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_SCH_LOAD_SCH_TBL_ENTRY_CC, SCHEDULER_OBJ, SCHEDULER_LoadSchTblEntryCmd, sizeof(KIT_SCH_LoadSchTblEntry_Payload_t));
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_SCH_SEND_SCH_TBL_ENTRY_CC, SCHEDULER_OBJ, SCHEDULER_SendSchTblEntryCmd, sizeof(KIT_SCH_SendSchTblEntry_Payload_t));
+      CMDMGR_RegisterFunc(CMDMGR_OBJ, KIT_SCH_SEND_DIAG_TLM_CC,      SCHEDULER_OBJ, SCHEDULER_SendDiagTlmCmd,     sizeof(KIT_SCH_SendDiagTlm_Payload_t));
     
-      CFE_MSG_Init(CFE_MSG_PTR(KitSch.HkPkt.TlmHeader), CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_KIT_SCH_HK_TLM_TOPICID)), KIT_SCH_HK_TLM_LEN);
+      CFE_MSG_Init(CFE_MSG_PTR(KitSch.HkTlm.TelemetryHeader),
+                   CFE_SB_ValueToMsgId(INITBL_GetIntConfig(INITBL_OBJ, CFG_KIT_SCH_HK_TLM_TOPICID)),
+                   sizeof(KIT_SCH_HkTlm_t));
 
       CFE_EVS_SendEvent(KIT_SCH_INIT_DEBUG_EID, KIT_SCH_INIT_EVS_TYPE,"KIT_SCH_InitApp() Before TBLMGR calls");
       TBLMGR_Constructor(TBLMGR_OBJ);
@@ -250,7 +251,7 @@ static int32 ProcessCommands(void)
    int32  RetStatus = CFE_ES_RunStatus_APP_RUN;
    int32  SysStatus;
 
-   CFE_SB_Buffer_t* SbBufPtr;
+   CFE_SB_Buffer_t  *SbBufPtr;
    CFE_SB_MsgId_t   MsgId = CFE_SB_INVALID_MSG_ID;
 
    SysStatus = CFE_SB_ReceiveBuffer(&SbBufPtr, KitSch.CmdPipe, CFE_SB_POLL);
@@ -268,7 +269,7 @@ static int32 ProcessCommands(void)
          } 
          else if (CFE_SB_MsgId_Equal(MsgId, KitSch.SendHkMid))
          {   
-            SendHousekeepingPkt();
+            SendHousekeepingTlm();
          }
          else
          {   
@@ -291,28 +292,30 @@ static int32 ProcessCommands(void)
 
 
 /******************************************************************************
-** Function: SendHousekeepingPkt
+** Function: SendHousekeepingTlm
 **
 */
-static void SendHousekeepingPkt(void)
+static void SendHousekeepingTlm(void)
 {
+
+   KIT_SCH_HkTlm_Payload_t *Payload = &KitSch.HkTlm.Payload;
 
    /*
    ** KIT_SCH Data
    */
 
-   KitSch.HkPkt.ValidCmdCnt   = KitSch.CmdMgr.ValidCmdCnt;
-   KitSch.HkPkt.InvalidCmdCnt = KitSch.CmdMgr.InvalidCmdCnt;
+   Payload->ValidCmdCnt   = KitSch.CmdMgr.ValidCmdCnt;
+   Payload->InvalidCmdCnt = KitSch.CmdMgr.InvalidCmdCnt;
 
    /*
    ** TBLMGR Data
    */
 
-   KitSch.HkPkt.MsgTblLastLoadStatus = KitSch.Scheduler.MsgTbl.LastLoadStatus;
-   KitSch.HkPkt.MsgTblAttrErrCnt     = KitSch.Scheduler.MsgTbl.LastLoadCnt;
+   Payload->MsgTblLoadStatus = KitSch.Scheduler.MsgTbl.LastLoadStatus;
+   Payload->MsgTblAttrErrs   = KitSch.Scheduler.MsgTbl.LastLoadCnt;
    
-   KitSch.HkPkt.SchTblLastLoadStatus = KitSch.Scheduler.SchTbl.LastLoadStatus;
-   KitSch.HkPkt.SchTblAttrErrCnt     = KitSch.Scheduler.SchTbl.LastLoadCnt;
+   Payload->SchTblLoadStatus = KitSch.Scheduler.SchTbl.LastLoadStatus;
+   Payload->SchTblAttrErrs   = KitSch.Scheduler.SchTbl.LastLoadCnt;
 
    /*
    ** Scheduler Data
@@ -320,24 +323,24 @@ static void SendHousekeepingPkt(void)
    ** - These have been rearranged to align data words
    */
 
-   KitSch.HkPkt.SlotsProcessedCount          = KitSch.Scheduler.SlotsProcessedCount;
-   KitSch.HkPkt.ScheduleActivitySuccessCount = KitSch.Scheduler.ScheduleActivitySuccessCount;
-   KitSch.HkPkt.ScheduleActivityFailureCount = KitSch.Scheduler.ScheduleActivityFailureCount;
-   KitSch.HkPkt.ValidMajorFrameCount         = KitSch.Scheduler.ValidMajorFrameCount;
-   KitSch.HkPkt.MissedMajorFrameCount        = KitSch.Scheduler.MissedMajorFrameCount;
-   KitSch.HkPkt.UnexpectedMajorFrameCount    = KitSch.Scheduler.UnexpectedMajorFrameCount;
-   KitSch.HkPkt.TablePassCount               = KitSch.Scheduler.TablePassCount;
-   KitSch.HkPkt.ConsecutiveNoisyFrameCounter = KitSch.Scheduler.ConsecutiveNoisyFrameCounter;
-   KitSch.HkPkt.SkippedSlotsCount            = KitSch.Scheduler.SkippedSlotsCount;
-   KitSch.HkPkt.MultipleSlotsCount           = KitSch.Scheduler.MultipleSlotsCount;
-   KitSch.HkPkt.SameSlotCount                = KitSch.Scheduler.SameSlotCount;
-   KitSch.HkPkt.SyncAttemptsLeft             = KitSch.Scheduler.SyncAttemptsLeft;
-   KitSch.HkPkt.LastSyncMETSlot              = KitSch.Scheduler.LastSyncMETSlot;
-   KitSch.HkPkt.IgnoreMajorFrame             = KitSch.Scheduler.IgnoreMajorFrame;
-   KitSch.HkPkt.UnexpectedMajorFrame         = KitSch.Scheduler.UnexpectedMajorFrame;
+   Payload->SlotsProcessedCount          = KitSch.Scheduler.SlotsProcessedCount;
+   Payload->ScheduleActivitySuccessCount = KitSch.Scheduler.ScheduleActivitySuccessCount;
+   Payload->ScheduleActivityFailureCount = KitSch.Scheduler.ScheduleActivityFailureCount;
+   Payload->ValidMajorFrameCount         = KitSch.Scheduler.ValidMajorFrameCount;
+   Payload->MissedMajorFrameCount        = KitSch.Scheduler.MissedMajorFrameCount;
+   Payload->UnexpectedMajorFrameCount    = KitSch.Scheduler.UnexpectedMajorFrameCount;
+   Payload->TablePassCount               = KitSch.Scheduler.TablePassCount;
+   Payload->ConsecutiveNoisyFrameCounter = KitSch.Scheduler.ConsecutiveNoisyFrameCounter;
+   Payload->SkippedSlotsCount            = KitSch.Scheduler.SkippedSlotsCount;
+   Payload->MultipleSlotsCount           = KitSch.Scheduler.MultipleSlotsCount;
+   Payload->SameSlotCount                = KitSch.Scheduler.SameSlotCount;
+   Payload->SyncAttemptsLeft             = KitSch.Scheduler.SyncAttemptsLeft;
+   Payload->LastSyncMETSlot              = KitSch.Scheduler.LastSyncMETSlot;
+   Payload->IgnoreMajorFrame             = KitSch.Scheduler.IgnoreMajorFrame;
+   Payload->UnexpectedMajorFrame         = KitSch.Scheduler.UnexpectedMajorFrame;
 
-   CFE_SB_TimeStampMsg(CFE_MSG_PTR(KitSch.HkPkt.TlmHeader));
-   CFE_SB_TransmitMsg(CFE_MSG_PTR(KitSch.HkPkt.TlmHeader), true);
+   CFE_SB_TimeStampMsg(CFE_MSG_PTR(KitSch.HkTlm.TelemetryHeader));
+   CFE_SB_TransmitMsg(CFE_MSG_PTR(KitSch.HkTlm.TelemetryHeader), true);
 
-} /* End SendHousekeepingPkt() */
+} /* End SendHousekeepingTlm() */
 

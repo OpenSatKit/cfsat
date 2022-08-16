@@ -35,8 +35,9 @@
 ** Includes
 */
 
-#include "kit_sch_platform_cfg.h"
 #include "osk_c_fw.h"
+#include "kit_sch_platform_cfg.h"
+#include "kit_sch_eds_typedefs.h"
 
 /******************************************************************************
 ** Versions
@@ -99,20 +100,6 @@
    XX(STARTUP_SYNC_TIMEOUT,uint32) \
    
 DECLARE_ENUM(Config,APP_CONFIG)
-
-
-/******************************************************************************
-** Command Macros
-*/
-
-#define KIT_SCH_LOAD_TBL_CMD_FC             (CMDMGR_APP_START_FC + 0)
-#define KIT_SCH_DUMP_TBL_CMD_FC             (CMDMGR_APP_START_FC + 1)
-#define SCHEDULER_CFG_SCH_TBL_ENTRY_CMD_FC  (CMDMGR_APP_START_FC + 2)
-#define SCHEDULER_LOAD_SCH_TBL_ENTRY_CMD_FC (CMDMGR_APP_START_FC + 3)
-#define SCHEDULER_SEND_SCH_TBL_ENTRY_CMD_FC (CMDMGR_APP_START_FC + 4)
-#define SCHEDULER_LOAD_MSG_TBL_ENTRY_CMD_FC (CMDMGR_APP_START_FC + 5)
-#define SCHEDULER_SEND_MSG_TBL_ENTRY_CMD_FC (CMDMGR_APP_START_FC + 6)
-#define SCHEDULER_SEND_DIAG_TLM_CMD_FC      (CMDMGR_APP_START_FC + 7)
 
 
 /******************************************************************************

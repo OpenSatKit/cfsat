@@ -58,58 +58,14 @@
 
 /******************************************************************************
 ** Command Packets
+** - See EDS command definitions in osk_c_demo.xml
 */
 
 
 /******************************************************************************
-** Telemetry Packets
+** Telmetery Packets
+** - See EDS command definitions in osk_c_demo.xml
 */
-
-typedef struct
-{
-
-   CFE_MSG_TelemetryHeader_t TlmHeader;
-
-   /*
-   ** CMDMGR Data
-   */
-   uint16   ValidCmdCnt;
-   uint16   InvalidCmdCnt;
-
-   /*
-   ** TBLMGR Data
-   */
-
-   uint8    MsgTblLastLoadStatus;
-   uint8    SchTblLastLoadStatus;
-
-   uint16   MsgTblAttrErrCnt;
-   uint16   SchTblAttrErrCnt;
-
-   /*
-   ** SCHTBL Data
-   ** - At a minimum every sch-tbl variable effected by a reset must be included
-   ** - These have been rearranged to align data words
-   */
-
-   uint32  SlotsProcessedCount;
-   uint32  ScheduleActivitySuccessCount;
-   uint32  ScheduleActivityFailureCount;
-   uint32  ValidMajorFrameCount;
-   uint32  MissedMajorFrameCount;
-   uint32  UnexpectedMajorFrameCount;
-   uint32  TablePassCount;
-   uint32  ConsecutiveNoisyFrameCounter;
-   uint16  SkippedSlotsCount;
-   uint16  MultipleSlotsCount;
-   uint16  SameSlotCount;
-   uint16  SyncAttemptsLeft;
-   uint16  LastSyncMETSlot;
-   bool    IgnoreMajorFrame;
-   bool    UnexpectedMajorFrame;
-
-} KIT_SCH_HkPkt_t;
-#define KIT_SCH_HK_TLM_LEN sizeof (KIT_SCH_HkPkt_t)
 
 
 /******************************************************************************
@@ -132,7 +88,7 @@ typedef struct
    ** Telemetry Packets
    */
    
-   KIT_SCH_HkPkt_t  HkPkt;
+   KIT_SCH_HkTlm_t  HkTlm;
 
 
    /*

@@ -143,128 +143,19 @@
 /** Type Definitions **/
 /**********************/
 
+
 /******************************************************************************
 ** Command Packets
+** - See EDS command definitions in osk_c_demo.xml
 */
-
-typedef struct
-{
-   
-   CFE_MSG_CommandHeader_t  CmdHeader;
-   uint16  Slot;
-   uint16  Activity;
-   bool    Enabled;   /* 0=FALSE(Disabled), 1=TRUE(Enabled) */
-
-} SCHEDULER_ConfigSchEntryCmdMsg_t;
-#define SCHEDULER_CFG_SCH_ENTRY_CMD_DATA_LEN  (sizeof(SCHEDULER_ConfigSchEntryCmdMsg_t) - sizeof(CFE_MSG_CommandHeader_t))
-
-typedef struct
-{
-   
-   CFE_MSG_CommandHeader_t  CmdHeader;
-   uint16  Slot;
-   uint16  Activity;
-   uint16  Enabled;    /* 0=FALSE(Disabled), 1=TRUE(Enabled) */
-   uint16  Period;
-   uint16  Offset;
-   uint16  MsgTblIndex;
-
-} SCHEDULER_LoadSchEntryCmdMsg_t;
-#define SCHEDULER_LOAD_SCH_ENTRY_CMD_DATA_LEN  (sizeof(SCHEDULER_LoadSchEntryCmdMsg_t) - sizeof(CFE_MSG_CommandHeader_t))
-
-
-typedef struct
-{
-   
-   CFE_MSG_CommandHeader_t  CmdHeader;
-   uint16   Slot;
-   uint16   Activity;
-
-} SCHEDULER_SendSchEntryCmdMsg_t;
-#define SCHEDULER_SEND_SCH_ENTRY_CMD_DATA_LEN  (sizeof(SCHEDULER_SendSchEntryCmdMsg_t) - sizeof(CFE_MSG_CommandHeader_t))
-
-
-typedef struct
-{
-   
-   CFE_MSG_CommandHeader_t  CmdHeader;
-   uint16   Index;
-   uint16   MsgId;
-
-} SCHEDULER_LoadMsgEntryCmdMsg_t;
-#define SCHEDULER_LOAD_MSG_ENTRY_CMD_DATA_LEN  (sizeof(SCHEDULER_LoadMsgEntryCmdMsg_t) - sizeof(CFE_MSG_CommandHeader_t))
-
-
-typedef struct
-{
-   
-   CFE_MSG_CommandHeader_t  CmdHeader;
-   uint16   Index;
-
-} SCHEDULER_SendMsgEntryCmdMsg_t;
-#define SCHEDULER_SEND_MSG_ENTRY_CMD_DATA_LEN (sizeof(SCHEDULER_SendMsgEntryCmdMsg_t) - sizeof(CFE_MSG_CommandHeader_t))
-
-
-
-typedef struct
-{
-   
-   CFE_MSG_CommandHeader_t  CmdHeader;
-   uint16   Slot;
-
-} SCHEDULER_SendDiagTlmCmdMsg_t;
-#define SCHEDULER_SEND_DIAG_TLM_CMD_DATA_LEN  (sizeof(SCHEDULER_SendDiagTlmCmdMsg_t) - sizeof(CFE_MSG_CommandHeader_t))
 
 
 /******************************************************************************
-** Telemetry Packets
+** Telmetery Packets
+** - See EDS command definitions in osk_c_demo.xml
+** - See SCHEDULER_SendSchEntryCmd() and SCHEDULER_SendMsgEntryCmd() prologues
+**   for how the KIT_SCH_TblEntryTlm packet is created for each command.
 */
-
-/*
-** See SCHEDULER_SendSchEntryCmd() and SCHEDULER_SendMsgEntryCmd() prologues
-** for how this packet is created for each command.
-*/
-typedef struct
-{
-
-   CFE_MSG_TelemetryHeader_t TlmHeader;
-   uint8  Slot;
-   uint8  Activity;
-   
-   SCHTBL_Entry_t   SchTblEntry;
-   MSGTBL_Entry_t   MsgTblEntry;
-
-} SCHEDULER_TblEntryPkt_t;
-#define SCHEDULER_TBL_ENTRY_TLM_LEN sizeof (SCHEDULER_TblEntryPkt_t)
-
-
-typedef struct
-{
-
-   CFE_MSG_TelemetryHeader_t TlmHeader;
-
-   /*
-   ** Scheduler processing data not in HK
-   */
-   
-   uint32  LastProcessCount;
-   uint32  TimerId;
-   uint32  TimeSemaphore;
-   uint32  ClockAccuracy;
-   uint32  WorstCaseSlotsPerMinorFrame;
-   uint8   IgnoreMajorFrame;
-   uint8   SyncToMET;
-   uint8   MajorFrameSource;
-   uint8   Spare;
-   
-   /*
-   ** Send all the activities for the command-specified slot
-   */
-   
-   SCHTBL_Entry_t SchTblSlot[SCHTBL_ACTIVITIES_PER_SLOT];
-
-} SCHEDULER_DiagPkt_t;
-#define SCHEDULER_DIAG_TLM_LEN sizeof (SCHEDULER_DiagPkt_t)
 
 
 /******************************************************************************
@@ -278,8 +169,8 @@ typedef struct
    ** Telemetry Packets
    */
    
-   SCHEDULER_TblEntryPkt_t TblEntryPkt;
-   SCHEDULER_DiagPkt_t     DiagPkt;
+   KIT_SCH_TblEntryTlm_t TblEntryTlm;
+   KIT_SCH_DiagTlm_t     DiagTlm;
 
    /*
    ** Scheduler State
@@ -349,6 +240,25 @@ void SCHEDULER_Constructor(SCHEDULER_Class_t* ObjPtr, const INITBL_Class_t* IniT
 
 
 /******************************************************************************
+** Function: SCHEDULER_CfgSchTblEntryCmd
+**
+** Notes:
+**   1. Function signature must match the CMDMGR_CmdFuncPtr_t definition
+**
+*/
+bool SCHEDULER_CfgSchTblEntryCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
+
+
+/******************************************************************************
+** Function: SCHEDULER_Execute
+**
+** Execute the scheduler to process schduler table and dispatch messages.
+**
+*/
+bool SCHEDULER_Execute(void);
+
+
+/******************************************************************************
 ** Function: SCHEDULER_ResetStatus
 **
 ** Reset counters and status flags to a known reset state.  The behavior of the scheduler
@@ -362,15 +272,6 @@ void SCHEDULER_ResetStatus(void);
 
 
 /******************************************************************************
-** Function: SCHEDULER_Execute
-**
-** Execute the scheduler to process schduler table and dispatch messages.
-**
-*/
-bool SCHEDULER_Execute(void);
-
-
-/******************************************************************************
 ** Function: SCHEDULER_StartTimers
 **
 */
@@ -378,27 +279,37 @@ int32 SCHEDULER_StartTimers(void);
 
 
 /******************************************************************************
-** Function: SCHEDULER_ConfigSchEntryCmd
+** Function: SCHEDULER_LoadMsgTblEntryCmd
 **
 ** Notes:
 **   1. Function signature must match the CMDMGR_CmdFuncPtr_t definition
 **
 */
-bool SCHEDULER_ConfigSchEntryCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
+bool SCHEDULER_LoadMsgTblEntryCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
-** Function: SCHEDULER_LoadSchEntryCmd
+** Function: SCHEDULER_LoadSchTblEntryCmd
 **
 ** Notes:
 **   1. Function signature must match the CMDMGR_CmdFuncPtr_t definition
 **
 */
-bool SCHEDULER_LoadSchEntryCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
+bool SCHEDULER_LoadSchTblEntryCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
-** Function: SCHEDULER_SendSchEntryCmd
+** Function: SCHEDULER_SendDiagTlmCmd
+**
+** Notes:
+**   1. Function signature must match the CMDMGR_CmdFuncPtr_t definition
+**
+*/
+bool SCHEDULER_SendDiagTlmCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
+
+
+/******************************************************************************
+** Function: SCHEDULER_SendSchTblEntryCmd
 **
 ** Sends an informational event message containing the scheduler table entry 
 ** for the command-specified (slot,activity). It also sends a telemetry packet
@@ -409,21 +320,11 @@ bool SCHEDULER_LoadSchEntryCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr
 **   1. Function signature must match the CMDMGR_CmdFuncPtr_t definition
 **
 */
-bool SCHEDULER_SendSchEntryCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
+bool SCHEDULER_SendSchTblEntryCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
-** Function: SCHEDULER_LoadMsgEntryCmd
-**
-** Notes:
-**   1. Function signature must match the CMDMGR_CmdFuncPtr_t definition
-**
-*/
-bool SCHEDULER_LoadMsgEntryCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
-
-
-/******************************************************************************
-** Function: SCHEDULER_SendMsgEntryCmd
+** Function: SCHEDULER_SendMsgTblEntryCmd
 **
 ** Sends an informational event message containing the message table entry 
 ** for the command-specified index. It also sends a telemetry packet
@@ -434,17 +335,7 @@ bool SCHEDULER_LoadMsgEntryCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr
 **   1. Function signature must match the CMDMGR_CmdFuncPtr_t definition
 **
 */
-bool SCHEDULER_SendMsgEntryCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
-
-
-/******************************************************************************
-** Function: SCHEDULER_SendDiagTlmCmd
-**
-** Notes:
-**   1. Function signature must match the CMDMGR_CmdFuncPtr_t definition
-**
-*/
-bool SCHEDULER_SendDiagTlmCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
+bool SCHEDULER_SendMsgTblEntryCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 #endif /* _scheduler_ */
