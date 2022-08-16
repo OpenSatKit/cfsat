@@ -238,6 +238,7 @@
               <GenericTypeMap name="TelemetryDataType" type="StatusTlm" />
             </GenericTypeMapSet>
           </Interface>
+          
           <Interface name="BIN_PLAYBK_TLM" shortDescription="Histogram bin playback telemetry interface" type="CFE_SB/Telemetry">
             <GenericTypeMapSet>
               <GenericTypeMap name="TelemetryDataType" type="BinPlaybkTlm" />
