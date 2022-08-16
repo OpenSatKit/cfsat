@@ -35,22 +35,6 @@
       <!--**** DataTypeSet:  Entry Types ****-->
       <!--***********************************-->
     
-      <EnumeratedDataType name="BooleanUint8" shortDescription="8-bit Boolean for commands" >
-        <IntegerDataEncoding sizeInBits="8" encoding="unsigned" />
-        <EnumerationList>
-          <Enumeration label="FALSE" value="0" shortDescription="" />
-          <Enumeration label="TRUE"  value="1" shortDescription="" />
-        </EnumerationList>
-      </EnumeratedDataType>
-
-      <EnumeratedDataType name="BooleanUint16" shortDescription="8-bit Boolean for commands" >
-        <IntegerDataEncoding sizeInBits="16" encoding="unsigned" />
-        <EnumerationList>
-          <Enumeration label="FALSE" value="0" shortDescription="" />
-          <Enumeration label="TRUE"  value="1" shortDescription="" />
-        </EnumerationList>
-      </EnumeratedDataType>
-
       <EnumeratedDataType name="CrcUint8" shortDescription="8-bit CRC algorithm selection" >
         <IntegerDataEncoding sizeInBits="8" encoding="unsigned" />
         <EnumerationList>
@@ -58,7 +42,7 @@
         </EnumerationList>
       </EnumeratedDataType>
 
-      <EnumeratedDataType name="FileSysTblEntryState" shortDescription="8-bit Boolean for commands" >
+      <EnumeratedDataType name="FileSysTblEntryState" shortDescription="" >
         <IntegerDataEncoding sizeInBits="16" encoding="unsigned" />
         <EnumerationList>
           <Enumeration label="DISABLE" value="0" shortDescription="" />
@@ -93,24 +77,24 @@
 
       <ContainerDataType name="SendDirListTlm_Payload">
         <EntryList>
-          <Entry name="DirName"         type="BASE_TYPES/PathName" shortDescription="path/filename of directory to delete all of its files" />
-          <Entry name="DirListOffset"   type="BASE_TYPES/uint16"   shortDescription="Offset into alphabetical listing" />
-          <Entry name="IncludeSizeTime" type="BooleanUint16"       shortDescription="True: Include file sizes and times" />
+          <Entry name="DirName"         type="BASE_TYPES/PathName"    shortDescription="path/filename of directory to delete all of its files" />
+          <Entry name="DirListOffset"   type="BASE_TYPES/uint16"      shortDescription="Offset into alphabetical listing" />
+          <Entry name="IncludeSizeTime" type="OSK_C_FW/BooleanUint16" shortDescription="True: Include file sizes and times" />
         </EntryList>
       </ContainerDataType>
 
       <ContainerDataType name="SendDirTlm_Payload">
         <EntryList>
-          <Entry name="DirName"         type="BASE_TYPES/PathName" shortDescription="path/filename of directory to delete all of its files" />
-          <Entry name="IncludeSizeTime" type="BooleanUint16"       shortDescription="True: Include file sizes and times" />
+          <Entry name="DirName"         type="BASE_TYPES/PathName"    shortDescription="path/filename of directory to delete all of its files" />
+          <Entry name="IncludeSizeTime" type="OSK_C_FW/BooleanUint16" shortDescription="True: Include file sizes and times" />
         </EntryList>
       </ContainerDataType>
 
       <ContainerDataType name="WriteDirListFile_Payload">
         <EntryList>
-          <Entry name="DirName"         type="BASE_TYPES/PathName" shortDescription="path/filename of directory to delete all of its files" />
-          <Entry name="Filename"        type="BASE_TYPES/PathName" shortDescription="path/filename of file to contain the directory listing" />
-          <Entry name="IncludeSizeTime" type="BooleanUint16"       shortDescription="True: Include file sizes and times" />
+          <Entry name="DirName"         type="BASE_TYPES/PathName"    shortDescription="path/filename of directory to delete all of its files" />
+          <Entry name="Filename"        type="BASE_TYPES/PathName"    shortDescription="path/filename of file to contain the directory listing" />
+          <Entry name="IncludeSizeTime" type="OSK_C_FW/BooleanUint16" shortDescription="True: Include file sizes and times" />
         </EntryList>
       </ContainerDataType>
 
@@ -162,9 +146,9 @@
 
       <ContainerDataType name="SendFileInfoTlm_Payload">
         <EntryList>
-          <Entry name="Filename"   type="BASE_TYPES/PathName" shortDescription="path/filename of file to send info for" />
-          <Entry name="ComputeCrc" type="BooleanUint8"        shortDescription="True: Compute CRC, FALSE: Do not compute CRC" />
-          <Entry name="CrcType"    type="CrcUint8"            shortDescription="Select which type of CRC algorithm to use" />
+          <Entry name="Filename"   type="BASE_TYPES/PathName"   shortDescription="path/filename of file to send info for" />
+          <Entry name="ComputeCrc" type="OSK_C_FW/BooleanUint8" shortDescription="True: Compute CRC, FALSE: Do not compute CRC" />
+          <Entry name="CrcType"    type="CrcUint8"              shortDescription="Select which type of CRC algorithm to use" />
         </EntryList>
       </ContainerDataType>
 
