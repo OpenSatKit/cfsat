@@ -224,7 +224,7 @@
                "name":    "MQTT_GW_SEND_HK_TOPICID",
                "descr":   "",
                "index":   2,
-               "enabled": "false",
+               "enabled": "true",
                "period":  4,
                "offset":  3,
                "msg-idx": 32

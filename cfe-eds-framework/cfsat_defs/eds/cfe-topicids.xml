@@ -177,7 +177,7 @@
     <Define name="KIT_SCH_DIAG_TLM_TOPICID"          value="${CFE_MISSION/TELEMETRY_BASE_TOPICID} + 26"  />
     <Define name="KIT_SCH_TBL_ENTRY_TLM_TOPICID"     value="${CFE_MISSION/TELEMETRY_BASE_TOPICID} + 27"  />
     <Define name="KIT_TO_HK_TLM_TOPICID"             value="${CFE_MISSION/TELEMETRY_BASE_TOPICID} + 28"  />
-    <Define name="KIT_TO_DATA_TYPES_TOPICID"         value="${CFE_MISSION/TELEMETRY_BASE_TOPICID} + 29"  />
+    <Define name="KIT_TO_DATA_TYPES_TLM_TOPICID"     value="${CFE_MISSION/TELEMETRY_BASE_TOPICID} + 29"  />
     <Define name="KIT_TO_PKT_TBL_TLM_TOPICID"        value="${CFE_MISSION/TELEMETRY_BASE_TOPICID} + 30"  />
     <Define name="KIT_TO_EVT_PLBK_TLM_TOPICID"       value="${CFE_MISSION/TELEMETRY_BASE_TOPICID} + 31"  />
 

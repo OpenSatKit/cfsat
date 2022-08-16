@@ -886,9 +886,12 @@ class ManageCfs():
                     for table in os.listdir(app_table_path):
                         src_table = table.replace(DEFAULT_TARGET_NAME+'_','')
                         if src_table in table_list:
-                            src = os.path.join(app_table_path, src_table)
+                            src = os.path.join(app_table_path, table)
                         print("##src: " + src)
-                        dst_table = self.cfs_target + '_' + table                                
+                        if target_equals_default:
+                            dst_table = table
+                        else:
+                            dst_table = self.cfs_target + '_' + src_table
                         dst = os.path.join(self.cfs_abs_defs_path, dst_table)
                         print("##dst: " + dst)
                         shutil.copyfile(src, dst)
