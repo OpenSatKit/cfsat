@@ -73,7 +73,7 @@ class TelecommandInterface(CfeEdsTarget):
 
         self.cmd_router_queue = cmd_router_queue
 
-        # command_topic contains the toic name used to generate the current command_dict
+        # command_topic contains the topic name used to generate the current command_dict
         self.command_topic = EdsMission.TOPIC_CMD_TITLE_KEY
         self.command_dict  = {EdsMission.COMMAND_TITLE_KEY: EdsMission.NULL_ID}
         self.command_list  = [EdsMission.COMMAND_TITLE_KEY]

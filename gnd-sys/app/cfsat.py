@@ -1097,6 +1097,9 @@ class App():
         self.tlm_gui_clients = {}
         self.tlm_gui_threads = {}
         self.window = None
+        
+        self.cfe_apps = ['CFE_ES', 'CFE_EVS', 'CFE_SB', 'CFE_TBL', 'CFE_TIME']
+        self.app_list = []  # Non-cFE apps
                 
         self.manage_tutorials = ManageTutorials(self.config.get('PATHS', 'TUTORIALS_PATH'))
         self.create_app       = CreateApp(self.config.get('PATHS', 'APP_TEMPLATES_PATH'),
@@ -1124,7 +1127,6 @@ class App():
         (cmd_sent, cmd_text, cmd_status) = self.telecommand_script.send_cfs_cmd(app_name, cmd_name, cmd_payload)
         self.display_event(cmd_status)
         
-
     def enable_telemetry(self):
         """
         The use must enable telemetry every time the cFS is started and most if not all uers want
@@ -1163,6 +1165,29 @@ class App():
         self.window.close()
         logger.info("Completed app shutdown sequence")
 
+    def cmd_topic_list(self):
+        cmd_topics = []
+        cmd_topic_list = list(self.telecommand_gui.get_topics().keys())
+        all_cmd_topics = self.config.getboolean('GUI','CMD_TOPICS_ALL')
+        for topic in cmd_topic_list:
+            if 'Application/CMD' in topic:
+                cmd_topics.append(topic)
+            else:
+                if all_cmd_topics:
+                    cmd_topics.append(topic)            
+        logger.debug("cmd_topics = " + str(cmd_topics))
+        return cmd_topics
+        
+    def create_app_list(self, cmd_topics):
+        """
+        Populates self.app_list with the app names defined in cmd_topics. Assumes the app name 
+         
+        """
+        for topic in cmd_topics:
+            app_name = topic.split('/')[0]
+            if app_name not in self.cfe_apps and app_name not in self.app_list:
+                self.app_list.append(app_name)
+
     def create_window(self, sys_target_str, sys_comm_str):
         """
         Create the main window. Non-class variables are used so it can be refreshed, PySimpleGui
@@ -1179,7 +1204,7 @@ class App():
                        ['Tutorials', self.manage_tutorials.tutorial_titles]
                    ]
 
-        self.cfs_config_cmds = ['-- cFS Configuration--', 'Enable Telemetry', 'cFE Version', 'Reset Time', 'Configure Events', 'Ena/Dis Flywheel']
+        self.cfs_config_cmds = ['-- cFS Configuration--', 'Enable Telemetry', 'cFE Version', 'Reset Time', 'Configure Events', 'Ena/Dis Flywheel', 'Reset App']
 
 
         # Events can't be posted until after first window.read() so initialization string is format here and used as the default string
@@ -1187,21 +1212,11 @@ class App():
         self.update_event_history_str(sys_target_str)
         self.update_event_history_str(sys_comm_str)
             
-        cmd_topics = []
-        cmd_topic_list = list(self.telecommand_gui.get_topics().keys())
-        all_cmd_topics = self.config.getboolean('GUI','CMD_TOPICS_ALL')
-        for topic in cmd_topic_list:
-            if 'Application/CMD' in topic:
-                cmd_topics.append(topic)
-            else:
-                if all_cmd_topics:
-                    cmd_topics.append(topic)
-            
-        logger.debug("cmd_topics = " + str(cmd_topics))
-
+        cmd_topics = self.cmd_topic_list()
         tlm_topics = list(self.tlm_server.get_topics().keys())
         logger.debug("tlm_topics = " + str(tlm_topics))
-            
+        self.create_app_list(cmd_topics)
+        
         pri_hdr_font = ('Arial bold',14)
         sec_hdr_font = ('Arial',12)
         log_font = ('Courier',12)
@@ -1489,13 +1504,13 @@ class App():
                     self.send_cfs_cmd('CFE_TIME', 'SetTimeCmd', {'Seconds': 0,'MicroSeconds': 0 })
             
                 elif cfs_config_cmd == self.cfs_config_cmds[4]: # Configure Events
-                
-                    app_list = ['CFE_ES', 'CFE_EVS', 'CFE_SB', 'CFE_TBL', 'CFE_TIME'] #todo: dynamically create list using topics. Add method to base class
-                
+                    app_list = self.cfe_apps + self.app_list
                     pop_win = sg.Window('Configure App Events',
-                                        [[sg.Text("Select App"), sg.Combo((app_list), size=(20,1), key='-APP_NAME-', default_value=app_list[0])],
+                                        [[sg.Text("")],
+                                         [sg.Text("Select App"), sg.Combo((app_list), size=(20,1), key='-APP_NAME-', default_value=app_list[0])],
                                          [sg.Checkbox('Debug', key='-DEBUG-', default=False), sg.Checkbox('Information', key='-INFO-', default=True),
                                           sg.Checkbox('Error', key='-ERROR-', default=True),  sg.Checkbox('Critical', key='-CRITICAL-', default=True)], 
+                                         [sg.Text("")],
                                          [sg.Button('Enable', button_color=('green'), enable_events=True, key='-ENABLE-', pad=(10,1)),
                                           sg.Button('Disable', button_color=('red'), enable_events=True, key='-DISABLE-', pad=(10,1)), 
                                           sg.Cancel(button_color=('gray'))]])
@@ -1540,6 +1555,23 @@ class App():
                         self.disable_flywheel_event()
 
                     pop_win.close()
+
+                elif cfs_config_cmd == self.cfs_config_cmds[6]: # Reset App
+
+                    pop_win = sg.Window('Reset Application',
+                                        [[sg.Text("")],
+                                         [sg.Text("Select App"), sg.Combo((self.app_list), size=(20,1), key='-APP_NAME-', default_value=self.app_list[0])],
+                                         [sg.Text("")],
+                                         [sg.Button('Reset', button_color=('green'), enable_events=True, key='-RESET-', pad=(10,1)),
+                                          sg.Cancel(button_color=('gray'))]])
+                
+                    pop_event, pop_values = pop_win.read()
+                 
+                    if pop_event == '-RESET-':
+                        self.send_cfs_cmd('CFE_ES', 'RestartAppCmd',  {'Application': pop_values['-APP_NAME-']})
+
+                    pop_win.close()
+                
                    
             elif self.event == '-CMD_TOPICS-':
                 #todo: Create a command string for event window. Raw text may be an option so people can capture commands
