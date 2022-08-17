@@ -114,6 +114,7 @@ void FOTP_ResetStatus(void)
       Fotp->LastDataSegment     = false;
       Fotp->PrevSendDataSegmentFailed = 0;
       Fotp->PausedFileTransferState   = FOTP_IDLE;
+      strcpy(Fotp->SrcFilename, "Undefined");
 
    } /* End if not idle */
       
