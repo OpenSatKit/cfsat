@@ -46,7 +46,7 @@ static void    MajorFrameCallback(void);
 static void    MinorFrameCallback(uint32 TimerId);
 static uint32  GetCurrentSlotNumber(void);
 static uint32  GetMETSlotNumber(void);
-static int32   ProcessNextSlot(void);
+static int32   ProcessSlot(void);
 static bool    SendTblEntryTlm(uint16 SchTblIndex, uint16 MsgTblIndex, bool UseSchTblIndex);
 
 /**********************/
@@ -413,7 +413,7 @@ bool SCHEDULER_Execute(void)
       /* Process the slots (most often this will be just one) */
       while ((ProcessCount != 0) && (Result == CFE_SUCCESS))
       {
-         Result = ProcessNextSlot();
+         Result = ProcessSlot();
          ProcessCount--;
       }
 
@@ -1159,49 +1159,49 @@ static void MinorFrameCallback(uint32 TimerId)
 
 
 /******************************************************************************
-** Function: ProcessNextSlot
+** Function: ProcessSlot
 **
 */
-static int32 ProcessNextSlot(void)
+static int32 ProcessSlot(void)
 {
     
    int32  Result = CFE_SUCCESS; /* TODO - Fix after resolve ground command processing */
-   int32  EntryNumber;
+   int32  Activity;
    int32  SlotIndex;
    uint32 Remainder;
-   SCHTBL_Entry_t *NextEntry;
+   SCHTBL_Entry_t *TblEntry;
    uint16 *MsgBufPtr;
    int32  MsgSendStatus;
    MSGTBL_CmdMsg_t *CmdMsg;
 
    SlotIndex = Scheduler->NextSlotNumber * SCHTBL_ACTIVITIES_PER_SLOT;
-   NextEntry = &Scheduler->SchTbl.Data.Entry[SlotIndex];
 
    /* Process each enabled entry in the schedule table slot */
-   for (EntryNumber = 0; EntryNumber < SCHTBL_ACTIVITIES_PER_SLOT; EntryNumber++)
+   for (Activity = 0; Activity < SCHTBL_ACTIVITIES_PER_SLOT; Activity++)
    {
-      
-      if (NextEntry->Enabled == true)
+   
+      TblEntry  = &Scheduler->SchTbl.Data.Entry[SlotIndex+Activity];
+      if (TblEntry->Enabled == true)
       {
 
-         Remainder = Scheduler->TablePassCount % NextEntry->Period;
+         Remainder = Scheduler->TablePassCount % TblEntry->Period;
 
-         if (Remainder == NextEntry->Offset)
+         if (Remainder == TblEntry->Offset)
          {
 
-            CFE_EVS_SendEvent(SCHEDULER_DEBUG_EID, CFE_EVS_EventType_DEBUG,"Scheduler ProcessNextSlot(): slot %d, entry %d, msgid %d", Scheduler->NextSlotNumber, EntryNumber, NextEntry->MsgTblIndex);
+            CFE_EVS_SendEvent(SCHEDULER_DEBUG_EID, CFE_EVS_EventType_DEBUG,"Scheduler ProcessSlot(): slot %d, entry %d, msgid %d", Scheduler->NextSlotNumber, Activity, TblEntry->MsgTblIndex);
              
             MsgSendStatus = CFE_SB_NO_MESSAGE;  /* use any non-success error code */
-            if (NextEntry->MsgTblIndex < MSGTBL_MAX_ENTRIES)
+            if (TblEntry->MsgTblIndex < MSGTBL_MAX_ENTRIES)
             {
             
-               MsgBufPtr = Scheduler->MsgTbl.Data.Entry[NextEntry->MsgTblIndex].Buffer;
+               MsgBufPtr = Scheduler->MsgTbl.Data.Entry[TblEntry->MsgTblIndex].Buffer;
                
                CFE_EVS_SendEvent(KIT_SCH_INIT_DEBUG_EID, KIT_SCH_INIT_EVS_TYPE,
                                  "Scheduler MsgTbl Entry: Id = %d, Buffer[0] = 0x%04x(%d)",
-                                 NextEntry->MsgTblIndex, MsgBufPtr[0], MsgBufPtr[0]);
+                                 TblEntry->MsgTblIndex, MsgBufPtr[0], MsgBufPtr[0]);
             
-               CmdMsg = &Scheduler->MsgTbl.Cmd.Msg[NextEntry->MsgTblIndex];
+               CmdMsg = &Scheduler->MsgTbl.Cmd.Msg[TblEntry->MsgTblIndex];
                MsgSendStatus = CFE_SB_TransmitMsg(CFE_MSG_PTR(CmdMsg->Header), true);
 
             } /* End if valid EntryId */
@@ -1216,20 +1216,18 @@ static int32 ProcessNextSlot(void)
             {
                
                /* Disable entry with invalid message: Bad index or didn't send properly */
-               NextEntry->Enabled = false;
+               TblEntry->Enabled = false;
                Scheduler->ScheduleActivityFailureCount++;
 
                CFE_EVS_SendEvent(SCHEDULER_PACKET_SEND_ERR_EID, CFE_EVS_EventType_ERROR,
                                  "Activity error: slot = %d, entry = %d, err = 0x%08X",
-                                 Scheduler->NextSlotNumber, EntryNumber, MsgSendStatus);
+                                 Scheduler->NextSlotNumber, Activity, MsgSendStatus);
             
             } /* End if msg send error */
          
          } /* End if offset met */
 
       } /* End if entry is enabled */
-
-      NextEntry++;
 
    } /* Entries per slot loop */
 
@@ -1257,7 +1255,7 @@ static int32 ProcessNextSlot(void)
 
    return(Result);
 
-} /* End ProcessNextSlot() */
+} /* End ProcessSlot() */
 
 
 /******************************************************************************

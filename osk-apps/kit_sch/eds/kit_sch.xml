@@ -38,7 +38,7 @@
         <IntegerDataEncoding sizeInBits="8" encoding="unsigned" />
         <EnumerationList>
           <Enumeration label="MESSAGE"  value="0" shortDescription="Identifies messages (Topic IDs) thatcan be scheduled" />
-          <Enumeration label="SCHEDULE" value="0" shortDescription="Defines and configures a schedule for sending messages" />
+          <Enumeration label="SCHEDULE" value="1" shortDescription="Defines and configures a schedule for sending messages" />
         </EnumerationList>
       </EnumeratedDataType>
 

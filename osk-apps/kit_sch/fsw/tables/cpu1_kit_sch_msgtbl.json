@@ -42,8 +42,8 @@
 
       "OSK_C_DEMO_EXE_TOPICID"     : "topic-id-20",
       "OSK_C_DEMO_SEND_HK_TOPICID" : "topic-id-21",
-      "OSK_DEV_EXE_TOPICID"        : "topic-id-22",
-      "OSK_DEV_SEND_HK_TOPICID"    : "topic-id-23",
+      "PROTO_EXE_TOPICID"          : "topic-id-22",
+      "PROTO_SEND_HK_TOPICID"      : "topic-id-23",
       "SAMPLE_APP_SEND_HK_TOPICID" : "topic-id-24",
       
       "BERRY_IMU_SEND_HK_TOPICID"  : "topic-id-30",
@@ -190,7 +190,7 @@
       }},
 
       {"message": {
-         "name":  "OSK_DEV_EXE_TOPICID",
+         "name":  "PROTO_EXE_TOPICID",
          "id": 22,
          "topic-id-22": 6240,
          "topic-id": 6240,
@@ -199,7 +199,7 @@
       }},
 
       {"message": {
-         "name":  "OSK_DEV_SEND_HK_TOPICID",
+         "name":  "PROTO_SEND_HK_TOPICID",
          "id": 23,
          "topic-id-23": 6241,
          "topic-id": 6241,
