@@ -17,7 +17,7 @@
       Provide the main application for the cFS Application Toolkit (cFSAT)
 
     Notes:
-      1. Assumes a common name across the foolowing
+      1. Assumes teh exct same app name is used for
           - git repo,  FSW object, app directory 
       
 """
@@ -267,7 +267,7 @@ class TelecommandGui(TelecommandInterface):
         self.command_list = list(self.get_topic_commands(topic_name).keys())
         
         # This GUI is designed for application command topics. The ini file has a non-standard configuration that allows all
-        # topics to be sent from teh GUI. Topics like 'send HK req' do not have subcommands so this alerts he users 
+        # topics to be sent from the GUI. Topics like 'send HK req' do not have subcommands so this alerts the users 
         if (len(self.command_list) == 1):
             sg.Popup('This is a topic-only command do not select a command/payload', title=topic_name, modal=False)
         
@@ -451,7 +451,7 @@ class TelemetryGuiClient(TelemetryObserver):
     def update(self, tlm_msg: TelemetryMessage) -> None:
         """
         Receive telemetry updates
-        self.payload_str_max_len is set as opposed to the construtor because an initial
+        self.payload_str_max_len is set as opposed to the constructor because an initial
         tlm_msg object does not have its eds_obj and eds_entry attributes set
         """
         self.lock.acquire()
@@ -645,7 +645,7 @@ class CfsatTelemetryMonitor(TelemetryObserver):
 class ManageCfs():
     """
     Manage the display for building and running the cFS.
-    app_abs_path - Is the python application, not cFS apps
+    app_abs_path - The python application path, not cFS apps
     """
     def __init__(self, cfsat_abs_path, cfs_abs_base_path, usr_app_rel_path, main_window, cfs_target):
         self.cfsat_abs_path       = cfsat_abs_path

@@ -6,7 +6,7 @@
       "APP_CFE_NAME": "FILE_XFER",
       "APP_PERF_ID":  94,
 
-      "APP_CMD_PIPE_DEPTH":  10,
+      "APP_CMD_PIPE_DEPTH":  20,
       "APP_CMD_PIPE_NAME":   "FILE_XFER_CMD",
            
       "FILE_XFER_CMD_TOPICID": 6229,

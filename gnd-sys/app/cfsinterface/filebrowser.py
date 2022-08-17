@@ -71,6 +71,7 @@ class GroundDir():
         self.file_list = [f for f in dir_list if os.path.isfile(os.path.join(self.path, f))]
         if len(self.file_list) == 0:
             self.file_list = ['Folder empty or only contains other folders']
+        self.file_list.sort() 
         self.sg_window.update(self.file_list)
         
     def delete_file(self, filename):
@@ -114,7 +115,7 @@ class FlightDir():
         self.cmd_tlm_process.send_cfs_cmd('FILE_MGR', 'SendDirTlm',  {'DirName': self.path, 'IncludeSizeTime': 0})
         time.sleep(1.5) # Give time for telemetry
         if len(self.file_list) == 0:
-            self.sg_window.update(['Check cfS connection or empty/nonexistent directory'])
+            self.sg_window.update(['Check cFS connection or empty/nonexistent directory'])
 
     def move_up(self):
         """
@@ -404,7 +405,7 @@ class FileBrowser(CmdTlmProcess):
                     filename = self.values['-FLT_FILE_LIST-'][0]
                     flt_file = self.flt_dir.path_filename(filename)
                     gnd_file = self.gnd_dir.path_filename(filename)
-                    print('flt_file: %s, gnd_file: %s' % (flt_file, gnd_file))
+                    print('>>>>flt_file: %s, gnd_file: %s' % (flt_file, gnd_file))
                     self.file_xfer.start_recv_file(flt_file, gnd_file, self.gnd_dir.create_file_list)
                     #TODO - Trigger ground file list display refresh
                 else:

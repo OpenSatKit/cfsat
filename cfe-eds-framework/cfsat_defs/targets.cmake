@@ -86,7 +86,7 @@ SET(SPACECRAFT_ID 0x42)
 # and must be loaded explicitly via startup script or command.
 # This list is effectively appended to every TGTx_APPLIST in targets.cmake.
 # Example:
-list(APPEND MISSION_GLOBAL_APPLIST sample_app sample_lib)
+list(APPEND MISSION_GLOBAL_APPLIST osk_c_fw)
 
 # The "MISSION_GLOBAL_STATIC_APPLIST" is similar to MISSION_GLOBAL_APPLIST
 # but the apps are statically linked.
@@ -102,10 +102,10 @@ SET(FT_INSTALL_SUBDIR "host/functional-test")
 SET(MISSION_CPUNAMES cpu1)
 
 SET(cpu1_PROCESSORID 1)
-SET(cpu1_APPLIST ci_lab kit_to kit_sch osk_c_fw file_mgr file_xfer osk_c_demo) #!CFSAT-INSERT!
+SET(cpu1_APPLIST ci_lab kit_to kit_sch file_mgr file_xfer osk_c_demo) #!CFSAT-INSERT!
 ## mqtt_lib mqtt_gw pl_mgr pl_sim pl_sim_lib pi_iolib gpio_demo berry_imu
 ## HELLO SET(cpu1_APPLIST ci_lab to_lab sch_lab osk_c_fw osk_c_demo filemgr file_xfer hello)
-SET(cpu1_FILELIST cfe_es_startup.scr file_mgr_ini.json file_xfer_ini.json osk_c_demo_ini.json osk_c_demo_tbl.json kit_sch_ini.json kit_sch_msgtbl.json kit_sch_schtbl.json kit_to_ini.json kit_to_pkt_tbl.json) #!CFSAT-INSERT!
+SET(cpu1_FILELIST cfe_es_startup.scr file_mgr_ini.json file_xfer_ini.json osk_c_demo_ini.json osk_c_hist_tbl.json kit_sch_ini.json kit_sch_msgtbl.json kit_sch_schtbl.json kit_to_ini.json kit_to_pkt_tbl.json) #!CFSAT-INSERT!
 ## pl_mgr_ini.json pl_sim_ini.json pl_sim_lib_ini.json berry_imu_ini.json mqtt_gw_ini.json mqtt_topic.json gpio_demo_ini.json )
 
 

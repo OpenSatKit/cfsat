@@ -4,7 +4,8 @@
                    "and 15 entries per slot. The topic IDs in cfe-topicids.xml are grouped",
                    "as follows: cFE, runtime app suite, development apps, community apps.",
                    "Each group is scheduled in a different slot to keep things functionally",
-                   "organized. The schedule is not designed with a mission in mind"
+                   "organized. The schedule is not designed with a mission in mind.",
+                   "Activities with a period of 1 must have an offset of 0"
                    ],
    
    "slot-array": [
@@ -109,7 +110,7 @@
                "index":   3,
                "enabled": "true",
                "period":  1,
-               "offset":  1,
+               "offset":  0,
                "msg-idx": 13
             }},
                         
