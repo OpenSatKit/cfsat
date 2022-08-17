@@ -31,7 +31,6 @@
 #include <string.h>
 #include "file_mgr_app.h"
 #include "file_mgr_eds_cc.h"
-#include "file_mgr_msgids.h"
 
 /***********************/
 /** Macro Definitions **/
