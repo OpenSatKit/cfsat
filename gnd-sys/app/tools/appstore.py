@@ -80,8 +80,9 @@ class GitHubAppProject():
                         self.app_dict[repo['name']] = repo
                 #print(self.app_dict['kit_ci'])
                 ret_status = True
-        except ConnectionError:
+        except requests.exceptions.ConnectionError as e:
             pass
+            #print (e)
             
         return ret_status
         
@@ -89,6 +90,7 @@ class GitHubAppProject():
     def clone(self, app_name):
         """
         """
+        ret_status = False
         if app_name in self.app_dict:
             saved_cwd = os.getcwd()
             os.chdir(self. usr_clone_path)
@@ -96,7 +98,10 @@ class GitHubAppProject():
             print("Cloning " + clone_url)
             os.system("git clone {}".format(self.app_dict[app_name]["clone_url"]))
             os.chdir(saved_cwd)
-
+            ret_status = True
+        return ret_status
+        
+      
     def get_descr(self, app_name):
         """
         """
@@ -139,16 +144,16 @@ class AppSpec():
                 f.close()
                 #todo print(str(self.json))
             except:
-                sg.popup("Error loading JSON spec file %s" % self.json_file, title='Error', grab_anywhere=True, modal=False)
+                sg.popup("Error loading JSON spec file %s" % self.json_file, title='AppStore Error', grab_anywhere=True, modal=False)
                 return False
         else:
-            sg.popup("Error loading JSON spec file %s" % self.json_file, title='Error', grab_anywhere=True, modal=False)
+            sg.popup("Error loading JSON spec file %s" % self.json_file, title='AppStore Error', grab_anywhere=True, modal=False)
             return False
         
         try:
             self.cfs = self.json['app']['cfs']
         except:
-            sg.popup("The JSON spec file %s does not contain the required 'cfs' object" % self.json_file, title='Error', grab_anywhere=True, modal=False)
+            sg.popup("The JSON spec file %s does not contain the required 'cfs' object" % self.json_file, title='AppStore Error', grab_anywhere=True, modal=False)
             return False
         
         #todo print('self.cfs = ' + str(self.cfs))
@@ -199,7 +204,7 @@ class AppSpec():
                         str(self.cfs['stack'])    + ', 0x0, ' + \
                         str(self.cfs['exception-action']) + ';' 
         except:
-            sg.popup("Error creating targets.cmake entry due to missing or malformed JSON file.\nPartial entry string = %s" % self.json_file, title='Error', grab_anywhere=True, modal=False)
+            sg.popup("Error creating targets.cmake entry due to missing or malformed JSON file.\nPartial entry string = %s" % self.json_file, title='AppStore Error', grab_anywhere=True, modal=False)
         
         return entry_str
 
@@ -266,7 +271,7 @@ class AppStore():
         layout = [
                   [sg.Text("Select an app to download then follow the steps in 'Add App to cFS'. See 'Add App' tutorial if you are unfamiliar with the steps.\n", font=hdr_value_font)],
                   app_layout, 
-                  [sg.Button('Download', font=hdr_label_font), sg.Button('Cancel', font=hdr_label_font)]
+                  [sg.Button('Download', font=hdr_label_font, button_color=('SpringGreen4')), sg.Button('Cancel', font=hdr_label_font)]
                  ]
 
         window = sg.Window('Download App', layout, modal=False)
@@ -288,7 +293,10 @@ class AppStore():
             if self.event == 'Download':
                 for app in self.git_app_repo.app_dict.keys():
                     if self.values["-%s-"%app] == True:
-                        self.git_app_repo.clone(app)
+                        if self.git_app_repo.clone(app):
+                            sg.popup("Successfully cloned %s into %s"%(app,self.usr_app_path), title='AppStore')
+                        else:
+                            sg.popup("Error cloning %s into %s"%(app,self.usr_app_path), title='AppStore Error')
 
                 break
                 
@@ -300,7 +308,7 @@ class AppStore():
         if self.git_app_repo.create_dict():
             self.gui()
         else:
-            sg.popup('Error accessing the git url %d. Check your network connection and the git URL'%self.git_app_repo.git_url, 'Error')
+            sg.popup("Error accessing the git url\n   '%s'\n\nVerify your network connection and the cfsat.ini APP_STORE_URL definition.\n"%self.git_app_repo.git_url, title='AppStore Error')
 
 
 ###############################################################################

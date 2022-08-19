@@ -226,7 +226,7 @@ class CreateApp():
                   [sg.Text('Select Application Template: ', font=hdr_label_font)],
                   app_template_layout, 
                   [sg.Text('', font=hdr_label_font)],
-                  [sg.Button('Description'), sg.Button('Create App'), sg.Button('Cancel')]
+                  [sg.Button('Description'), sg.Button('Create App', button_color=('SpringGreen4')), sg.Button('Cancel')]
                  ]
         
         window = sg.Window('Create Application', layout, modal=False)

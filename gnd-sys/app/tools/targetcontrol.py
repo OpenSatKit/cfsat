@@ -115,7 +115,7 @@ class TargetControl():
 
     def client_disconnect(self):
         """
-        This method will be called on the MQTT initiating a disconnect. Ithas not been detmereined whether calling
+        This method will be called on the MQTT initiating a disconnect. It has not been detmereined whether calling
         the client's diconnect in this scenario causes an issue 
         """
         self.client_connected=False
@@ -226,7 +226,7 @@ class TargetControl():
                 break
 
             if self.client_connected:
-               self.window['-CLIENT_STATE-'].Update('Connected', text_color='white')
+               self.window['-CLIENT_STATE-'].Update('Connected to ' + self.broker_addr, text_color='white')
             else:
                self.window['-CLIENT_STATE-'].Update('Disconnected', text_color='red')
                                        

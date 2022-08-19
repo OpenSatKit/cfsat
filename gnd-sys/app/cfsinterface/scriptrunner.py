@@ -50,7 +50,7 @@ TIME    = 1
 PAYLOAD = 2
 
 #print("tlm_cvt_proto['CFE_ES'][CCSDS]['Sequence'] = " + str(tlm_cvt_proto['CFE_ES'][CCSDS]['Sequence']))
-# TODO - Temorary structure to try different script telemetry interfaces 
+# TODO - Temporary structure to try different script telemetry interfaces 
 tlm_cvt_proto = {
 
     'CFE_ES' : [ { 'AppId': 0,   'Sequence': 0   },
@@ -81,7 +81,7 @@ class TelemetryCurrentValue(TelemetryObserver):
             self.tlm_server.add_msg_observer(tlm_msg, self)        
             print("TelemetryCurrentValue adding observer for %s: %s" % (tlm_msg.app_name, tlm_msg.msg_name))
 
-        # Debug to help dertmine how to structure current value data       
+        # Debug to help determine how to structure current value data       
         topics = self.tlm_server.get_topics()
         for topic in topics:
             #if topic != self.tlm_server.eds_mission.TOPIC_TLM_TITLE_KEY:
@@ -153,7 +153,7 @@ class ScriptRunner(CmdTlmProcess):
         User script passed as a string parameter and it executes within the context of
         a ScriptRunner object so it can access all of the methods 
         Design Note: I tried saving script to a file and then passing it to
-        sg.execute_py_file(). A standlone script loses the ScriptRUnner context and this
+        sg.execute_py_file(). A standalone script loses the ScriptRunner context and this
         method would require a new ScriptRunner main file to be generated with the script.  
         """
         with redirect_stdout(io.StringIO()) as output:

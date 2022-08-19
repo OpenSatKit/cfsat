@@ -69,6 +69,8 @@ class EdsMission:
     TELECOMMAND_IF = "CFE_SB/Telecommand"
     TELEMETRY_IF   = "CFE_SB/Telemetry"
 
+    APP_CMD_TOPIC_SUFFIX = '/Application/CMD'
+
     # Dictionary keys that can be used to indicate a selection has not been made
     TARGET_TITLE_KEY    = "-- Target --"
     TOPIC_CMD_TITLE_KEY = "-- Command Topic --"

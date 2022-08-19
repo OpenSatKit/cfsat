@@ -223,7 +223,7 @@ class Tutorial():
                   # Lesson size less than lesson layout so complete status will appear centered 
                   [sg.Text('Lesson', font=hdr_label_font, size=(28,0)),sg.Text('Complete', font=hdr_label_font, size=(10,0))],  
                   lesson_layout, 
-                  [sg.Button('Start'), sg.Button('Reset'), sg.Button('Exit')]
+                  [sg.Button('Start', button_color=('SpringGreen4')), sg.Button('Reset'), sg.Button('Exit')]
                  ]
 
         window = sg.Window(self.json.title(), layout, modal=True)

@@ -34,7 +34,7 @@ Package Notes:
 
 The python appplication uses [PySimpleGUI](https://pysimplegui.readthedocs.io/en/latest/) which can be installed with the following command:
 
-    pip3 install PySimpleGUI requests
+    pip3 install PySimpleGUI requests paho-mqtt numpy
 
 ## Clone cFSAT Repository
     git clone https://github.com/OpenSatKit/cfsat.git

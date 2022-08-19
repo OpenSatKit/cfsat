@@ -680,8 +680,8 @@ class ManageCfs():
         layout = [
                   [sg.Text('Select an app from the dropdown iist and click Submit\n', font=self.b_font)],
                   [sg.Combo(app_name_list, pad=self.b_pad, font=self.b_font, enable_events=True, key="-USR_APP-", default_value=app_name_list[0]),
-                   sg.Button('Submit', button_color=('white', '#007339'), pad=self.b_pad, key='-SUBMIT-'),
-                   sg.Button('Cancel', button_color=('white', 'firebrick4'), pad=self.b_pad, key='-CANCEL-')]
+                   sg.Button('Submit', button_color=('SpringGreen4'), pad=self.b_pad, key='-SUBMIT-'),
+                   sg.Button('Cancel', button_color=('red4'), pad=self.b_pad, key='-CANCEL-')]
                  ]      
 
         window = sg.Window('Select App to Integrate', layout, resizable=True, modal=True)
@@ -725,23 +725,19 @@ class ManageCfs():
                    sg.Text("Update targets.cmake's %s and %s" % (self.cmake_app_list, self.cmake_file_list), font=self.t_font)],
                   [sg.Text('', size=self.b_size), sg.Button('Man',  size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-2C_MAN-'),
                    sg.Text('Update cpu1_cfe_es_startup.scr', font=self.t_font)],
-                 
-                  [sg.Text('3. Update Electronic Data Sheet Files', font=self.step_font, pad=self.b_pad)],
-                  [sg.Text('', size=self.b_size), sg.Button('Man',  size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-5_MAN-'),
+                  [sg.Text('', size=self.b_size), sg.Button('Man',  size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-2D_MAN-'),
                    sg.Text('Update EDS cfe-topicids.xml', font=self.t_font)], 
-                  [sg.Text('', size=self.b_size), sg.Button('Man',  size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-6_MAN-'),
-                   sg.Text('Update EDS config.xml', font=self.t_font)],
                   
-                  [sg.Text('4. Update runtime app suite tables', font=self.step_font, pad=self.b_pad)],
-                  [sg.Text('', size=self.b_size), sg.Button('Man',  size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-7_MAN-'),
+                  [sg.Text('3. Update runtime app suite tables', font=self.step_font, pad=self.b_pad)],
+                  [sg.Text('', size=self.b_size), sg.Button('Man',  size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-3A_MAN-'),
                    sg.Text('Update scheduler app table', font=self.t_font)],
-                  [sg.Text('', size=self.b_size), sg.Button('Man',  size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-8_MAN-'),
+                  [sg.Text('', size=self.b_size), sg.Button('Man',  size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-3B_MAN-'),
                    sg.Text('Update telemetry output app table', font=self.t_font)],
                   
-                  [sg.Text('5. Build the cfS', font=self.step_font, pad=self.b_pad)],
-                  [sg.Text('', size=self.b_size), sg.Button('Start', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-9_AUTO-')],
+                  [sg.Text('4. Build the cfS', font=self.step_font, pad=self.b_pad)],
+                  [sg.Text('', size=self.b_size), sg.Button('Start', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-4_AUTO-')],
                   
-                  [sg.Text('6. Manually exit and restart cFSAT', font=self.step_font, pad=self.b_pad)],
+                  [sg.Text('5. Manually exit and restart cFSAT', font=self.step_font, pad=self.b_pad)],
                   [sg.Text('', size=self.b_size), sg.Button('Exit', size=self.b_size, button_color=self.b_color, font=self.b_font, pad=self.b_pad, enable_events=True, key='-EXIT-')],
                  ]
         # sg.Button('Exit', enable_events=True, key='-EXIT-')
@@ -771,6 +767,8 @@ class ManageCfs():
                 self.copy_app_tables(auto_copy=True)
                 self.update_targets_cmake(auto_update=True)
                 self.update_startup_scr(auto_update=True)
+                popup_text = "The Electronic Data Sheet Topic ID file must be updated manually"
+                sg.popup(popup_text, title='Update EDS cfe-topicids.xml', grab_anywhere=True, modal=True)
                 
             elif self.event == '-2A_MAN-':
                 self.copy_app_tables(auto_copy=False)  # Copy table files from app dir to cfsat_defs
@@ -778,35 +776,18 @@ class ManageCfs():
                 self.update_targets_cmake(auto_update=False)
             elif self.event == '-2C_MAN-':
                 self.update_startup_scr(auto_update=False)
-                
-            ## Step 3 - Update Electronic Data Sheet Files
-            
-            elif self.event == '-5_AUTO-': # Update EDS cfe-topicids.xml
-                #TODO - Add auto update EDS cfe-topicids.xml
-                popup_text = "Auto update EDS cfe-topicids.xml feature not implemented"
-                sg.popup(popup_text, title='Update EDS cfe-topicids.xml', grab_anywhere=True, modal=True)
-
-            elif self.event == '-5_MAN-': # Update EDS cfe-topicids.xml
+            elif self.event == '-2D_MAN-':
                 path_filename = os.path.join(self.cfs_abs_base_path, 'cfsat_defs', 'eds', 'cfe-topicids.xml')
                 self.text_editor = sg.execute_py_file("texteditor.py", parms=path_filename, cwd=self.cfsat_tools_path)
-            
-            elif self.event == '-6_AUTO-': # Update EDS config.xml
-                #TODO - Add auto update EDS config.xml
-                popup_text = "Auto update EDS config.xml feature not implemented"
-                sg.popup(popup_text, title='Update EDS config.xml', grab_anywhere=True, modal=True)
+                
+            ## Step 3 - Update runtime app suite tables
 
-            elif self.event == '-6_MAN-': # Update EDS config.xml
-                path_filename = os.path.join(self.cfs_abs_base_path, 'cfsat_defs', 'eds', 'config.xml')
-                self.text_editor = sg.execute_py_file("texteditor.py", parms=path_filename, cwd=self.cfsat_tools_path)
-
-            ## Step 4 - Update runtime app suite tables
-
-            elif self.event == '-7_AUTO-': # Update scheduler app table
+            elif self.event == '-3_AUTO-': # Update scheduler app table
                 #TODO - Add auto update scheduler app table
                 popup_text = "Auto update scheduler app table feature not implemented"
                 sg.popup(popup_text, title='Update Scheduler App Tables', grab_anywhere=True, modal=True)
 
-            elif self.event == '-7_MAN-': # Update scheduler app table
+            elif self.event == '-3A_MAN-': # Update scheduler app table
                 msg_tbl_name = self.cfs_target + '_' + 'kit_sch_msgtbl.json'
                 sch_tbl_name = self.cfs_target + '_' + 'kit_sch_schtbl.json'
                 popup_text = 'After this dialogue, %s and %s will open in a text editor' % (msg_tbl_name, sch_tbl_name)
@@ -816,19 +797,14 @@ class ManageCfs():
                 path_filename = os.path.join(self.cfs_abs_defs_path, sch_tbl_name)
                 self.text_editor = sg.execute_py_file("texteditor.py", parms=path_filename, cwd=self.cfsat_tools_path)
             
-            elif self.event == '-8_AUTO-': # Update telemetry output app table
-                #TODO - Add auto update telemetry output app table
-                popup_text = "Auto update telemetry output app table feature not implemented"
-                sg.popup(popup_text, title='Update Telemetry Output App Table', grab_anywhere=True, modal=True)
-            
-            elif self.event == '-8_MAN-': # Update telemetry output app table
+            elif self.event == '-3B_MAN-': # Update telemetry output app table
                 pkt_tbl_name = self.cfs_target + '_' + 'kit_to_pkt_tbl.json'
                 path_filename = os.path.join(self.cfs_abs_defs_path, pkt_tbl_name)
                 self.text_editor = sg.execute_py_file("texteditor.py", parms=path_filename, cwd=self.cfsat_tools_path)
             
-            ## Step 5 - Build the cFS
+            ## Step 4 - Build the cFS
 
-            elif self.event == '-9_AUTO-': # Build the cfS
+            elif self.event == '-4_AUTO-': # Build the cfS
                 build_cfs_sh = os.path.join(self.cfsat_abs_path, SH_BUILD_CFS_TOPICIDS)
                 self.build_subprocess = subprocess.Popen('%s %s' % (build_cfs_sh, self.cfs_abs_base_path),
                                                        stdout=subprocess.PIPE, shell=True, bufsize=1, universal_newlines=True)
@@ -836,16 +812,16 @@ class ManageCfs():
                     self.cfs_stdout = CfsStdout(self.build_subprocess, self.main_window)
                     self.cfs_stdout.start()
             
-            elif self.event == '-9_MAN-': # Build the cfS
+            elif self.event == '-4_MAN-': # Build the cfS
                 popup_text = "Open a terminal window, change directory to %s and build the cFS. See '%s' for guidance" % (self.cfs_abs_base_path, SH_BUILD_CFS_TOPICIDS) 
                 sg.popup(popup_text, title='Manually Stop the cFS', grab_anywhere=True, modal=True)            
 
-            ## Step 6 - Restart cFSAT
+            ## Step 5 - Restart cFSAT
 
-            elif self.event == '-10_AUTO-': # Reload cFS python EDS definitions                
+            elif self.event == '-5_AUTO-': # Reload cFS python EDS definitions                
                 sg.popup('This feature has not been implemented. You must restart the cfsat applicaton.', title='Reload cFS EDS definitions', grab_anywhere=True, modal=True)
 
-            elif self.event == '-10_MAN-': # Reload cFS python EDS definitions
+            elif self.event == '-5_MAN-': # Reload cFS python EDS definitions
                 sg.popup('This feature has not been implemented. You must restart the cfsat applicaton.', title='Reload cFS EDS definitions', grab_anywhere=True, modal=True)
 
         self.window.close()       
@@ -1068,6 +1044,7 @@ class App():
     def __init__(self, ini_file):
 
         self.path = os.getcwd()
+        self.cfs_interface_dir = os.path.join(self.path, "cfsinterface")
         self.config = configparser.ConfigParser()
         self.config.read(ini_file)
 
@@ -1105,10 +1082,11 @@ class App():
         self.create_app       = CreateApp(self.config.get('PATHS', 'APP_TEMPLATES_PATH'),
                                           self.config.get('PATHS', 'USR_APP_PATH'))
         
-        self.file_browser  = None
-        self.script_runner = None
-        self.tutorial      = None
+        self.file_browser   = None
+        self.script_runner  = None
+        self.tutorial       = None
         self.target_control = None
+        self.tlm_plot       = None
 
     def update_event_history_str(self, new_event_text):
         time = datetime.now().strftime("%H:%M:%S")
@@ -1129,7 +1107,7 @@ class App():
         
     def enable_telemetry(self):
         """
-        The use must enable telemetry every time the cFS is started and most if not all uers want
+        The use must enable telemetry every time the cFS is started and most if not all users want
         the time fly wheel event disabled as well so it is also done here
         """
         self.send_cfs_cmd('KIT_TO', 'EnableOutput', {'dest_IP': self.CFS_TARGET_HOST_ADDR})
@@ -1166,11 +1144,11 @@ class App():
         logger.info("Completed app shutdown sequence")
 
     def cmd_topic_list(self):
-        cmd_topics = []
+        cmd_topics = [EdsMission.TOPIC_CMD_TITLE_KEY]
         cmd_topic_list = list(self.telecommand_gui.get_topics().keys())
         all_cmd_topics = self.config.getboolean('GUI','CMD_TOPICS_ALL')
         for topic in cmd_topic_list:
-            if 'Application/CMD' in topic:
+            if EdsMission.APP_CMD_TOPIC_SUFFIX in topic:
                 cmd_topics.append(topic)
             else:
                 if all_cmd_topics:
@@ -1199,12 +1177,12 @@ class App():
         menu_def = [
                        ['System', ['Options', 'About', 'Exit']],
                        ['Developer', ['Create App', 'Download App','Add App to cFS', 'Run Perf Monitor']], #todo: 'Certify App' 
-                       ['Operator', ['Browse Files', 'Run Script', 'Manage Tables', '---', 'Control Target']],
+                       ['Operator', ['Browse Files', 'Run Script', 'Plot Data', '---', 'Control Target']],
                        ['Documents', ['cFS Overview', 'cFE Overview', 'OSK App Dev']],
                        ['Tutorials', self.manage_tutorials.tutorial_titles]
                    ]
 
-        self.cfs_config_cmds = ['-- cFS Configuration--', 'Enable Telemetry', 'cFE Version', 'Reset Time', 'Configure Events', 'Ena/Dis Flywheel', 'Reset App']
+        self.common_cmds = ['-- Common Commands--', 'Enable Telemetry', 'Reset Time', 'Noop/Reset App', 'Restart App', 'Configure Events', 'Ena/Dis Flywheel', 'cFE Version']
 
 
         # Events can't be posted until after first window.read() so initialization string is format here and used as the default string
@@ -1220,7 +1198,7 @@ class App():
         pri_hdr_font = ('Arial bold',14)
         sec_hdr_font = ('Arial',12)
         log_font = ('Courier',12)
-        # Buttone options: image_data=red, image_subsample=2, or image_data=green, image_subsample=2,
+        # Button options: image_data=red, image_subsample=2, or image_data=green, image_subsample=2,
         layout = [
                      [sg.Menu(menu_def, tearoff=False, pad=(50, 50))],
                      [sg.Button('Build cFS', key='-BUILD_CFS-', image_data=image_grey1, button_color=('black', sg.theme_background_color()), border_width=0),
@@ -1234,8 +1212,8 @@ class App():
                       sg.Text(self.GUI_NO_IMAGE_TXT, key='-CFS_IMAGE-', font=sec_hdr_font, text_color='blue')],
                      [sg.Frame('', [[sg.Button('Ena Tlm', enable_events=True, key='-ENA_TLM-', pad=((10,5),(12,12))),
                       sg.Button('Files...', enable_events=True, key='-FILE_BROWSER-', pad=((5,5),(12,12))),
-                      sg.Text('cFS Config:', font=sec_hdr_font, pad=((0,0),(12,12))),
-                      sg.Combo(self.cfs_config_cmds, enable_events=True, key="-CFS_CONFIG_CMD-", default_value=self.cfs_config_cmds[0], pad=((0,5),(12,12))),
+                      sg.Text('Quick Links:', font=sec_hdr_font, pad=((0,0),(12,12))),
+                      sg.Combo(self.common_cmds, enable_events=True, key="-COMMON_CMD-", default_value=self.common_cmds[0], pad=((0,5),(12,12))),
                       sg.Text('Send Cmd:', font=sec_hdr_font, pad=((5,0),(12,12))),
                       sg.Combo(cmd_topics, enable_events=True, key="-CMD_TOPICS-", default_value=cmd_topics[0], pad=((0,5),(12,12))),
                       sg.Text('View Tlm:', font=sec_hdr_font, pad=((5,0),(12,12))),
@@ -1293,7 +1271,7 @@ class App():
         # --- Loop taking in user input --- #
         while True:
     
-            self.event, self.values = self.window.read(timeout=250)
+            self.event, self.values = self.window.read(timeout=100)
             logger.debug("App Window Read()\nEvent: %s\nValues: %s" % (self.event, self.values))
 
             if self.event in (sg.WIN_CLOSED, 'Exit') or self.event is None:
@@ -1364,19 +1342,33 @@ class App():
             elif self.event == 'Run Script':
                 self.cmd_tlm_router.add_cmd_source(self.config.getint('NETWORK','SCRIPT_RUNNER_CMD_PORT'))
                 self.cmd_tlm_router.add_tlm_dest(self.config.getint('NETWORK','SCRIPT_RUNNER_TLM_PORT'))
-                cfs_interface_dir = os.path.join(self.path, "cfsinterface")
-                print("cfs_interface_dir = " + cfs_interface_dir)
-                self.script_runner = sg.execute_py_file("scriptrunner.py", cwd=cfs_interface_dir)
+                self.script_runner = sg.execute_py_file("scriptrunner.py", cwd=self.cfs_interface_dir)
 
             elif self.event == 'Browse Files' or self.event == '-FILE_BROWSER-':
                 self.cmd_tlm_router.add_cmd_source(self.config.getint('NETWORK','FILE_BROWSER_CMD_PORT'))
                 self.cmd_tlm_router.add_tlm_dest(self.config.getint('NETWORK','FILE_BROWSER_TLM_PORT'))
-                cfs_interface_dir = os.path.join(self.path, "cfsinterface")
-                print("cfs_interface_dir = " + cfs_interface_dir)
-                self.file_browser = sg.execute_py_file("filebrowser.py", cwd=cfs_interface_dir)
+                self.file_browser = sg.execute_py_file("filebrowser.py", cwd=self.cfs_interface_dir)
 
-            elif self.event == 'Manage Tables':
-                self.ComingSoonPopup("Manage cFS app JSON tables")
+            elif self.event == 'Plot Data':
+                pop_win = sg.Window('Plot Data',
+                                    [[sg.Text("")],
+                                     [sg.Text("Select App"), sg.Combo((self.app_list), size=(20,1), key='-APP_NAME-', default_value=self.app_list[0])],
+                                     [sg.Text("")],
+                                     [sg.Button('Submit', button_color=('SpringGreen4'), enable_events=True, key='-SUBMIT-', pad=(10,1)),
+                                      sg.Cancel(button_color=('gray'))]])            
+                pop_event, pop_values = pop_win.read()
+                app_name = pop_values['-APP_NAME-'] # + EdsMission.APP_CMD_TOPIC_SUFFIX
+                if app_name != EdsMission.TOPIC_CMD_TITLE_KEY:
+                    if pop_event == '-SUBMIT-':
+                        tlm_list = []
+                        for topic in self.tlm_server.get_topics():
+                            if app_name in topic:
+                                tlm_list.append(topic)
+                        print(str(tlm_list))
+                pop_win.close()
+                
+                self.cmd_tlm_router.add_tlm_dest(self.config.getint('NETWORK','TLM_PLOT_TLM_PORT'))                
+                self.tlm_plot = sg.execute_py_file("tlmplot.py", cwd=self.cfs_interface_dir)
 
             elif self.event == 'Control Target':
                 tools_dir = os.path.join(self.path, "tools")
@@ -1489,21 +1481,54 @@ class App():
                     self.window["-CFS_IMAGE-"].update(self.GUI_NO_IMAGE_TXT)
                     self.window["-CFS_TIME-"].update(self.GUI_NULL_TXT)
         
-
-            elif self.event == '-CFS_CONFIG_CMD-':
-                cfs_config_cmd = self.values['-CFS_CONFIG_CMD-']
-                if cfs_config_cmd == self.cfs_config_cmds[1]: # Enable Telemetry
+            elif self.event == '-COMMON_CMD-':
+                cfs_config_cmd = self.values['-COMMON_CMD-']
+                
+                if cfs_config_cmd == self.common_cmds[1]: # Enable Telemetry
                     self.enable_telemetry()
 
-                elif cfs_config_cmd == self.cfs_config_cmds[2]: # cFE Version (CFE ES Noop)
-                    self.send_cfs_cmd('CFE_ES', 'NoopCmd', {})
-            
-                elif cfs_config_cmd == self.cfs_config_cmds[3]: # Reset Time
+                elif cfs_config_cmd == self.common_cmds[2]: # Reset Time
                     self.send_cfs_cmd('CFE_TIME', 'SetMETCmd', {'Seconds': 0,'MicroSeconds': 0 })
                     time.sleep(0.5)
                     self.send_cfs_cmd('CFE_TIME', 'SetTimeCmd', {'Seconds': 0,'MicroSeconds': 0 })
             
-                elif cfs_config_cmd == self.cfs_config_cmds[4]: # Configure Events
+                elif cfs_config_cmd == self.common_cmds[3]: # Noop/Reset App
+
+                    pop_win = sg.Window('Noop-Reset Application',
+                                        [[sg.Text("")],
+                                         [sg.Text("Select App"), sg.Combo((self.app_list), size=(20,1), key='-APP_NAME-', default_value=self.app_list[0])],
+                                         [sg.Text("")],
+                                         [sg.Button('Noop', button_color=('SpringGreen4'), enable_events=True, key='-NOOP-', pad=(10,1)),
+                                          sg.Button('Reset', button_color=('SpringGreen4'), enable_events=True, key='-RESET-', pad=(10,1)),
+                                          sg.Cancel(button_color=('gray'))]])
+                
+                    pop_event, pop_values = pop_win.read()
+                    app_name = pop_values['-APP_NAME-'] # + EdsMission.APP_CMD_TOPIC_SUFFIX
+                    if app_name != EdsMission.TOPIC_CMD_TITLE_KEY:
+                        if pop_event == '-NOOP-':
+                            self.send_cfs_cmd(app_name, 'Noop', {})
+                        elif pop_event == '-RESET-':
+                            self.send_cfs_cmd(app_name, 'Reset', {})
+                    pop_win.close()
+                    
+                elif cfs_config_cmd == self.common_cmds[4]: # Restart App
+
+                    pop_win = sg.Window('Restart Application',
+                                        [[sg.Text("")],
+                                         [sg.Text("Select App"), sg.Combo((self.app_list), size=(20,1), key='-APP_NAME-', default_value=self.app_list[0])],
+                                         [sg.Text("")],
+                                         [sg.Button('Restart', button_color=('SpringGreen4'), enable_events=True, key='-RESTART-', pad=(10,1)),
+                                          sg.Cancel(button_color=('gray'))]])
+                
+                    pop_event, pop_values = pop_win.read()
+                    app_name = pop_values['-APP_NAME-']
+                    if pop_event == '-RESTART-':
+                        if app_name != EdsMission.TOPIC_CMD_TITLE_KEY:
+                            self.send_cfs_cmd('CFE_ES', 'RestartAppCmd',  {'Application': app_name})
+
+                    pop_win.close()
+                    
+                elif cfs_config_cmd == self.common_cmds[5]: # Configure Events
                     app_list = self.cfe_apps + self.app_list
                     pop_win = sg.Window('Configure App Events',
                                         [[sg.Text("")],
@@ -1511,8 +1536,8 @@ class App():
                                          [sg.Checkbox('Debug', key='-DEBUG-', default=False), sg.Checkbox('Information', key='-INFO-', default=True),
                                           sg.Checkbox('Error', key='-ERROR-', default=True),  sg.Checkbox('Critical', key='-CRITICAL-', default=True)], 
                                          [sg.Text("")],
-                                         [sg.Button('Enable', button_color=('green'), enable_events=True, key='-ENABLE-', pad=(10,1)),
-                                          sg.Button('Disable', button_color=('red'), enable_events=True, key='-DISABLE-', pad=(10,1)), 
+                                         [sg.Button('Enable', button_color=('SpringGreen4'), enable_events=True, key='-ENABLE-', pad=(10,1)),
+                                          sg.Button('Disable', button_color=('red4'), enable_events=True, key='-DISABLE-', pad=(10,1)), 
                                           sg.Cancel(button_color=('gray'))]])
                 
                     pop_event, pop_values = pop_win.read()
@@ -1532,7 +1557,7 @@ class App():
                     pop_win.close()
                 
             
-                elif cfs_config_cmd == self.cfs_config_cmds[5]: # Ena/Dis Flywheel
+                elif cfs_config_cmd == self.common_cmds[6]: # Ena/Dis Flywheel
             
                     pop_text = "cFE TIME outputs an event when it starts/stops flywheel mode\nthat occurs when time can't synch to the 1Hz pulse. Use the\nbuttons to enable/disable the flywheel event messages..."
                     pop_win = sg.Window('Flywheel Message Configuration',
@@ -1556,29 +1581,19 @@ class App():
 
                     pop_win.close()
 
-                elif cfs_config_cmd == self.cfs_config_cmds[6]: # Reset App
-
-                    pop_win = sg.Window('Reset Application',
-                                        [[sg.Text("")],
-                                         [sg.Text("Select App"), sg.Combo((self.app_list), size=(20,1), key='-APP_NAME-', default_value=self.app_list[0])],
-                                         [sg.Text("")],
-                                         [sg.Button('Reset', button_color=('green'), enable_events=True, key='-RESET-', pad=(10,1)),
-                                          sg.Cancel(button_color=('gray'))]])
-                
-                    pop_event, pop_values = pop_win.read()
-                 
-                    if pop_event == '-RESET-':
-                        self.send_cfs_cmd('CFE_ES', 'RestartAppCmd',  {'Application': pop_values['-APP_NAME-']})
-
-                    pop_win.close()
-                
+                elif cfs_config_cmd == self.common_cmds[7]: # cFE Version (CFE ES Noop)
+                    self.send_cfs_cmd('CFE_ES', 'NoopCmd', {})
+            
                    
             elif self.event == '-CMD_TOPICS-':
                 #todo: Create a command string for event window. Raw text may be an option so people can capture commands
                 cmd_topic = self.values['-CMD_TOPICS-']
-                (cmd_sent, cmd_text, cmd_status) = self.telecommand_gui.execute(cmd_topic)
-                self.display_event(cmd_status)
-                self.display_event(cmd_text)
+                if cmd_topic != EdsMission.TOPIC_CMD_TITLE_KEY:
+                    (cmd_sent, cmd_text, cmd_status) = self.telecommand_gui.execute(cmd_topic)
+                    self.display_event(cmd_status)
+                    self.display_event(cmd_text)
+                else:
+                    sg.popup('Please select a command topic from the dropdown list', title='Command Topic')
             
             elif self.event == '-TLM_TOPICS-':
                 tlm_topic = self.values['-TLM_TOPICS-']
