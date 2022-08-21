@@ -537,7 +537,7 @@ class TelemetryGuiClient(TelemetryObserver):
             #todo: Big kludge for multi-threaded tlm windows
             #todo: PySimpleGUI has a subprocess API, execute_command_subprocess() that I'm using for tutorials and it can be used for each telemetry GUI
             try:
-                self.event, self.values = self.window.read(timeout=500)
+                self.event, self.values = self.window.read(timeout=250)
             except (RuntimeError, AttributeError):
                 #print("Telemetry GUI read loop exception")
                 self.event = "void"
@@ -619,25 +619,27 @@ class CfsatTelemetryMonitor(TelemetryObserver):
         Receive telemetry updates
         """
         #todo: Determine best tlm identification method: if int(tlm_msg.app_id) == int(self.cfe_es_hk.app_id):
-        
-        if tlm_msg.app_name in self.tlm_monitors:
-            self.tlm_callback(tlm_msg.app_name, tlm_msg.msg_name, "Seconds", str(tlm_msg.sec_hdr().Seconds))
+        try:
+            if tlm_msg.app_name in self.tlm_monitors:
+                self.tlm_callback(tlm_msg.app_name, tlm_msg.msg_name, "Seconds", str(tlm_msg.sec_hdr().Seconds))
 
-        elif tlm_msg.app_name == 'CFE_EVS':
-            if tlm_msg.msg_name == 'LONG_EVENT_MSG':
-                payload = tlm_msg.payload()
-                pkt_id = payload.PacketID
-                event_text = "FSW Event at %s: %s, %d - %s" % \
-                             (str(tlm_msg.sec_hdr().Seconds), pkt_id.AppName, pkt_id.EventType, payload.Message)
-                self.event_queue.put_nowait(event_text)
-                """        
-                LongEventTlm.Payload.PacketID.AppName                        = CFE_TIME
-                LongEventTlm.Payload.PacketID.EventID                        = 20
-                LongEventTlm.Payload.PacketID.EventType                      = 2
-                LongEventTlm.Payload.PacketID.SpacecraftID                   = 66
-                LongEventTlm.Payload.PacketID.ProcessorID                    = 1
-                LongEventTlm.Payload.Message  
-                """
+            elif tlm_msg.app_name == 'CFE_EVS':
+                if tlm_msg.msg_name == 'LONG_EVENT_MSG':
+                    payload = tlm_msg.payload()
+                    pkt_id = payload.PacketID
+                    event_text = "FSW Event at %s: %s, %d - %s" % \
+                                 (str(tlm_msg.sec_hdr().Seconds), pkt_id.AppName, pkt_id.EventType, payload.Message)
+                    self.event_queue.put_nowait(event_text)
+                    """        
+                    LongEventTlm.Payload.PacketID.AppName                        = CFE_TIME
+                    LongEventTlm.Payload.PacketID.EventID                        = 20
+                    LongEventTlm.Payload.PacketID.EventType                      = 2
+                    LongEventTlm.Payload.PacketID.SpacecraftID                   = 66
+                    LongEventTlm.Payload.PacketID.ProcessorID                    = 1
+                    LongEventTlm.Payload.Message  
+                    """
+        except Exception as e:
+            logger.error("Telemetry update exception\n" + str(e))
 
 
 ###############################################################################
@@ -688,7 +690,7 @@ class ManageCfs():
         
         while True:
         
-            event, values = window.read()
+            event, values = window.read(timeout=200)
         
             if event in (sg.WIN_CLOSED, '-CANCEL-') or event is None:
                 break
@@ -745,7 +747,7 @@ class ManageCfs():
         
         while True:
         
-            self.event, self.values = self.window.read()
+            self.event, self.values = self.window.read(timeout=200)
         
             if self.event in (sg.WIN_CLOSED, 'Exit', '-EXIT-') or self.event is None:
                 break
@@ -996,9 +998,9 @@ class CfsStdout(threading.Thread):
         Reading stdout is a blocking function. The current design does not let the process get killed and I
         think it's because the read function is always active. I put the try block there becuase I'd like to
         add an exception mechanism to allow the thread to be terminated. Subprocess communiate with a timeout
-        i not an option becuase the child process is terminated if a tomeout occurs.I tried the psuedo terminal
-        module as an intermediator between the cFS process and stdout thinking it may have a non-blocking but
-         it still blocked. 
+        i not an option because the child process is terminated if a timeout occurs. I tried the psuedo terminal
+        module as an intermediator between the cFS process and stdout thinking it may be non-blocking but
+        it still blocked. 
         
         """
  
@@ -1009,8 +1011,8 @@ class CfsStdout(threading.Thread):
                 self.cfs_subprocess_log += line
                 self.window["-CFS_PROCESS_TEXT-"].update(self.cfs_subprocess_log)
                 self.window["-CFS_PROCESS_TEXT-"].set_vscroll_position(1.0)  # Scroll to bottom (most recent entry)
-        finally:
-            logger.info("Stopping cFS terminal window stdout display")
+        except Exception as e:
+            logger.error("Starting cFS terminal window stdout display exception\n" + str(e))
             
     def get_id(self):
  
@@ -1135,6 +1137,9 @@ class App():
  
     def shutdown(self):
         logger.info("Starting app shutdown sequence")
+        if self.cfs_subprocess is not None:
+            logger.info("Killing cFS Process")
+            os.killpg(os.getpgid(self.cfs_subprocess.pid), signal.SIGTERM)  # Send the signal to all the process groups
         self.cmd_tlm_router.shutdown()
         self.tlm_server.shutdown()
         for tlm_topic in self.tlm_gui_clients:
@@ -1372,67 +1377,71 @@ class App():
                                      sg.Cancel(button_color=('gray'))]]
                                      
                 app_window = sg.Window('Plot Data', app_window_layout, finalize=True)           
-                
-                app_win_event, app_win_values = app_window.read()
-                app_name = app_win_values['-APP_NAME-']
-                if app_name != EdsMission.TOPIC_TLM_TITLE_KEY:
-                    if app_win_event == '-SUBMIT-':
-                        tlm_plot_cmd_parms += app_name
-                        for topic in self.tlm_server.get_topics():
-                            if app_name in topic:
-                                tlm_dict[topic] = self.tlm_server.eds_mission.get_topic_payload(topic)
-                        print(str(tlm_dict))
-                    #tlm_topics = self.tlm_server.eds_mission.get_topic_dict()
-                    #print(str(tlm_topics))
+                while True:  # Event Loop
+                    app_win_event, app_win_values = app_window.read(timeout=200)
+                    if app_win_event in (sg.WIN_CLOSED, 'Cancel'):
+                        break
+                    elif app_win_event == '-SUBMIT-':
+                        app_name = app_win_values['-APP_NAME-']
+                        if app_name != EdsMission.TOPIC_TLM_TITLE_KEY:
+                            tlm_plot_cmd_parms += app_name
+                            for topic in self.tlm_server.get_topics():
+                                if app_name in topic:
+                                    tlm_dict[topic] = self.tlm_server.eds_mission.get_topic_payload(topic)
+                            print(">>> " + str(tlm_dict))
+                        break
+                        #tlm_topics = self.tlm_server.eds_mission.get_topic_dict()
+                        #print(str(tlm_topics))
                 app_window.close()
 
-                # 2 - Create tree data
-                topic_tree = sg.TreeData()
-                for topic in tlm_dict:
-                    topic_tree.insert("", topic, topic, [])
-                    for tlm_element in tlm_dict[topic]:
-                        topic_tree.insert(topic, tlm_element, tlm_element, [])
-                
-                # 3 - Get user data selection
-                #toto: Fix tree column headers. Currently first column is blank
-                plot_data_layout = [[sg.Text('Select an integer telemetry point to be plotted and the data range\n')],
-                                   [sg.Tree(data=topic_tree, headings=['Topic'], auto_size_columns=True,
-                                   select_mode=sg.TABLE_SELECT_MODE_EXTENDED, num_rows=20, col0_width=40, key='-TOPIC-',
-                                   show_expanded=False, enable_events=True, expand_x=True, expand_y=True),],
-                                   [sg.Text('Plot Min Value:  '), sg.Input('0', size=(4, 1), font='Any 12', justification='r', key='-MIN-'),
-                                    sg.Column([[sg.Button('▲', size=(1, 1), font='Any 7', border_width=0, button_color=(sg.theme_text_color(), sg.theme_background_color()), key='-MIN_UP-')],
-                                    [sg.Button('▼', size=(1, 1), font='Any 7', border_width=0, button_color=(sg.theme_text_color(), sg.theme_background_color()), key='-MIN_DOWN-')]]),
-                                    sg.Text('Plot Max Value: '), sg.Input('100', size=(4, 1), font='Any 12', justification='r', key='-MAX-'),
-                                    sg.Column([[sg.Button('▲', size=(1, 1), font='Any 7', border_width=0, button_color=(sg.theme_text_color(), sg.theme_background_color()), key='-MAX_UP-')],
-                                    [sg.Button('▼', size=(1, 1), font='Any 7', border_width=0, button_color=(sg.theme_text_color(), sg.theme_background_color()), key='-MAX_DOWN-')]])],
-                                   [sg.Button('Ok'), sg.Button('Cancel')]]
+                if (len(tlm_dict) > 0):
+                    # 2 - Create tree data
+                    topic_tree = sg.TreeData()
+                    for topic in tlm_dict: 
+                        topic_tree.insert("", topic, topic, [])
+                        for tlm_element in tlm_dict[topic]:
+                            topic_tree.insert(topic, tlm_element, tlm_element, [])
+                    
+                    # 3 - Get user data selection
+                    #todo: Fix tree column headers. Currently first column is blank
+                    plot_data_layout = [[sg.Text('Select an integer telemetry point to be plotted and the data range\n')],
+                                       [sg.Tree(data=topic_tree, headings=['Topic'], auto_size_columns=True,
+                                       select_mode=sg.TABLE_SELECT_MODE_EXTENDED, num_rows=20, col0_width=40, key='-TOPIC-',
+                                       show_expanded=False, enable_events=True, expand_x=True, expand_y=True),],
+                                       [sg.Text('Plot Min Value:  '), sg.Input('0', size=(4, 1), font='Any 12', justification='r', key='-MIN-'),
+                                        sg.Column([[sg.Button('▲', size=(1, 1), font='Any 7', border_width=0, button_color=(sg.theme_text_color(), sg.theme_background_color()), key='-MIN_UP-')],
+                                        [sg.Button('▼', size=(1, 1), font='Any 7', border_width=0, button_color=(sg.theme_text_color(), sg.theme_background_color()), key='-MIN_DOWN-')]]),
+                                        sg.Text('Plot Max Value: '), sg.Input('100', size=(4, 1), font='Any 12', justification='r', key='-MAX-'),
+                                        sg.Column([[sg.Button('▲', size=(1, 1), font='Any 7', border_width=0, button_color=(sg.theme_text_color(), sg.theme_background_color()), key='-MAX_UP-')],
+                                        [sg.Button('▼', size=(1, 1), font='Any 7', border_width=0, button_color=(sg.theme_text_color(), sg.theme_background_color()), key='-MAX_DOWN-')]])],
+                                       [sg.Button('Ok'), sg.Button('Cancel')]]
 
-                plot_data_window = sg.Window('Plot Data', plot_data_layout, resizable=True, finalize=True)
-                while True:  # Event Loop
-                    plot_data_event, plot_data_values = plot_data_window.read()
-                    if plot_data_event in (sg.WIN_CLOSED, 'Cancel'):
-                        break
-                    elif plot_data_event == 'Ok':
-                        #todo: Add error logic and user message
-                        tlm_topic = 'None'
-                        tlm_element = plot_data_values['-TOPIC-'][0][0]
-                        for topic in tlm_dict:
-                            if tlm_element in tlm_dict[topic].keys():
-                                tlm_topic = topic
-                        tlm_plot_cmd_parms += ' ' + tlm_topic + ' ' + tlm_element + ' ' + plot_data_values['-MIN-'] + ' ' + plot_data_values['-MAX-'] 
-                        break
-                    print(plot_data_event, plot_data_values)
-                plot_data_window.close()
-                print('tlm_plot_cmd_parms = ' + tlm_plot_cmd_parms)
-       
-                #todo: Add check if tlm_plots been run before or is there logic in router?
-                self.cmd_tlm_router.add_tlm_dest(self.config.getint('NETWORK','TLM_PLOT_TLM_PORT'))                
-                self.tlm_plot = sg.execute_py_file("tlmplot.py", parms=tlm_plot_cmd_parms, cwd=self.cfs_interface_dir)
+                    plot_data_window = sg.Window('Plot Data', plot_data_layout, resizable=True, finalize=True)
+                    while True:  # Event Loop
+                        plot_data_event, plot_data_values = plot_data_window.read(timeout=200)
+                        if plot_data_event in (sg.WIN_CLOSED, 'Cancel'):
+                            break
+                        elif plot_data_event == 'Ok':
+                            #todo: Add error logic and user message
+                            tlm_topic = 'None'
+                            tlm_element = plot_data_values['-TOPIC-'][0][0]
+                            for topic in tlm_dict:
+                                if tlm_element in tlm_dict[topic].keys():
+                                    tlm_topic = topic
+                            tlm_plot_cmd_parms += ' ' + tlm_topic + ' ' + tlm_element + ' ' + plot_data_values['-MIN-'] + ' ' + plot_data_values['-MAX-'] 
+                            break
+                        #todo: print(plot_data_event, plot_data_values)
+                    plot_data_window.close()
+                    print('tlm_plot_cmd_parms = ' + tlm_plot_cmd_parms)
+           
+                    #todo: Add check if tlm_plots been run before or is there logic in router?
+                    self.cmd_tlm_router.add_tlm_dest(self.config.getint('NETWORK','TLM_PLOT_TLM_PORT'))                
+                    self.tlm_plot = sg.execute_py_file("tlmplot.py", parms=tlm_plot_cmd_parms, cwd=self.cfs_interface_dir)
 
-            elif self.event == 'Control Target':
-                tools_dir = os.path.join(self.path, "tools")
-                print("tools_dir = " + tools_dir)
-                self.target_control = sg.execute_py_file("targetcontrol.py", cwd=tools_dir)
+                elif self.event == 'Control Target':
+                    tools_dir = os.path.join(self.path, "tools")
+                    print("tools_dir = " + tools_dir)
+                    self.target_control = sg.execute_py_file("targetcontrol.py", cwd=tools_dir)
 
 
             ### DOCUMENTS ###
@@ -1487,11 +1496,11 @@ class App():
                 self.cfs_subprocess = subprocess.Popen('%s %s %s' % (start_cfs_sh, cfs_abs_exe_path, self.cfs_exe_file),
                                                        stdout=subprocess.PIPE, shell=True, bufsize=1, universal_newlines=True,
                                                        preexec_fn=os.setsid)
+                time.sleep(2.0)
                 if self.cfs_subprocess is not None:
                     self.window["-CFS_IMAGE-"].update(os.path.join(cfs_abs_exe_path, self.cfs_exe_file))
-                    time.sleep(3.0)
+                    time.sleep(1.0)
                     self.enable_telemetry()
-                    
                     self.cfs_stdout = CfsStdout(self.cfs_subprocess, self.window)
                     self.cfs_stdout.start()
                     
@@ -1578,14 +1587,19 @@ class App():
                                          [sg.Button('Noop', button_color=('SpringGreen4'), enable_events=True, key='-NOOP-', pad=(10,1)),
                                           sg.Button('Reset', button_color=('SpringGreen4'), enable_events=True, key='-RESET-', pad=(10,1)),
                                           sg.Cancel(button_color=('gray'))]])
-                
-                    pop_event, pop_values = pop_win.read()
-                    app_name = pop_values['-APP_NAME-'] # + EdsMission.APP_CMD_TOPIC_SUFFIX
-                    if app_name != EdsMission.TOPIC_CMD_TITLE_KEY:
-                        if pop_event == '-NOOP-':
-                            self.send_cfs_cmd(app_name, 'Noop', {})
-                        elif pop_event == '-RESET-':
-                            self.send_cfs_cmd(app_name, 'Reset', {})
+
+                    while True:  # Event Loop
+                        pop_event, pop_values = pop_win.read(timeout=200)
+                        if pop_event in (sg.WIN_CLOSED, 'Cancel'):
+                            break
+                        if pop_event in ('-NOOP-', '-RESET-'):
+                            app_name = pop_values['-APP_NAME-']
+                            if app_name != EdsMission.TOPIC_CMD_TITLE_KEY:
+                                if pop_event == '-NOOP-':
+                                    self.send_cfs_cmd(app_name, 'Noop', {})
+                                elif pop_event == '-RESET-':
+                                    self.send_cfs_cmd(app_name, 'Reset', {})
+                            break        
                     pop_win.close()
                     
                 elif cfs_config_cmd == self.common_cmds[4]: # Restart App
@@ -1597,14 +1611,17 @@ class App():
                                          [sg.Button('Restart', button_color=('SpringGreen4'), enable_events=True, key='-RESTART-', pad=(10,1)),
                                           sg.Cancel(button_color=('gray'))]])
                 
-                    pop_event, pop_values = pop_win.read()
-                    app_name = pop_values['-APP_NAME-']
-                    if pop_event == '-RESTART-':
-                        if app_name != EdsMission.TOPIC_CMD_TITLE_KEY:
-                            self.send_cfs_cmd('CFE_ES', 'RestartAppCmd',  {'Application': app_name})
-
+                    while True:  # Event Loop
+                        pop_event, pop_values = pop_win.read(timeout=200)
+                        if pop_event in (sg.WIN_CLOSED, 'Cancel'):
+                            break
+                        if pop_event == '-RESTART-':
+                            app_name = pop_values['-APP_NAME-']
+                            if app_name != EdsMission.TOPIC_CMD_TITLE_KEY:
+                                self.send_cfs_cmd('CFE_ES', 'RestartAppCmd',  {'Application': app_name})
+                            break        
                     pop_win.close()
-                    
+
                 elif cfs_config_cmd == self.common_cmds[5]: # Configure Events
                     app_list = self.cfe_apps + self.app_cmd_list
                     pop_win = sg.Window('Configure App Events',
@@ -1617,19 +1634,23 @@ class App():
                                           sg.Button('Disable', button_color=('red4'), enable_events=True, key='-DISABLE-', pad=(10,1)), 
                                           sg.Cancel(button_color=('gray'))]])
                 
-                    pop_event, pop_values = pop_win.read()
-                
-                    app_name = pop_values['-APP_NAME-'] 
-                    bit_mask = 0
-                    bit_mask = (bit_mask | (Cfe.EVS_DEBUG_MASK    if pop_values['-DEBUG-']    else 0))
-                    bit_mask = (bit_mask | (Cfe.EVS_INFO_MASK     if pop_values['-INFO-']     else 0))
-                    bit_mask = (bit_mask | (Cfe.EVS_ERROR_MASK    if pop_values['-ERROR-']    else 0))
-                    bit_mask = (bit_mask | (Cfe.EVS_CRITICAL_MASK if pop_values['-CRITICAL-'] else 0))
+                    while True:  # Event Loop
+                        pop_event, pop_values = pop_win.read(timeout=200)
+                        if pop_event in (sg.WIN_CLOSED, 'Cancel'):
+                            break
+                        if pop_event in ('-ENABLE-', '-DISABLE-'):
+                            app_name = pop_values['-APP_NAME-'] 
+                            bit_mask = 0
+                            bit_mask = (bit_mask | (Cfe.EVS_DEBUG_MASK    if pop_values['-DEBUG-']    else 0))
+                            bit_mask = (bit_mask | (Cfe.EVS_INFO_MASK     if pop_values['-INFO-']     else 0))
+                            bit_mask = (bit_mask | (Cfe.EVS_ERROR_MASK    if pop_values['-ERROR-']    else 0))
+                            bit_mask = (bit_mask | (Cfe.EVS_CRITICAL_MASK if pop_values['-CRITICAL-'] else 0))
 
-                    if pop_event == '-ENABLE-':
-                        self.send_cfs_cmd('CFE_EVS', 'EnableAppEventTypeCmd',  {'AppName': app_name, 'BitMask': bit_mask})
-                    if pop_event == '-DISABLE-':
-                        self.send_cfs_cmd('CFE_EVS', 'DisableAppEventTypeCmd',  {'AppName': app_name, 'BitMask': bit_mask})
+                            if pop_event == '-ENABLE-':
+                                self.send_cfs_cmd('CFE_EVS', 'EnableAppEventTypeCmd',  {'AppName': app_name, 'BitMask': bit_mask})
+                            if pop_event == '-DISABLE-':
+                                self.send_cfs_cmd('CFE_EVS', 'DisableAppEventTypeCmd',  {'AppName': app_name, 'BitMask': bit_mask})
+                            break        
 
                     pop_win.close()
                 
@@ -1644,17 +1665,19 @@ class App():
                                          sg.Button('Disable', button_color=('red'), enable_events=True, key='-FLYWHEEL_DISABLE-', pad=(10,1)), 
                                          sg.Cancel(button_color=('gray'))]])
                 
-                    pop_event, pop_values = pop_win.read()
-                 
-                    if pop_event == '-FLYWHEEL_ENABLE-':
-                
-                        self.send_cfs_cmd('CFE_EVS', 'SetFilterCmd',  {'AppName': 'CFE_TIME','EventID': Cfe.CFE_TIME_FLY_ON_EID, 'Mask': Cfe.CFE_EVS_NO_FILTER})
-                        time.sleep(0.5)
-                        self.send_cfs_cmd('CFE_EVS', 'SetFilterCmd',  {'AppName': 'CFE_TIME','EventID': Cfe.CFE_TIME_FLY_OFF_EID, 'Mask': Cfe.CFE_EVS_NO_FILTER})
-                
-                    if pop_event == '-FLYWHEEL_DISABLE-':
-                        
-                        self.disable_flywheel_event()
+
+                    while True:  # Event Loop
+                        pop_event, pop_values = pop_win.read(timeout=200)
+                        if pop_event in (sg.WIN_CLOSED, 'Cancel'):
+                            break
+                        elif pop_event == '-FLYWHEEL_ENABLE-':
+                            self.send_cfs_cmd('CFE_EVS', 'SetFilterCmd',  {'AppName': 'CFE_TIME','EventID': Cfe.CFE_TIME_FLY_ON_EID, 'Mask': Cfe.CFE_EVS_NO_FILTER})
+                            time.sleep(0.5)
+                            self.send_cfs_cmd('CFE_EVS', 'SetFilterCmd',  {'AppName': 'CFE_TIME','EventID': Cfe.CFE_TIME_FLY_OFF_EID, 'Mask': Cfe.CFE_EVS_NO_FILTER})
+                            break
+                        if pop_event == '-FLYWHEEL_DISABLE-':
+                            self.disable_flywheel_event()
+                            break
 
                     pop_win.close()
 
