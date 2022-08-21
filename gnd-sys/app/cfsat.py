@@ -1076,8 +1076,9 @@ class App():
         self.window = None
         
         self.cfe_apps = ['CFE_ES', 'CFE_EVS', 'CFE_SB', 'CFE_TBL', 'CFE_TIME']
-        self.app_list = []  # Non-cFE apps
-                
+        self.app_cmd_list = []  # Non-cFE apps
+        self.app_tlm_list = []  # Non-cFE apps
+
         self.manage_tutorials = ManageTutorials(self.config.get('PATHS', 'TUTORIALS_PATH'))
         self.create_app       = CreateApp(self.config.get('PATHS', 'APP_TEMPLATES_PATH'),
                                           self.config.get('PATHS', 'USR_APP_PATH'))
@@ -1156,15 +1157,25 @@ class App():
         logger.debug("cmd_topics = " + str(cmd_topics))
         return cmd_topics
         
-    def create_app_list(self, cmd_topics):
+    def create_app_cmd_list(self, cmd_topics):
         """
-        Populates self.app_list with the app names defined in cmd_topics. Assumes the app name 
+        Populates self.app_cmd_list with the app names defined in cmd_topics. Assumes the app name 
          
         """
         for topic in cmd_topics:
             app_name = topic.split('/')[0]
-            if app_name not in self.cfe_apps and app_name not in self.app_list:
-                self.app_list.append(app_name)
+            if app_name not in self.cfe_apps and app_name not in self.app_cmd_list:
+                self.app_cmd_list.append(app_name)
+
+    def create_app_tlm_list(self, tlm_topics):
+        """
+        Populates self.app_tlm_list with the app names defined in tlm_topics. Assumes the app name 
+         
+        """
+        for topic in tlm_topics:
+            app_name = topic.split('/')[0]
+            if app_name not in self.cfe_apps and app_name not in self.app_tlm_list:
+                self.app_tlm_list.append(app_name)
 
     def create_window(self, sys_target_str, sys_comm_str):
         """
@@ -1193,7 +1204,8 @@ class App():
         cmd_topics = self.cmd_topic_list()
         tlm_topics = list(self.tlm_server.get_topics().keys())
         logger.debug("tlm_topics = " + str(tlm_topics))
-        self.create_app_list(cmd_topics)
+        self.create_app_cmd_list(cmd_topics)
+        self.create_app_tlm_list(tlm_topics)
         
         pri_hdr_font = ('Arial bold',14)
         sec_hdr_font = ('Arial',12)
@@ -1212,7 +1224,7 @@ class App():
                       sg.Text(self.GUI_NO_IMAGE_TXT, key='-CFS_IMAGE-', font=sec_hdr_font, text_color='blue')],
                      [sg.Frame('', [[sg.Button('Ena Tlm', enable_events=True, key='-ENA_TLM-', pad=((10,5),(12,12))),
                       sg.Button('Files...', enable_events=True, key='-FILE_BROWSER-', pad=((5,5),(12,12))),
-                      sg.Text('Quick Links:', font=sec_hdr_font, pad=((0,0),(12,12))),
+                      sg.Text('Quick Cmd:', font=sec_hdr_font, pad=((0,0),(12,12))),
                       sg.Combo(self.common_cmds, enable_events=True, key="-COMMON_CMD-", default_value=self.common_cmds[0], pad=((0,5),(12,12))),
                       sg.Text('Send Cmd:', font=sec_hdr_font, pad=((5,0),(12,12))),
                       sg.Combo(cmd_topics, enable_events=True, key="-CMD_TOPICS-", default_value=cmd_topics[0], pad=((0,5),(12,12))),
@@ -1350,25 +1362,72 @@ class App():
                 self.file_browser = sg.execute_py_file("filebrowser.py", cwd=self.cfs_interface_dir)
 
             elif self.event == 'Plot Data':
-                pop_win = sg.Window('Plot Data',
-                                    [[sg.Text("")],
-                                     [sg.Text("Select App"), sg.Combo((self.app_list), size=(20,1), key='-APP_NAME-', default_value=self.app_list[0])],
+                tlm_plot_cmd_parms = ""
+                # 1. Get user app selection & create telemetry topic dictionary 
+                tlm_dict = {}
+                app_window_layout = [[sg.Text("")],
+                                     [sg.Text("Select App"), sg.Combo((self.app_tlm_list), size=(20,1), key='-APP_NAME-', default_value=self.app_tlm_list[0])],
                                      [sg.Text("")],
                                      [sg.Button('Submit', button_color=('SpringGreen4'), enable_events=True, key='-SUBMIT-', pad=(10,1)),
-                                      sg.Cancel(button_color=('gray'))]])            
-                pop_event, pop_values = pop_win.read()
-                app_name = pop_values['-APP_NAME-'] # + EdsMission.APP_CMD_TOPIC_SUFFIX
-                if app_name != EdsMission.TOPIC_CMD_TITLE_KEY:
-                    if pop_event == '-SUBMIT-':
-                        tlm_list = []
+                                     sg.Cancel(button_color=('gray'))]]
+                                     
+                app_window = sg.Window('Plot Data', app_window_layout, finalize=True)           
+                
+                app_win_event, app_win_values = app_window.read()
+                app_name = app_win_values['-APP_NAME-']
+                if app_name != EdsMission.TOPIC_TLM_TITLE_KEY:
+                    if app_win_event == '-SUBMIT-':
+                        tlm_plot_cmd_parms += app_name
                         for topic in self.tlm_server.get_topics():
                             if app_name in topic:
-                                tlm_list.append(topic)
-                        print(str(tlm_list))
-                pop_win.close()
+                                tlm_dict[topic] = self.tlm_server.eds_mission.get_topic_payload(topic)
+                        print(str(tlm_dict))
+                    #tlm_topics = self.tlm_server.eds_mission.get_topic_dict()
+                    #print(str(tlm_topics))
+                app_window.close()
+
+                # 2 - Create tree data
+                topic_tree = sg.TreeData()
+                for topic in tlm_dict:
+                    topic_tree.insert("", topic, topic, [])
+                    for tlm_element in tlm_dict[topic]:
+                        topic_tree.insert(topic, tlm_element, tlm_element, [])
                 
+                # 3 - Get user data selection
+                #toto: Fix tree column headers. Currently first column is blank
+                plot_data_layout = [[sg.Text('Select an integer telemetry point to be plotted and the data range\n')],
+                                   [sg.Tree(data=topic_tree, headings=['Topic'], auto_size_columns=True,
+                                   select_mode=sg.TABLE_SELECT_MODE_EXTENDED, num_rows=20, col0_width=40, key='-TOPIC-',
+                                   show_expanded=False, enable_events=True, expand_x=True, expand_y=True),],
+                                   [sg.Text('Plot Min Value:  '), sg.Input('0', size=(4, 1), font='Any 12', justification='r', key='-MIN-'),
+                                    sg.Column([[sg.Button('▲', size=(1, 1), font='Any 7', border_width=0, button_color=(sg.theme_text_color(), sg.theme_background_color()), key='-MIN_UP-')],
+                                    [sg.Button('▼', size=(1, 1), font='Any 7', border_width=0, button_color=(sg.theme_text_color(), sg.theme_background_color()), key='-MIN_DOWN-')]]),
+                                    sg.Text('Plot Max Value: '), sg.Input('100', size=(4, 1), font='Any 12', justification='r', key='-MAX-'),
+                                    sg.Column([[sg.Button('▲', size=(1, 1), font='Any 7', border_width=0, button_color=(sg.theme_text_color(), sg.theme_background_color()), key='-MAX_UP-')],
+                                    [sg.Button('▼', size=(1, 1), font='Any 7', border_width=0, button_color=(sg.theme_text_color(), sg.theme_background_color()), key='-MAX_DOWN-')]])],
+                                   [sg.Button('Ok'), sg.Button('Cancel')]]
+
+                plot_data_window = sg.Window('Plot Data', plot_data_layout, resizable=True, finalize=True)
+                while True:  # Event Loop
+                    plot_data_event, plot_data_values = plot_data_window.read()
+                    if plot_data_event in (sg.WIN_CLOSED, 'Cancel'):
+                        break
+                    elif plot_data_event == 'Ok':
+                        #todo: Add error logic and user message
+                        tlm_topic = 'None'
+                        tlm_element = plot_data_values['-TOPIC-'][0][0]
+                        for topic in tlm_dict:
+                            if tlm_element in tlm_dict[topic].keys():
+                                tlm_topic = topic
+                        tlm_plot_cmd_parms += ' ' + tlm_topic + ' ' + tlm_element + ' ' + plot_data_values['-MIN-'] + ' ' + plot_data_values['-MAX-'] 
+                        break
+                    print(plot_data_event, plot_data_values)
+                plot_data_window.close()
+                print('tlm_plot_cmd_parms = ' + tlm_plot_cmd_parms)
+       
+                #todo: Add check if tlm_plots been run before or is there logic in router?
                 self.cmd_tlm_router.add_tlm_dest(self.config.getint('NETWORK','TLM_PLOT_TLM_PORT'))                
-                self.tlm_plot = sg.execute_py_file("tlmplot.py", cwd=self.cfs_interface_dir)
+                self.tlm_plot = sg.execute_py_file("tlmplot.py", parms=tlm_plot_cmd_parms, cwd=self.cfs_interface_dir)
 
             elif self.event == 'Control Target':
                 tools_dir = os.path.join(self.path, "tools")
@@ -1426,7 +1485,8 @@ class App():
                 #                                       stdout=self.cfs_pty_slave, stderr=self.cfs_pty_slave, close_fds=True,
                 #                                       shell=True) #, bufsize=1, universal_newlines=True)
                 self.cfs_subprocess = subprocess.Popen('%s %s %s' % (start_cfs_sh, cfs_abs_exe_path, self.cfs_exe_file),
-                                                       stdout=subprocess.PIPE, shell=True, bufsize=1, universal_newlines=True)
+                                                       stdout=subprocess.PIPE, shell=True, bufsize=1, universal_newlines=True,
+                                                       preexec_fn=os.setsid)
                 if self.cfs_subprocess is not None:
                     self.window["-CFS_IMAGE-"].update(os.path.join(cfs_abs_exe_path, self.cfs_exe_file))
                     time.sleep(3.0)
@@ -1451,11 +1511,20 @@ class App():
             elif self.event == '-STOP_CFS-':
                 if self.cfs_subprocess is not None:
                     logger.info("Killing cFS Process")
+                    os.killpg(os.getpgid(self.cfs_subprocess.pid), signal.SIGTERM)  # Send the signal to all the process groups
+                    self.cfs_subprocess = None
+                    self.window["-CFS_IMAGE-"].update(self.GUI_NO_IMAGE_TXT)
+                    self.window["-CFS_TIME-"].update(self.GUI_NULL_TXT)
+                else:
+                    self.window["-CFS_IMAGE-"].update(self.GUI_NO_IMAGE_TXT)
+                    self.window["-CFS_TIME-"].update(self.GUI_NULL_TXT)
+                    """
+                    History of 
+                    #1
                     if self.cfs_stdout is not None:
                         self.cfs_stdout.terminate()  # I tried to join() afterwards and it hangs
                     subprocess.Popen(SH_STOP_CFS, shell=True)
-                    """
-                    #todo: When process term works, perform: self.cfs_subprocess = None
+                    #2                  
                     if hasattr(signal, 'CTRL_C_EVENT'):
                         self.cfs_subprocess.send_signal(signal.CTRL_C_EVENT)
                         #os.kill(self.cfs_subprocess.pid, signal.CTRL_C_EVENT)
@@ -1467,19 +1536,27 @@ class App():
                         #else:
                         #    os.killpg(os.getpgid(self.cfs_popen.pid), signal.SIGINT) 
                         #os.kill(self.cfs_popen.pid(), signal.SIGINT)
+                    #3
                     self.cfs_subprocess.kill()
-                    time.sleep(1)
-                    """
-                                    
+                    #4
                     if self.cfs_subprocess.poll() is not None:
                         logger.info("Killing cFS after subprocess poll")
                         if self.cfs_stdout is not None:
                             self.cfs_stdout.terminate()  # I tried to join() afterwards and it hangs
                         subprocess.Popen(SH_STOP_CFS, shell=True)
                         sg.popup("cFS failed to terminate.\nUse another terminal to kill the process.", title='Warning', grab_anywhere=True, modal=False)
-                else:
-                    self.window["-CFS_IMAGE-"].update(self.GUI_NO_IMAGE_TXT)
-                    self.window["-CFS_TIME-"].update(self.GUI_NULL_TXT)
+                    else:
+                        self.cfs_subprocess = None
+                    #5 - Trying to confirm process was actually stopped. The exception wasn't raised. I tried a delay butthat prevented some events from being displayed
+                    try:
+                         print("Trying PID")
+                         os.getpgid(self.cfs_subprocess.pid)
+                     except ProcessLookupError:
+                         print("PID exception")
+                         self.cfs_subprocess = None
+                         self.window["-CFS_IMAGE-"].update(self.GUI_NO_IMAGE_TXT)
+                         self.window["-CFS_TIME-"].update(self.GUI_NULL_TXT)
+                    """
         
             elif self.event == '-COMMON_CMD-':
                 cfs_config_cmd = self.values['-COMMON_CMD-']
@@ -1496,7 +1573,7 @@ class App():
 
                     pop_win = sg.Window('Noop-Reset Application',
                                         [[sg.Text("")],
-                                         [sg.Text("Select App"), sg.Combo((self.app_list), size=(20,1), key='-APP_NAME-', default_value=self.app_list[0])],
+                                         [sg.Text("Select App"), sg.Combo((self.app_cmd_list), size=(20,1), key='-APP_NAME-', default_value=self.app_cmd_list[0])],
                                          [sg.Text("")],
                                          [sg.Button('Noop', button_color=('SpringGreen4'), enable_events=True, key='-NOOP-', pad=(10,1)),
                                           sg.Button('Reset', button_color=('SpringGreen4'), enable_events=True, key='-RESET-', pad=(10,1)),
@@ -1515,7 +1592,7 @@ class App():
 
                     pop_win = sg.Window('Restart Application',
                                         [[sg.Text("")],
-                                         [sg.Text("Select App"), sg.Combo((self.app_list), size=(20,1), key='-APP_NAME-', default_value=self.app_list[0])],
+                                         [sg.Text("Select App"), sg.Combo((self.app_cmd_list), size=(20,1), key='-APP_NAME-', default_value=self.app_cmd_list[0])],
                                          [sg.Text("")],
                                          [sg.Button('Restart', button_color=('SpringGreen4'), enable_events=True, key='-RESTART-', pad=(10,1)),
                                           sg.Cancel(button_color=('gray'))]])
@@ -1529,7 +1606,7 @@ class App():
                     pop_win.close()
                     
                 elif cfs_config_cmd == self.common_cmds[5]: # Configure Events
-                    app_list = self.cfe_apps + self.app_list
+                    app_list = self.cfe_apps + self.app_cmd_list
                     pop_win = sg.Window('Configure App Events',
                                         [[sg.Text("")],
                                          [sg.Text("Select App"), sg.Combo((app_list), size=(20,1), key='-APP_NAME-', default_value=app_list[0])],

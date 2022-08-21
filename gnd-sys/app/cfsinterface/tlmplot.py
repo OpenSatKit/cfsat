@@ -100,20 +100,24 @@ class TlmPlot():
     self.tlm_server.get_tlm_val(app_name, tlm_msg_name, parameter)
         Example current value usage: get_tlm_val("CFE_ES", "HK_TLM", "Sequence")
     """
-    def __init__(self, gnd_ip_addr, tlm_port, tlm_timeout):
+    def __init__(self, gnd_ip_addr, tlm_port, tlm_timeout, min_value, max_value):
 
         self.tlm_server = TelemetrySocketServer('samplemission', 'cpu1', gnd_ip_addr, tlm_port, tlm_timeout)  #TODO - Use kwarg?
 
+        self.app_name    = 'OSK_C_DEMO'
+        self.tlm_topic   = ''
+        self.tlm_element = ''
+
         self.dataSize = 40
         self.dataMaxIdx = self.dataSize-1
-        self.dataRangeMin = 0
-        self.dataRangeMax = 100
+        self.dataRangeMin = 0   # min_value
+        self.dataRangeMax = 100 # max_value
         
         self.xData = np.zeros(self.dataSize)
         self.yData = np.linspace(self.dataRangeMin, self.dataRangeMax, num=self.dataSize, dtype=int)
 
 
-    def create_window(self):
+    def create_window(self, title):
         """
         """
         sg.theme('LightGreen')
@@ -122,7 +126,7 @@ class TlmPlot():
                    graph_top_right=(110, 110),
                    key='graph')]]
 
-        self.window = sg.Window('Telemetry Plot', layout, grab_anywhere=True, finalize=True)
+        self.window = sg.Window(title, layout, grab_anywhere=True, finalize=True)
         self.graph = self.window['graph']
         self.drawAxis()
         self.drawTicks(20)
@@ -152,25 +156,40 @@ class TlmPlot():
             prev_x, prev_y = xCoord, yCoord
 
     def addData(self, data):
+        data = int(data)
+        if data < self.dataRangeMin:
+            data = self.dataRangeMin
+        elif data > self.dataRangeMax:
+            data = self.dataRangeMax
         self.xData[0:self.dataMaxIdx] = self.xData[1:self.dataSize]
         self.xData[self.dataMaxIdx]   = data   #todo np.random.randint(self.dataRangeMin, self.dataRangeMax)
 
     def updatePlot(self, tlm_msg: TelemetryMessage):
-        if tlm_msg.app_name == 'OSK_C_DEMO':
+        if tlm_msg.app_name == self.app_name:
             payload = tlm_msg.payload()
-            data = payload.DeviceData
-            #print('payload.DeviceData = ' + str(data))
-            self.addData(data)
-            self.graph.erase()
-            self.drawAxis()
-            self.drawTicks(20)
-            self.drawPlot()
+            if self.tlm_topic in str(type(payload)):
+                has_element = False
+                for p in payload:
+                    if self.tlm_element in p[0]:
+                        has_element = True
+                        break
+                if has_element:
+                    data = payload[self.tlm_element]
+                    self.addData(data)
+                    self.graph.erase()
+                    self.drawAxis()
+                    self.drawTicks(20)
+                    self.drawPlot()
 
-    def execute(self, app_name, tlm_msg_name, parameter):
+    def execute(self, app_name, tlm_topic, tlm_element):
         """
         Must start the current value observer after the GUI window is created
         """
-        self.create_window()
+        self.app_name    = app_name
+        self.tlm_topic   = tlm_topic
+        self.tlm_element = tlm_element 
+
+        self.create_window(tlm_topic + '   ' + tlm_element)
 
         self.tlm_current_value = TelemetryCurrentValue(self.tlm_server, self.updatePlot)
         self.tlm_server.execute()
@@ -188,13 +207,26 @@ class TlmPlot():
 ###############################################################################
 
 if __name__ == '__main__':
-
+    
+    if len(sys.argv) > 1:
+        app_name    = sys.argv[1]
+        tlm_topic   = sys.argv[2]
+        tlm_element = sys.argv[3]
+        min_value   = int(sys.argv[4])
+        max_value   = int(sys.argv[5])
+    else:
+        app_name    = 'OSK_C_DEMO'
+        tlm_topic   = 'StatusTlm'
+        tlm_element = 'DeviceData'
+        min_value   = 0
+        max_value   = 100
+    
     config = configparser.ConfigParser()
     config.read('../cfsat.ini')
 
     cfs_host_addr = config.get('NETWORK', 'CFS_HOST_ADDR')
     tlm_port = config.getint('NETWORK', 'TLM_PLOT_TLM_PORT')
 
-    tlm_plot = TlmPlot(cfs_host_addr, tlm_port, 1.0)
-    tlm_plot.execute('OSK_C_DEMO', 'STATUS_TLM', 'DeviceData')
+    tlm_plot = TlmPlot(cfs_host_addr, tlm_port, 1.0, min_value, max_value)
+    tlm_plot.execute(app_name, tlm_topic, tlm_element)  # ('OSK_C_DEMO', 'STATUS_TLM', 'devicedata')
     

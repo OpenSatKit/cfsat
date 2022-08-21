@@ -156,6 +156,9 @@ class EdsMission:
         """
         return EdsLib.DatabaseEntry(self.lib_db, eds_id)
 
+    def get_topic_payload(self, topic_name):
+        eds_id = self.get_eds_id_from_topic(topic_name)
+        return self.get_database_entry(eds_id)()['Payload']
 
     def get_database_named_entry(self, eds_name):
         """
