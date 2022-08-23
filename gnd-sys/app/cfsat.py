@@ -1106,7 +1106,7 @@ class App():
 
     def send_cfs_cmd(self, app_name, cmd_name, cmd_payload):
         (cmd_sent, cmd_text, cmd_status) = self.telecommand_script.send_cfs_cmd(app_name, cmd_name, cmd_payload)
-        self.display_event(cmd_status)
+        self.display_event(cmd_status) # cmd_status will describe success and failure cases
         
     def enable_telemetry(self):
         """
@@ -1595,15 +1595,20 @@ class App():
                         if pop_event in ('-NOOP-', '-RESET-'):
                             app_name = pop_values['-APP_NAME-']
                             if app_name != EdsMission.TOPIC_CMD_TITLE_KEY:
-                                if pop_event == '-NOOP-':
-                                    self.send_cfs_cmd(app_name, 'Noop', {})
-                                elif pop_event == '-RESET-':
-                                    self.send_cfs_cmd(app_name, 'Reset', {})
+                                if app_name == 'CI_LAB':  #todo: Remove CI_LAB or update to use OSK_CI that follow osk_c_fw standards
+                                    if pop_event == '-NOOP-':
+                                        self.send_cfs_cmd(app_name, 'NoopCmd', {})
+                                    elif pop_event == '-RESET-':
+                                        self.send_cfs_cmd(app_name, 'ResetCountersCmd', {})
+                                else:
+                                    if pop_event == '-NOOP-':
+                                        self.send_cfs_cmd(app_name, 'Noop', {})
+                                    elif pop_event == '-RESET-':
+                                        self.send_cfs_cmd(app_name, 'Reset', {})
                             break        
                     pop_win.close()
                     
-                elif cfs_config_cmd == self.common_cmds[4]: # Restart App
-
+                elif cfs_config_cmd == self.common_cmds[4]: # Restart App 
                     pop_win = sg.Window('Restart Application',
                                         [[sg.Text("")],
                                          [sg.Text("Select App"), sg.Combo((self.app_cmd_list), size=(20,1), key='-APP_NAME-', default_value=self.app_cmd_list[0])],

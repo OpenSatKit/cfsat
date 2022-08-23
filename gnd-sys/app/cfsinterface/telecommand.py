@@ -339,33 +339,38 @@ class TelecommandScript(TelecommandInterface):
     
         self.cmd_payload = cmd_payload
         
-        topic_name = app_name.upper() + '/Application/CMD' 
+        topic_name = app_name.upper() + self.eds_mission.APP_CMD_TOPIC_SUFFIX 
         topic_id, topic_text = self.get_topic_id(topic_name)
             
         cmd_valid, cmd_entry, cmd_obj = self.get_cmd_entry(topic_name, cmd_name)
-            
-        self.set_cmd_hdr(topic_id, cmd_obj)
-
-        cmd_has_payload, cmd_payload_item = self.get_cmd_entry_payload(cmd_entry)
-            
-        if cmd_has_payload:
-            
-            payload_entry = self.eds_mission.get_database_named_entry(cmd_payload_item[2])
-            payload = payload_entry()
-
-            payload_struct = self.get_payload_struct(payload_entry, payload, 'Payload')
-            eds_payload = self.set_payload_values(payload_struct)
-            payload = payload_entry(eds_payload)
-
-            cmd_obj['Payload'] = payload
-    
-        (cmd_sent, cmd_text, cmd_status) = self.send_command(cmd_obj)
         
-        if cmd_sent == True:
-            cmd_status = "%s %s command sent" % (app_name, cmd_name)
-            logger.debug(hex_string(cmd_text, 8))        
-        else:
-            logger.info(cmd_status)
+        cmd_sent   = False
+        cmd_text   = "%s: %s" % (app_name,cmd_name)
+        cmd_status = "Error sending %s's %s command" % (app_name,cmd_name)
+        
+        if cmd_valid:    
+            self.set_cmd_hdr(topic_id, cmd_obj)
+
+            cmd_has_payload, cmd_payload_item = self.get_cmd_entry_payload(cmd_entry)
+                
+            if cmd_has_payload:
+                
+                payload_entry = self.eds_mission.get_database_named_entry(cmd_payload_item[2])
+                payload = payload_entry()
+
+                payload_struct = self.get_payload_struct(payload_entry, payload, 'Payload')
+                eds_payload = self.set_payload_values(payload_struct)
+                payload = payload_entry(eds_payload)
+
+                cmd_obj['Payload'] = payload
+        
+            (cmd_sent, cmd_text, cmd_status) = self.send_command(cmd_obj)
+            
+            if cmd_sent == True:
+                cmd_status = "%s %s command sent" % (app_name, cmd_name)
+                logger.debug(hex_string(cmd_text, 8))        
+            else:
+                logger.info(cmd_status)
         
         
         return (cmd_sent, cmd_text, cmd_status)
