@@ -56,6 +56,7 @@ class GroundDir():
         self.sg_window  = sg_window
         self.path = compress_abs_path(path if os.path.isdir(path) else "")
         self.file_list = []
+        self.file_list_fmt_str = "{:<20} {:>8}  {:>20}"
 
     def path_filename(self, filename):
         return os.path.join(self.path, filename)
@@ -68,7 +69,16 @@ class GroundDir():
             dir_list = os.listdir(self.path)
         except:
             pass
-        self.file_list = [f for f in dir_list if os.path.isfile(os.path.join(self.path, f))]
+        
+        # Filenames only: self.file_list = [f for f in dir_list if os.path.isfile(os.path.join(self.path, f))]
+        self.file_list = []
+        for f in dir_list:
+            path_f = os.path.join(self.path, f)
+            if os.path.isfile(path_f):
+                file_stat = os.stat(path_f) 
+                file_text = self.file_list_fmt_str.format(f, file_stat.st_size, time.ctime(file_stat.st_mtime))
+                self.file_list.append(file_text)
+
         if len(self.file_list) == 0:
             self.file_list = ['Folder empty or only contains other folders']
         self.file_list.sort() 
@@ -104,7 +114,8 @@ class FlightDir():
         self.path = path
         self.file_cnt  = 0
         self.file_list = []
-
+        self.file_list_fmt_str = "{:<20} {:>8}  {:>8}"
+        
     def path_filename(self, filename):
         return self.path + '/' + filename
     
@@ -112,7 +123,8 @@ class FlightDir():
         if path is not None:
             self.path = path
         self.file_list = []
-        self.cmd_tlm_process.send_cfs_cmd('FILE_MGR', 'SendDirTlm',  {'DirName': self.path, 'IncludeSizeTime': 0})
+        self.filename_max_len = 0
+        self.cmd_tlm_process.send_cfs_cmd('FILE_MGR', 'SendDirTlm',  {'DirName': self.path, 'IncludeSizeTime': 1})
         time.sleep(1.5) # Give time for telemetry
         if len(self.file_list) == 0:
             self.sg_window.update(['Check cFS connection or empty/nonexistent directory'])
@@ -167,7 +179,8 @@ class FlightDir():
         print("payload.DirListOffset = " + str(payload.DirListOffset))        
         for entry in payload.FileList:
             if (len(str(entry['Name'])) > 0):
-                self.file_list.append(str(entry['Name']))
+                file_text = self.file_list_fmt_str.format(str(entry['Name']), str(entry['Size']), str(entry['Time']))
+                self.file_list.append(file_text)
         #print("file_list: " + str(self.file_list))
         self.sg_window.update(self.file_list)
 
@@ -333,16 +346,23 @@ class FileBrowser(CmdTlmProcess):
         self.update_event_history_str(new_event_text)
         self.window["-EVENT_TEXT-"].update(self.event_history)
                 
+    def get_filename(self, gui_filename):
+        """
+        Get the filename from a GUI file listing. Both ground and flight listing
+        start with the filename followed by a space.
+        """
+        return gui_filename.split(' ')[0]
+    
     def gui(self):
         col_title_font = ('Arial bold',20)
         pri_hdr_font   = ('Arial bold',14)
-        list_font      = ('Arial',12)
+        list_font      = ('Courier',11)
         log_font       = ('Courier',11)
         self.gnd_file_menu = ['_', ['Refresh', '---', 'Send to Flight', 'Edit File', '---',  'Rename File', 'Delete File']] #TODO - Decide on dir support 
         self.gnd_col = [
             [sg.Text('Ground', font=col_title_font)],
             [sg.Text('Folder'), sg.In(self.default_gnd_path, size=(25,1), enable_events=True ,key='-GND_FOLDER-'), sg.FolderBrowse(initial_folder=self.default_gnd_path)],
-            [sg.Listbox(values=[], font=list_font, enable_events=True, size=(40,20), key='-GND_FILE_LIST-', right_click_menu=self.gnd_file_menu)]]
+            [sg.Listbox(values=[], font=list_font, enable_events=True, size=(50,20), key='-GND_FILE_LIST-', right_click_menu=self.gnd_file_menu)]]
         
         # Duplicate ground names have a trailing space to differentiate them. A little kludgy but it works
         self.flt_file_menu = ['_', [ 'Refresh ', '---', 'List Dir', 'Send to Ground', 'Cancel Send', '---',  'Create Dir', 'Delete Dir', '---', 'Rename File ', 'Delete File ']] 
@@ -350,12 +370,12 @@ class FileBrowser(CmdTlmProcess):
             [sg.Text('Flight', font=col_title_font)],
             [sg.Text('Folder'), sg.In(self.default_flt_path, size=(25,1), enable_events=True ,key='-FLT_FOLDER-'),
             sg.Button('▲', font='arrow_font 7', border_width=0, pad=(2,0), key='-FLT_UP-')],
-            [sg.Listbox(values=[], font=list_font, enable_events=True, size=(40,20), key='-FLT_FILE_LIST-', right_click_menu=self.flt_file_menu)]]
+            [sg.Listbox(values=[], font=list_font, enable_events=True, size=(50,20), key='-FLT_FILE_LIST-', right_click_menu=self.flt_file_menu)]]
 
         self.layout = [
             [sg.Column(self.gnd_col, element_justification='c'), sg.VSeperator(), sg.Column(self.flt_col, element_justification='c')],
             [sg.Text('Ground & Flight Events', font=pri_hdr_font), sg.Button('Clear', enable_events=True, key='-CLEAR_EVENTS-', pad=(5,1))],
-            [sg.MLine(default_text=self.event_history, font=log_font, enable_events=True, size=(90, 5), key='-EVENT_TEXT-')]]
+            [sg.MLine(default_text=self.event_history, font=log_font, enable_events=True, size=(105, 5), key='-EVENT_TEXT-')]]
             
  
         self.window = sg.Window('File Browser', self.layout, resizable=True)
@@ -392,7 +412,7 @@ class FileBrowser(CmdTlmProcess):
 
             elif self.event == 'Send to Flight':
                 if len(self.values['-GND_FILE_LIST-']) > 0:
-                    filename = self.values['-GND_FILE_LIST-'][0]
+                    filename = self.get_filename(self.values['-GND_FILE_LIST-'][0])
                     gnd_file = self.gnd_dir.path_filename(filename)
                     flt_file = self.flt_dir.path_filename(filename)
                     self.file_xfer.send_file(gnd_file, flt_file)
@@ -402,7 +422,7 @@ class FileBrowser(CmdTlmProcess):
             
             elif self.event == 'Send to Ground':
                 if len(self.values['-FLT_FILE_LIST-']) > 0:
-                    filename = self.values['-FLT_FILE_LIST-'][0]
+                    filename = self.get_filename(self.values['-FLT_FILE_LIST-'][0])
                     flt_file = self.flt_dir.path_filename(filename)
                     gnd_file = self.gnd_dir.path_filename(filename)
                     print('>>>>flt_file: %s, gnd_file: %s' % (flt_file, gnd_file))
@@ -435,20 +455,22 @@ class FileBrowser(CmdTlmProcess):
                     tools_path = os.path.join(cwd, "tools")
                 filename = ''
                 if len(self.values['-GND_FILE_LIST-']) > 0:
-                    filename = self.values['-GND_FILE_LIST-'][0]
+                    filename = self.get_filename(self.values['-GND_FILE_LIST-'][0])
                     if filename.endswith((".txt", ".json", ".h", ".c", ".py", ".cmake", ".scr")):
                         filename = self.gnd_dir.path_filename(filename)
                 self.text_editor = sg.execute_py_file("texteditor.py", parms=filename, cwd=tools_path)
 
             elif self.event == 'Delete File':
                 if len(self.values['-GND_FILE_LIST-']) > 0:
-                   self.gnd_dir.delete_file(self.values['-GND_FILE_LIST-'][0])
+                   filename = self.get_filename(self.values['-GND_FILE_LIST-'][0])
+                   self.gnd_dir.delete_file(filename)
 
             elif self.event == 'Rename File':
                 if len(self.values['-GND_FILE_LIST-']) > 0:
                     dst_file = sg.popup_get_text(title='Rename ' + self.values['-GND_FILE_LIST-'][0], message='Please enter the new filename')
                     if dst_file is not None:
-                        self.gnd_dir.rename_file(self.values['-GND_FILE_LIST-'][0], dst_file)
+                        filename = self.get_filename(self.values['-GND_FILE_LIST-'][0])
+                        self.gnd_dir.rename_file(filename, dst_file)
 
             ### Flight ###
 
@@ -464,7 +486,8 @@ class FileBrowser(CmdTlmProcess):
 
             elif self.event == 'List Dir':
                 if len(self.values['-FLT_FILE_LIST-']) > 0:
-                    self.flt_dir.move_down(self.values['-FLT_FILE_LIST-'][0])
+                    filename = self.get_filename(self.values['-FLT_FILE_LIST-'][0])
+                    self.flt_dir.move_down(filename)
                     self.window['-FLT_FOLDER-'].update(self.flt_dir.path)
 
             elif self.event == 'Create Dir':
@@ -478,7 +501,8 @@ class FileBrowser(CmdTlmProcess):
                 Let FileMgr app perform error checks
                 """
                 if len(self.values['-FLT_FILE_LIST-']) > 0:
-                    self.flt_dir.delete_dir(self.values['-FLT_FILE_LIST-'][0])
+                    filename = self.get_filename(self.values['-FLT_FILE_LIST-'][0])
+                    self.flt_dir.delete_dir(filename)
                     self.window['-FLT_FOLDER-'].update(self.flt_dir.path)
 
             elif self.event == 'Delete File ':
@@ -486,14 +510,16 @@ class FileBrowser(CmdTlmProcess):
                 Let FileMgr app perform error checks
                 """
                 if len(self.values['-FLT_FILE_LIST-']) > 0:
-                    self.flt_dir.delete_file(self.values['-FLT_FILE_LIST-'][0])
+                    filename = self.get_filename(self.values['-FLT_FILE_LIST-'][0])
+                    self.flt_dir.delete_file(filename)
                     self.window['-FLT_FOLDER-'].update(self.flt_dir.path)
 
             elif self.event == 'Rename File ':
                 if len(self.values['-FLT_FILE_LIST-']) > 0:
-                    dst_file = sg.popup_get_text(title='Rename ' + self.values['-FLT_FILE_LIST-'][0], message='Please enter the new filename')
+                    filename = self.get_filename(self.values['-FLT_FILE_LIST-'][0])
+                    dst_file = sg.popup_get_text(title='Rename '+filename, message='Please enter the new filename')
                     if dst_file is not None:
-                        self.flt_dir.rename_file(self.values['-FLT_FILE_LIST-'][0], dst_file)
+                        self.flt_dir.rename_file(filename, dst_file)
                         self.window['-FLT_FOLDER-'].update(self.flt_dir.path)
             
 

@@ -1164,7 +1164,7 @@ class App():
         
     def create_app_cmd_list(self, cmd_topics):
         """
-        Populates self.app_cmd_list with the app names defined in cmd_topics. Assumes the app name 
+        Populate self.app_cmd_list with the app names defined in cmd_topics. Assumes the app name 
          
         """
         for topic in cmd_topics:
@@ -1174,13 +1174,120 @@ class App():
 
     def create_app_tlm_list(self, tlm_topics):
         """
-        Populates self.app_tlm_list with the app names defined in tlm_topics. Assumes the app name 
+        Populate self.app_tlm_list with the app names defined in tlm_topics. Assumes the app name 
          
         """
         for topic in tlm_topics:
             app_name = topic.split('/')[0]
             if app_name not in self.cfe_apps and app_name not in self.app_tlm_list:
                 self.app_tlm_list.append(app_name)
+
+                                     
+    def launch_tlmplot(self):
+                
+        # 1. Get user app selection & create telemetry topic dictionary 
+        tlm_plot_cmd_parms = ""
+        tlm_dict = {}
+        app_window_layout = [[sg.Text("")],
+                             [sg.Text("Select App"), sg.Combo((self.app_tlm_list), size=(20,1), key='-APP_NAME-', default_value=self.app_tlm_list[0])],
+                             [sg.Text("")],
+                             [sg.Button('Submit', button_color=('SpringGreen4'), enable_events=True, key='-SUBMIT-', pad=(10,1)),
+                             sg.Cancel(button_color=('gray'))]]
+
+        app_window = sg.Window('Plot Data', app_window_layout, finalize=True)           
+        while True:  # Event Loop
+            app_win_event, app_win_values = app_window.read(timeout=200)
+            if app_win_event in (sg.WIN_CLOSED, 'Cancel'):
+                break
+            elif app_win_event == '-SUBMIT-':
+                app_name = app_win_values['-APP_NAME-']
+                if app_name != EdsMission.TOPIC_TLM_TITLE_KEY:
+                    tlm_plot_cmd_parms += app_name
+                    for topic in self.tlm_server.get_topics():
+                        if app_name in topic:
+                            tlm_dict[topic] = self.tlm_server.eds_mission.get_topic_payload(topic)
+                    break
+                else:
+                    sg.popup("Please select a telemetry topic from the drop down menu", title='Plot Configuration', grab_anywhere=True, modal=False)
+        app_window.close()
+        if (len(tlm_dict) == 0):
+            return
+            
+        # 2 - Create tree data
+        topic_tree = sg.TreeData()
+        for topic in tlm_dict:
+            topic_tree.insert("", topic, topic, [])
+            for tlm_element in tlm_dict[topic]:
+                tlm_element = str(tlm_element[0])
+                topic_tree.insert(topic, tlm_element, tlm_element, [])
+        
+        # 3 - Get user data selection
+        #todo: Fix tree column headers. Currently first column is blank
+        min_value = 0
+        max_value = 100
+        plot_data_layout = [[sg.Text('Select an integer telemetry point to be plotted and the data range\n')],
+                           [sg.Tree(data=topic_tree, headings=['Topic'], auto_size_columns=True,
+                           select_mode=sg.TABLE_SELECT_MODE_EXTENDED, num_rows=20, col0_width=40, key='-TOPIC-',
+                           show_expanded=False, enable_events=True, expand_x=True, expand_y=True),],
+                           [sg.Text('Plot Min Value:  '), sg.Input(str(min_value), size=(4, 1), font='Any 12', justification='r', key='-MIN-'),
+                            sg.Column([[sg.Button('▲', size=(1, 1), font='Any 7', border_width=0, button_color=(sg.theme_text_color(), sg.theme_background_color()), key='-MIN_UP-')],
+                            [sg.Button('▼', size=(1, 1), font='Any 7', border_width=0, button_color=(sg.theme_text_color(), sg.theme_background_color()), key='-MIN_DOWN-')]]),
+                            sg.Text('Plot Max Value: '), sg.Input(str(max_value), size=(4, 1), font='Any 12', justification='r', key='-MAX-'),
+                            sg.Column([[sg.Button('▲', size=(1, 1), font='Any 7', border_width=0, button_color=(sg.theme_text_color(), sg.theme_background_color()), key='-MAX_UP-')],
+                            [sg.Button('▼', size=(1, 1), font='Any 7', border_width=0, button_color=(sg.theme_text_color(), sg.theme_background_color()), key='-MAX_DOWN-')]])],
+                           [sg.Button('Ok'), sg.Button('Cancel')]]
+
+        plot_data_window = sg.Window('Plot Data', plot_data_layout, resizable=True, finalize=True)
+        while True:  # Event Loop
+            plot_data_event, plot_data_values = plot_data_window.read(timeout=1000)
+            if plot_data_event in (sg.WIN_CLOSED, 'Cancel'):
+                break
+            elif plot_data_event == 'Ok':
+                tlm_topic = 'None'
+                if len(plot_data_values['-TOPIC-']) > 0:
+                    tlm_element = plot_data_values['-TOPIC-'][0]
+                    for topic in tlm_dict:
+                        if tlm_element in tlm_dict[topic].keys():
+                            """
+                            Find and add payload name to topic string because the payload string is needed by tlmplot
+                            EDS naming assumptions:
+                             - topic name begins with app name and components separated by '/'
+                             - topic type contains the topic's payload variable name and single quotes
+                            """
+                            app_name   = topic.split('/')[0]
+                            topic_type = str(type(tlm_dict[topic]))
+                            type_list  = topic_type.split("'")
+                            index = [i for i, s in enumerate(type_list) if app_name in s]
+                            if len(index) > 0:
+                                tlm_payload = type_list[index[0]].split('/')[-1]
+                            else:
+                                sg.popup("Error retreiving payload name from topic %s type %s" % (topic, topic_type), title='Plot Configuration', grab_anywhere=True, modal=False)
+                                tlm_plot_cmd_parms = ""
+                            tlm_topic = topic
+                    tlm_plot_cmd_parms += ' ' + tlm_topic + ' ' + tlm_payload + ' ' + tlm_element + ' ' + plot_data_values['-MIN-'] + ' ' + plot_data_values['-MAX-'] 
+                    break
+                else:
+                    sg.popup("You must select a telemetry element from a telemetry topic's payload", title='Plot Configuration', grab_anywhere=True, modal=False)
+            elif plot_data_event == '-MIN_UP-':
+                min_value += 1
+                plot_data_window["-MIN-"].update(str(min_value))
+            elif plot_data_event == '-MIN_DOWN-':
+                min_value -= 1
+                plot_data_window["-MIN-"].update(str(min_value))
+            elif plot_data_event == '-MAX_UP-':
+                max_value += 1
+                plot_data_window["-MAX-"].update(str(max_value))
+            elif plot_data_event == '-MAX_DOWN-':
+                max_value -= 1
+                plot_data_window["-MAX-"].update(str(max_value))
+            #todo print(plot_data_event, plot_data_values)
+        plot_data_window.close()
+        print('tlm_plot_cmd_parms = ' + tlm_plot_cmd_parms)
+
+        #todo: Add check if tlm_plots been run before or is there logic in router?
+        if (len(tlm_plot_cmd_parms)>0):
+            self.cmd_tlm_router.add_tlm_dest(self.config.getint('NETWORK','TLM_PLOT_TLM_PORT'))                
+            self.tlm_plot = sg.execute_py_file("tlmplot.py", parms=tlm_plot_cmd_parms, cwd=self.cfs_interface_dir)
 
     def create_window(self, sys_target_str, sys_comm_str):
         """
@@ -1367,81 +1474,12 @@ class App():
                 self.file_browser = sg.execute_py_file("filebrowser.py", cwd=self.cfs_interface_dir)
 
             elif self.event == 'Plot Data':
-                tlm_plot_cmd_parms = ""
-                # 1. Get user app selection & create telemetry topic dictionary 
-                tlm_dict = {}
-                app_window_layout = [[sg.Text("")],
-                                     [sg.Text("Select App"), sg.Combo((self.app_tlm_list), size=(20,1), key='-APP_NAME-', default_value=self.app_tlm_list[0])],
-                                     [sg.Text("")],
-                                     [sg.Button('Submit', button_color=('SpringGreen4'), enable_events=True, key='-SUBMIT-', pad=(10,1)),
-                                     sg.Cancel(button_color=('gray'))]]
-                                     
-                app_window = sg.Window('Plot Data', app_window_layout, finalize=True)           
-                while True:  # Event Loop
-                    app_win_event, app_win_values = app_window.read(timeout=200)
-                    if app_win_event in (sg.WIN_CLOSED, 'Cancel'):
-                        break
-                    elif app_win_event == '-SUBMIT-':
-                        app_name = app_win_values['-APP_NAME-']
-                        if app_name != EdsMission.TOPIC_TLM_TITLE_KEY:
-                            tlm_plot_cmd_parms += app_name
-                            for topic in self.tlm_server.get_topics():
-                                if app_name in topic:
-                                    tlm_dict[topic] = self.tlm_server.eds_mission.get_topic_payload(topic)
-                            print(">>> " + str(tlm_dict))
-                        break
-                        #tlm_topics = self.tlm_server.eds_mission.get_topic_dict()
-                        #print(str(tlm_topics))
-                app_window.close()
-
-                if (len(tlm_dict) > 0):
-                    # 2 - Create tree data
-                    topic_tree = sg.TreeData()
-                    for topic in tlm_dict: 
-                        topic_tree.insert("", topic, topic, [])
-                        for tlm_element in tlm_dict[topic]:
-                            topic_tree.insert(topic, tlm_element, tlm_element, [])
-                    
-                    # 3 - Get user data selection
-                    #todo: Fix tree column headers. Currently first column is blank
-                    plot_data_layout = [[sg.Text('Select an integer telemetry point to be plotted and the data range\n')],
-                                       [sg.Tree(data=topic_tree, headings=['Topic'], auto_size_columns=True,
-                                       select_mode=sg.TABLE_SELECT_MODE_EXTENDED, num_rows=20, col0_width=40, key='-TOPIC-',
-                                       show_expanded=False, enable_events=True, expand_x=True, expand_y=True),],
-                                       [sg.Text('Plot Min Value:  '), sg.Input('0', size=(4, 1), font='Any 12', justification='r', key='-MIN-'),
-                                        sg.Column([[sg.Button('▲', size=(1, 1), font='Any 7', border_width=0, button_color=(sg.theme_text_color(), sg.theme_background_color()), key='-MIN_UP-')],
-                                        [sg.Button('▼', size=(1, 1), font='Any 7', border_width=0, button_color=(sg.theme_text_color(), sg.theme_background_color()), key='-MIN_DOWN-')]]),
-                                        sg.Text('Plot Max Value: '), sg.Input('100', size=(4, 1), font='Any 12', justification='r', key='-MAX-'),
-                                        sg.Column([[sg.Button('▲', size=(1, 1), font='Any 7', border_width=0, button_color=(sg.theme_text_color(), sg.theme_background_color()), key='-MAX_UP-')],
-                                        [sg.Button('▼', size=(1, 1), font='Any 7', border_width=0, button_color=(sg.theme_text_color(), sg.theme_background_color()), key='-MAX_DOWN-')]])],
-                                       [sg.Button('Ok'), sg.Button('Cancel')]]
-
-                    plot_data_window = sg.Window('Plot Data', plot_data_layout, resizable=True, finalize=True)
-                    while True:  # Event Loop
-                        plot_data_event, plot_data_values = plot_data_window.read(timeout=200)
-                        if plot_data_event in (sg.WIN_CLOSED, 'Cancel'):
-                            break
-                        elif plot_data_event == 'Ok':
-                            #todo: Add error logic and user message
-                            tlm_topic = 'None'
-                            tlm_element = plot_data_values['-TOPIC-'][0][0]
-                            for topic in tlm_dict:
-                                if tlm_element in tlm_dict[topic].keys():
-                                    tlm_topic = topic
-                            tlm_plot_cmd_parms += ' ' + tlm_topic + ' ' + tlm_element + ' ' + plot_data_values['-MIN-'] + ' ' + plot_data_values['-MAX-'] 
-                            break
-                        #todo: print(plot_data_event, plot_data_values)
-                    plot_data_window.close()
-                    print('tlm_plot_cmd_parms = ' + tlm_plot_cmd_parms)
-           
-                    #todo: Add check if tlm_plots been run before or is there logic in router?
-                    self.cmd_tlm_router.add_tlm_dest(self.config.getint('NETWORK','TLM_PLOT_TLM_PORT'))                
-                    self.tlm_plot = sg.execute_py_file("tlmplot.py", parms=tlm_plot_cmd_parms, cwd=self.cfs_interface_dir)
-
-                elif self.event == 'Control Target':
-                    tools_dir = os.path.join(self.path, "tools")
-                    print("tools_dir = " + tools_dir)
-                    self.target_control = sg.execute_py_file("targetcontrol.py", cwd=tools_dir)
+                self.launch_tlmplot()
+                
+            elif self.event == 'Control Target':
+                tools_dir = os.path.join(self.path, "tools")
+                print("tools_dir = " + tools_dir)
+                self.target_control = sg.execute_py_file("targetcontrol.py", cwd=tools_dir)
 
 
             ### DOCUMENTS ###
