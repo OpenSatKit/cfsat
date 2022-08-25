@@ -173,7 +173,7 @@ typedef struct
 **    1. This function must be called prior to any other functions being
 **       called using the same tblmgr instance.
 */
-void TBLMGR_Constructor(TBLMGR_Class_t* TblMgr);
+void TBLMGR_Constructor(TBLMGR_Class_t *TblMgr);
 
 
 /******************************************************************************
@@ -183,7 +183,7 @@ void TBLMGR_Constructor(TBLMGR_Class_t* TblMgr);
 ** last action was performed upon. Returns NULL if table manager's last action
 ** is in an invalid state.
 */
-const TBLMGR_Tbl_t* TBLMGR_GetLastTblStatus(TBLMGR_Class_t* TblMgr);
+const TBLMGR_Tbl_t *TBLMGR_GetLastTblStatus(TBLMGR_Class_t *TblMgr);
 
 
 /******************************************************************************
@@ -192,7 +192,7 @@ const TBLMGR_Tbl_t* TBLMGR_GetLastTblStatus(TBLMGR_Class_t* TblMgr);
 ** Returns a pointer to the table status for TblId. Returns NULL if TblId 
 ** is invalid.
 */
-const TBLMGR_Tbl_t* TBLMGR_GetTblStatus(TBLMGR_Class_t* TblMgr, uint8 TblId);
+const TBLMGR_Tbl_t *TBLMGR_GetTblStatus(TBLMGR_Class_t *TblMgr, uint8 TblId);
 
 
 /******************************************************************************
@@ -201,7 +201,7 @@ const TBLMGR_Tbl_t* TBLMGR_GetTblStatus(TBLMGR_Class_t* TblMgr, uint8 TblId);
 ** Register a table without loading a default table.
 ** Returns table ID assigned to new table or TBLMGR_MAX_TBL_PER_APP if no IDs left.
 */
-uint8 TBLMGR_RegisterTbl(TBLMGR_Class_t* TblMgr, TBLMGR_LoadTblFuncPtr_t LoadFuncPtr, 
+uint8 TBLMGR_RegisterTbl(TBLMGR_Class_t *TblMgr, TBLMGR_LoadTblFuncPtr_t LoadFuncPtr, 
                          TBLMGR_DumpTblFuncPtr_t DumpFuncPtr); 
 
 
@@ -211,15 +211,15 @@ uint8 TBLMGR_RegisterTbl(TBLMGR_Class_t* TblMgr, TBLMGR_LoadTblFuncPtr_t LoadFun
 ** Register a table and load a default table
 ** Returns table ID assigned to new table or TBLMGR_MAX_TBL_PER_APP if no IDs left.
 */
-uint8 TBLMGR_RegisterTblWithDef(TBLMGR_Class_t* TblMgr, TBLMGR_LoadTblFuncPtr_t LoadFuncPtr, 
-                                TBLMGR_DumpTblFuncPtr_t DumpFuncPtr, const char* TblFilename); 
+uint8 TBLMGR_RegisterTblWithDef(TBLMGR_Class_t *TblMgr, TBLMGR_LoadTblFuncPtr_t LoadFuncPtr, 
+                                TBLMGR_DumpTblFuncPtr_t DumpFuncPtr, const char *TblFilename); 
 
 
 /******************************************************************************
 ** Function: TBLMGR_ResetStatus
 **
 */
-void TBLMGR_ResetStatus(TBLMGR_Class_t* TblMgr);
+void TBLMGR_ResetStatus(TBLMGR_Class_t *TblMgr);
 
 
 /******************************************************************************
@@ -231,7 +231,7 @@ void TBLMGR_ResetStatus(TBLMGR_Class_t* TblMgr);
 **     during registration 
 ** 
 */
-bool TBLMGR_LoadTblCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
+bool TBLMGR_LoadTblCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
@@ -241,7 +241,7 @@ bool TBLMGR_LoadTblCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 **  1. Returns a pointer to a string that describes the load type 
 ** 
 */
-const char* TBLMGR_LoadTypeStr(int8 LoadType);
+const char *TBLMGR_LoadTypeStr(int8 LoadType);
 
 
 /******************************************************************************
@@ -253,7 +253,7 @@ const char* TBLMGR_LoadTypeStr(int8 LoadType);
 **     during registration 
 ** 
 */
-bool TBLMGR_DumpTblCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
+bool TBLMGR_DumpTblCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 #endif /* _tblmgr_ */

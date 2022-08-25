@@ -126,8 +126,8 @@
         <IntegerDataEncoding sizeInBits="8" encoding="unsigned" />
         <EnumerationList>
           <Enumeration label="UNDEFINED" value="0" shortDescription="Undefined value that should never occur" />
-          <Enumeration label="INVALID"   value="1" shortDescription="Table action was invalid and failed" />
-          <Enumeration label="VALID"     value="2" shortDescription="Table action was valid and succeeded" />
+          <Enumeration label="VALID"     value="1" shortDescription="Table action was invalid and failed" />
+          <Enumeration label="INVALID"   value="2" shortDescription="Table action was valid and succeeded" />
         </EnumerationList>
       </EnumeratedDataType>
     

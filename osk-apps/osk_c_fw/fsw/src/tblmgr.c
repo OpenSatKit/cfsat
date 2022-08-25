@@ -53,7 +53,7 @@ static bool DumpTblStub(TBLMGR_Tbl_t* Tbl, uint8 DumpType, const char* Filename)
 **       called using the same tblmgr instance.
 **
 */
-void TBLMGR_Constructor(TBLMGR_Class_t* TblMgr)
+void TBLMGR_Constructor(TBLMGR_Class_t *TblMgr)
 {
 
    int i;
@@ -77,12 +77,12 @@ void TBLMGR_Constructor(TBLMGR_Class_t* TblMgr)
 **     during registration 
 ** 
 */
-bool TBLMGR_DumpTblCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
+bool TBLMGR_DumpTblCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
    bool RetStatus = false;
-   TBLMGR_Tbl_t*   Tbl;
-   TBLMGR_Class_t* TblMgr = (TBLMGR_Class_t *) ObjDataPtr;
+   TBLMGR_Tbl_t *Tbl;
+   TBLMGR_Class_t *TblMgr = (TBLMGR_Class_t *) ObjDataPtr;
    const  TBLMGR_TblCmdMsg_Payload_t *DumpTblCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, TBLMGR_DumpTblCmdMsg_t);
       
    if (DumpTblCmd->Id < TblMgr->NextAvailableId)
@@ -121,7 +121,7 @@ bool TBLMGR_DumpTblCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 ** Returns a pointer to the table status structure for the table that the
 ** last action was performed upon.
 */
-const TBLMGR_Tbl_t* TBLMGR_GetLastTblStatus(TBLMGR_Class_t* TblMgr)
+const TBLMGR_Tbl_t *TBLMGR_GetLastTblStatus(TBLMGR_Class_t *TblMgr)
 {
 
    if (TblMgr->LastActionTblId < TBLMGR_MAX_TBL_PER_APP)
@@ -141,7 +141,7 @@ const TBLMGR_Tbl_t* TBLMGR_GetLastTblStatus(TBLMGR_Class_t* TblMgr)
 **
 ** Returns a pointer to the table status for TblId.
 */
-const TBLMGR_Tbl_t* TBLMGR_GetTblStatus(TBLMGR_Class_t* TblMgr, uint8 TblId)
+const TBLMGR_Tbl_t *TBLMGR_GetTblStatus(TBLMGR_Class_t *TblMgr, uint8 TblId)
 {
 
    if (TblId < TBLMGR_MAX_TBL_PER_APP)
@@ -165,12 +165,12 @@ const TBLMGR_Tbl_t* TBLMGR_GetTblStatus(TBLMGR_Class_t* TblMgr, uint8 TblId)
 **     during registration
 ** 
 */
-bool TBLMGR_LoadTblCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
+bool TBLMGR_LoadTblCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
    bool RetStatus = false;
-   TBLMGR_Tbl_t*   Tbl;
-   TBLMGR_Class_t* TblMgr = (TBLMGR_Class_t *) ObjDataPtr;
+   TBLMGR_Tbl_t *Tbl;
+   TBLMGR_Class_t *TblMgr = (TBLMGR_Class_t *) ObjDataPtr;
    const  TBLMGR_TblCmdMsg_Payload_t* LoadTblCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, TBLMGR_LoadTblCmdMsg_t);
 
    if (DBG_TBLMGR) OS_printf("TBLMGR_LoadTblCmd() Entry\n");
@@ -214,10 +214,10 @@ bool TBLMGR_LoadTblCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 ** Function: TBLMGR_LoadTypeStr
 **
 */
-const char* TBLMGR_LoadTypeStr(int8 LoadType)
+const char *TBLMGR_LoadTypeStr(int8 LoadType)
 {
 
-   static const char* LoadTypeStr[] =
+   static const char *LoadTypeStr[] =
    {
       "replace",
       "update",
@@ -245,7 +245,7 @@ const char* TBLMGR_LoadTypeStr(int8 LoadType)
 ** Register a table without loading a default table.
 ** Returns table ID.
 */
-uint8 TBLMGR_RegisterTbl(TBLMGR_Class_t* TblMgr, TBLMGR_LoadTblFuncPtr_t LoadFuncPtr, 
+uint8 TBLMGR_RegisterTbl(TBLMGR_Class_t *TblMgr, TBLMGR_LoadTblFuncPtr_t LoadFuncPtr, 
                          TBLMGR_DumpTblFuncPtr_t DumpFuncPtr)
 {
   
@@ -291,8 +291,8 @@ uint8 TBLMGR_RegisterTbl(TBLMGR_Class_t* TblMgr, TBLMGR_LoadTblFuncPtr_t LoadFun
 ** Register a table and load a default table
 ** Returns table ID.
 */
-uint8 TBLMGR_RegisterTblWithDef(TBLMGR_Class_t* TblMgr, TBLMGR_LoadTblFuncPtr_t LoadFuncPtr, 
-                                TBLMGR_DumpTblFuncPtr_t DumpFuncPtr, const char* TblFilename)
+uint8 TBLMGR_RegisterTblWithDef(TBLMGR_Class_t *TblMgr, TBLMGR_LoadTblFuncPtr_t LoadFuncPtr, 
+                                TBLMGR_DumpTblFuncPtr_t DumpFuncPtr, const char *TblFilename)
 {
 
    uint8 TblId = TBLMGR_RegisterTbl(TblMgr, LoadFuncPtr, DumpFuncPtr);
@@ -322,7 +322,7 @@ uint8 TBLMGR_RegisterTblWithDef(TBLMGR_Class_t* TblMgr, TBLMGR_LoadTblFuncPtr_t 
 ** Function: TBLMGR_ResetStatus
 **
 */
-void TBLMGR_ResetStatus(TBLMGR_Class_t* TblMgr)
+void TBLMGR_ResetStatus(TBLMGR_Class_t *TblMgr)
 {
 
    /* Nothing to do - Preserve status of most recent action */ 
@@ -336,7 +336,7 @@ void TBLMGR_ResetStatus(TBLMGR_Class_t* TblMgr)
 ** Notes:
 **  1. Must used the TBLMGR_TblDumpFuncPtr function definition
 */
-static bool DumpTblStub(TBLMGR_Tbl_t* Tbl, uint8 DumpType, const char* Filename)
+static bool DumpTblStub(TBLMGR_Tbl_t *Tbl, uint8 DumpType, const char *Filename)
 {
 
    CFE_EVS_SendEvent (TBLMGR_DUMP_STUB_ERR_EID, CFE_EVS_EventType_ERROR,
@@ -354,7 +354,7 @@ static bool DumpTblStub(TBLMGR_Tbl_t* Tbl, uint8 DumpType, const char* Filename)
 ** Notes:
 **  1. Must used the TBLMGR_TblLoadFuncPtr function definition
 */
-static bool LoadTblStub(TBLMGR_Tbl_t* Tbl, uint8 LoadType, const char* Filename)
+static bool LoadTblStub(TBLMGR_Tbl_t *Tbl, uint8 LoadType, const char *Filename)
 {
 
    CFE_EVS_SendEvent (TBLMGR_LOAD_STUB_ERR_EID, CFE_EVS_EventType_ERROR,
@@ -364,6 +364,4 @@ static bool LoadTblStub(TBLMGR_Tbl_t* Tbl, uint8 LoadType, const char* Filename)
    return false;
 
 } /* End LoadTblStub() */
-
-
 
