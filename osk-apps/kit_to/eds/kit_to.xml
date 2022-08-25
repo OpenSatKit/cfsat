@@ -126,9 +126,9 @@
           <Entry name="ValidCmdCnt"          type="BASE_TYPES/uint16" />
           <Entry name="InvalidCmdCnt"        type="BASE_TYPES/uint16" />
           <Entry name="RunLoopDelay"         type="BASE_TYPES/uint16" />
-          <Entry name="PktTblLastLoadStatus" type="BASE_TYPES/uint8"  />
-          <Entry name="PktTblSpareAlignByte" type="BASE_TYPES/uint8"  />
-          <Entry name="PktTblAttrErrCnt"     type="BASE_TYPES/uint16" />
+          <Entry name="PktTblAction"         type="OSK_C_FW/TblActions" />
+          <Entry name="PktTblActionStatus"   type="OSK_C_FW/TblActionStatus" />
+          <Entry name="PktTblJsonObjCnt"     type="BASE_TYPES/uint16" />
           <Entry name="StatsValid"           type="BASE_TYPES/uint8"  />
           <Entry name="PktMgrSpareAlignByte" type="BASE_TYPES/uint8"  />
           <Entry name="PktsPerSec"           type="BASE_TYPES/uint16" />
