@@ -195,18 +195,14 @@ bool HISTOGRAM_TBL_LoadCmd(TBLMGR_Tbl_t *Tbl, uint8 LoadType, const char *Filena
 
    if (CJSON_ProcessFile(Filename, HistogramTbl->JsonBuf, HISTOGRAM_TBL_JSON_FILE_MAX_CHAR, LoadJsonData))
    {
-      
       HistogramTbl->Loaded = true;
       HistogramTbl->LastLoadStatus = TBLMGR_STATUS_VALID;
       if (HistogramTbl->LoadFunc != NULL) (HistogramTbl->LoadFunc)();
-      RetStatus = true;
-   
+      RetStatus = true;   
    }
    else
    {
-
       HistogramTbl->LastLoadStatus = TBLMGR_STATUS_INVALID;
-
    }
 
    return RetStatus;

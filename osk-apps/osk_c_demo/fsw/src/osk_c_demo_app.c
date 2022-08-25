@@ -188,7 +188,7 @@ static int32 InitApp(void)
    if (RetStatus == CFE_SUCCESS)
    {
 
-      /* Mut constructor table manager prior to any app objects that contained tables */
+      /* Must constructor table manager prior to any app objects that contain tables */
       TBLMGR_Constructor(TBLMGR_OBJ);
 
       /*

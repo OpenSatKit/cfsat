@@ -84,10 +84,10 @@
           <Entry name="InvalidCmdCnt"       type="BASE_TYPES/uint16" />
           <Entry name="ChildValidCmdCnt"    type="BASE_TYPES/uint16" />
           <Entry name="ChildInvalidCmdCnt"  type="BASE_TYPES/uint16" />
-          <Entry name="LastTblAction"       type="OSK_C_FW/TblActions"      shortDescription="Last table action" />
-          <Entry name="LastTblActionStatus" type="OSK_C_FW/TblActionStatus" shortDescription="Last table action status" />
-          <Entry name="DeviceData"          type="BASE_TYPES/uint16"        shortDescription="Number of message log file entries" />
-          <Entry name="DeviceDataModulo"    type="BASE_TYPES/uint16"        shortDescription="Number of message log file entries" />
+          <Entry name="LastTblAction"       type="OSK_C_FW/TblActions" />
+          <Entry name="LastTblActionStatus" type="OSK_C_FW/TblActionStatus" />
+          <Entry name="DeviceData"          type="BASE_TYPES/uint16" />
+          <Entry name="DeviceDataModulo"    type="BASE_TYPES/uint16" />
           <Entry name="HistEna"             type="BASE_TYPES/uint16" />
           <Entry name="HistMaxValue"        type="BASE_TYPES/uint16" />
           <Entry name="HistSampleCnt"       type="BASE_TYPES/uint32" />
