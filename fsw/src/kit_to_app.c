@@ -525,6 +525,9 @@ static int32 ProcessCommands(void)
 static void SendHousekeepingTlm(void)
 {
 
+   /* Good design practice in case app expands to more than one table */
+   const TBLMGR_Tbl_t* LastTbl = TBLMGR_GetLastTblStatus(TBLMGR_OBJ);
+
    KIT_TO_HkTlm_Payload_t *Payload = &KitTo.HkTlm.Payload;
 
    
@@ -540,9 +543,10 @@ static void SendHousekeepingTlm(void)
    /*
    ** PKTTBL Data
    */
-
-   Payload->PktTblLastLoadStatus  = KitTo.PktTbl.LastLoadStatus;
-   Payload->PktTblAttrErrCnt      = KitTo.PktTbl.LastLoadCnt;
+   
+   Payload->PktTblAction       = LastTbl->LastAction;
+   Payload->PktTblActionStatus = LastTbl->LastActionStatus;
+   Payload->PktTblJsonObjCnt   = KitTo.PktTbl.LastLoadCnt;
 
    /*
    ** PKTMGR Data
