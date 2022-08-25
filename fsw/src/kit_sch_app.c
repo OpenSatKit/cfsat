@@ -313,10 +313,10 @@ static void SendHousekeepingTlm(void)
    */
 
    Payload->MsgTblLoadStatus = KitSch.Scheduler.MsgTbl.LastLoadStatus;
-   Payload->MsgTblAttrErrs   = KitSch.Scheduler.MsgTbl.LastLoadCnt;
+   Payload->MsgTblJsonObjCnt = KitSch.Scheduler.MsgTbl.LastLoadCnt;
    
    Payload->SchTblLoadStatus = KitSch.Scheduler.SchTbl.LastLoadStatus;
-   Payload->SchTblAttrErrs   = KitSch.Scheduler.SchTbl.LastLoadCnt;
+   Payload->SchTblJsonObjCnt = KitSch.Scheduler.SchTbl.LastLoadCnt;
 
    /*
    ** Scheduler Data

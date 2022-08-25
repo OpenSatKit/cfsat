@@ -137,9 +137,9 @@
           <Entry name="ValidCmdCnt"                  type="BASE_TYPES/uint16" />
           <Entry name="InvalidCmdCnt"                type="BASE_TYPES/uint16" />
           <Entry name="MsgTblLoadStatus"             type="OSK_C_FW/TblActionStatus" />
-          <Entry name="MsgTblAttrErrs"               type="BASE_TYPES/uint16" />
+          <Entry name="MsgTblJsonObjCnt"             type="BASE_TYPES/uint16" />
           <Entry name="SchTblLoadStatus"             type="OSK_C_FW/TblActionStatus" />
-          <Entry name="SchTblAttrErrs"               type="BASE_TYPES/uint16" />
+          <Entry name="SchTblJsonObjCnt"             type="BASE_TYPES/uint16" />
           <Entry name="SlotsProcessedCount"          type="BASE_TYPES/uint32" />
           <Entry name="ScheduleActivitySuccessCount" type="BASE_TYPES/uint32" />
           <Entry name="ScheduleActivityFailureCount" type="BASE_TYPES/uint32" />
