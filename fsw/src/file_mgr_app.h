@@ -153,14 +153,14 @@ void FILE_MGR_AppMain(void);
 ** Function: FILE_MGR_NoOpCmd
 **
 */
-bool FILE_MGR_NoOpCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
+bool FILE_MGR_NoOpCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
 ** Function: FILE_MGR_ResetAppCmd
 **
 */
-bool FILE_MGR_ResetAppCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
+bool FILE_MGR_ResetAppCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 #endif /* _file_mgr_app_ */

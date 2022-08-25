@@ -114,6 +114,10 @@ typedef struct
    ** FileMgr State Data
    */
 
+   uint32  TaskFileStatCnt;
+   uint32  TaskFileStatDelay;
+   uint32  ChildTaskPerfId;
+
    uint16  CmdWarningCnt;
    
 
@@ -133,7 +137,7 @@ typedef struct
 **   1. This must be called prior to any other function.
 **
 */
-void DIR_Constructor(DIR_Class_t *DirPtr, const INITBL_Class_t* IniTbl);
+void DIR_Constructor(DIR_Class_t *DirPtr, const INITBL_Class_t *IniTbl);
 
 
 /******************************************************************************
@@ -141,14 +145,14 @@ void DIR_Constructor(DIR_Class_t *DirPtr, const INITBL_Class_t* IniTbl);
 **
 ** Create a new directory. 
 */
-bool DIR_CreateCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
+bool DIR_CreateCmd(void *DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
 ** Function: DIR_DeleteAllCmd
 **
 */
-bool DIR_DeleteAllCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
+bool DIR_DeleteAllCmd(void *DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
@@ -156,7 +160,7 @@ bool DIR_DeleteAllCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 **
 ** Delete an existing empty directory.
 */
-bool DIR_DeleteCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
+bool DIR_DeleteCmd(void *DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
@@ -176,14 +180,14 @@ void DIR_ResetStatus(void);
 ** Function: DIR_SendDirListTlmCmd
 **
 */
-bool DIR_SendDirListTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
+bool DIR_SendDirListTlmCmd(void *DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
 ** Function: DIR_SendDirTlmCmd
 **
 */
-bool DIR_SendDirTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
+bool DIR_SendDirTlmCmd(void *DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
@@ -192,7 +196,7 @@ bool DIR_SendDirTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 ** Notes:
 **   1. Target file will be overwritten if it exists an is closed.
 */
-bool DIR_WriteListFileCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
+bool DIR_WriteListFileCmd(void *DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 #endif /* _dir_ */

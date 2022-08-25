@@ -53,7 +53,7 @@ static FILESYS_Class_t*  FileSys = NULL;
 ** Function: FILESYS_Constructor
 **
 */
-void FILESYS_Constructor(FILESYS_Class_t*  FileSysPtr, const INITBL_Class_t* IniTbl)
+void FILESYS_Constructor(FILESYS_Class_t *FileSysPtr, const INITBL_Class_t *IniTbl)
 {
  
    FileSys = FileSysPtr;
@@ -146,7 +146,7 @@ void FILESYS_ResetStatus()
 ** Note:
 **  1. This function must comply with the CMDMGR_CmdFuncPtr_t definition
 */
-bool FILESYS_SendOpenFileTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool FILESYS_SendOpenFileTlmCmd(void *DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
    uint16 i;
@@ -182,7 +182,7 @@ bool FILESYS_SendOpenFileTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPt
 ** Note:
 **  1. This function must comply with the CMDMGR_CmdFuncPtr_t definition
 */
-bool FILESYS_SendTblTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool FILESYS_SendTblTlmCmd(void *DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
    bool    RetStatus = true;
@@ -253,7 +253,7 @@ bool FILESYS_SendTblTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 ** Note:
 **  1. This function must comply with the CMDMGR_CmdFuncPtr_t definition
 */
-bool FILESYS_SetTblStateCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool FILESYS_SetTblStateCmd(void *DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
    const FILE_MGR_SetFileSysTblState_Payload_t *SetFileSysTblStateCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_MGR_SetFileSysTblState_t);   
@@ -320,7 +320,7 @@ bool FILESYS_SetTblStateCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 ** Function signature must match CFE_TBL_CallbackFuncPtr_t
 **
 */
-static int32 ValidateTbl(void* VoidTblPtr) 
+static int32 ValidateTbl(void *VoidTblPtr) 
 {
    
    FILESYS_TblData_t* Tbl = (FILESYS_TblData_t *) VoidTblPtr;
@@ -449,5 +449,4 @@ static int32 ValidateTbl(void* VoidTblPtr)
 
   
 } /* End ValidateTbl() */
-
 

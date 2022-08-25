@@ -142,49 +142,49 @@ typedef struct
 **   1. This must be called prior to any other function.
 **
 */
-void FILE_Constructor(FILE_Class_t *FilePtr, const INITBL_Class_t* IniTbl);
+void FILE_Constructor(FILE_Class_t *FilePtr, const INITBL_Class_t *IniTbl);
 
 
 /******************************************************************************
 ** Function: FILE_ConcatenateCmd
 **
 */
-bool FILE_ConcatenateCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
+bool FILE_ConcatenateCmd(void *DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
 ** Function: FILE_CopyCmd
 **
 */
-bool FILE_CopyCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
+bool FILE_CopyCmd(void *DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
 ** Function: FILE_DecompressCmd
 **
 */
-bool FILE_DecompressCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
+bool FILE_DecompressCmd(void *DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
 ** Function: FILE_DeleteCmd
 **
 */
-bool FILE_DeleteCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
+bool FILE_DeleteCmd(void *DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
 ** Function: FILE_MoveCmd
 **
 */
-bool FILE_MoveCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
+bool FILE_MoveCmd(void *DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
 ** Function: FILE_RenameCmd
 **
 */
-bool FILE_RenameCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
+bool FILE_RenameCmd(void *DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
@@ -209,14 +209,14 @@ void FILE_ResetStatus(void);
 **      being open
 **
 */
-bool FILE_SendInfoTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
+bool FILE_SendInfoTlmCmd(void *DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
 ** Function: FILE_SetPermissionsCmd
 **
 */
-bool FILE_SetPermissionsCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
+bool FILE_SetPermissionsCmd(void *DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 #endif /* _file_ */

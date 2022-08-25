@@ -50,14 +50,14 @@ static bool ComputeFileCrc(const char* CmdName, const char* Filename, uint32* Cr
 /** Global File Data **/
 /**********************/
 
-static FILE_Class_t*  File = NULL;
+static FILE_Class_t  *File = NULL;
 
 
 /******************************************************************************
 ** Function: FILE_Constructor
 **
 */
-void FILE_Constructor(FILE_Class_t*  FilePtr, const INITBL_Class_t* IniTbl)
+void FILE_Constructor(FILE_Class_t *FilePtr, const INITBL_Class_t *IniTbl)
 {
  
    File = FilePtr;
@@ -80,7 +80,7 @@ void FILE_Constructor(FILE_Class_t*  FilePtr, const INITBL_Class_t* IniTbl)
 **   1. FileUtil_GetFileInfo() verifies filename prior to checking state.
 **
 */
-bool FILE_ConcatenateCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool FILE_ConcatenateCmd(void *DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
    const FILE_MGR_ConcatenateFile_Payload_t *ConcatenateCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_MGR_ConcatenateFile_t);
@@ -165,7 +165,7 @@ bool FILE_ConcatenateCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 **   1. FileUtil_GetFileInfo() verifies filename prior to checking state.
 **
 */
-bool FILE_CopyCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool FILE_CopyCmd(void *DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
    const FILE_MGR_CopyFile_Payload_t *CopyCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_MGR_CopyFile_t);
@@ -274,7 +274,7 @@ bool FILE_CopyCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 ** Notes:
 **    1. FileUtil_GetFileInfo() verifies filename prior to checking state
 */
-bool FILE_DecompressCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool FILE_DecompressCmd(void *DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
    /* Can't uses const because CFE_PSP_Decompress() */
@@ -347,7 +347,7 @@ bool FILE_DecompressCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 **   1. FileUtil_GetFileInfo() verifies filename prior to checking state.
 **
 */
-bool FILE_DeleteCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool FILE_DeleteCmd(void *DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
    const FILE_MGR_DeleteFile_Payload_t *DeleteCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_MGR_DeleteFile_t);
@@ -400,7 +400,7 @@ bool FILE_DeleteCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 **   1. FileUtil_GetFileInfo() verifies filename prior to checking state.
 **
 */
-bool FILE_MoveCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool FILE_MoveCmd(void *DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
    const FILE_MGR_MoveFile_Payload_t *MoveCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_MGR_MoveFile_t);
@@ -510,7 +510,7 @@ bool FILE_MoveCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 **   1. FileUtil_GetFileInfo() verifies filename prior to checking state.
 **
 */
-bool FILE_RenameCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool FILE_RenameCmd(void *DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
    const FILE_MGR_RenameFile_Payload_t *RenameCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_MGR_RenameFile_t);
@@ -595,7 +595,7 @@ void FILE_ResetStatus()
 **      fails and no information telemetry packet is sent. 
 **
 */
-bool FILE_SendInfoTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool FILE_SendInfoTlmCmd(void *DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
    const FILE_MGR_SendFileInfoTlm_Payload_t *SendInfoTlmCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_MGR_SendFileInfoTlm_t);
@@ -686,7 +686,7 @@ bool FILE_SendInfoTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 **   1. FileUtil_GetFileInfo() verifies filename prior to checking state.
 **
 */
-bool FILE_SetPermissionsCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool FILE_SetPermissionsCmd(void *DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
    const FILE_MGR_SetFilePermissions_Payload_t *SetPermissionsCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_MGR_SetFilePermissions_t);
@@ -756,7 +756,7 @@ bool FILE_SetPermissionsCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 **
 */
 
-static bool ComputeFileCrc(const char* CmdName, const char* Filename, uint32* Crc, uint8 CrcType)
+static bool ComputeFileCrc(const char *CmdName, const char *Filename, uint32 *Crc, uint8 CrcType)
 {
    
    int32         SysStatus;
@@ -834,7 +834,7 @@ static bool ComputeFileCrc(const char* CmdName, const char* Filename, uint32* Cr
 ** Function: ConcatenateFiles
 **
 */
-static bool ConcatenateFiles(const char* SrcFile1, const char* SrcFile2, const char* TargetFile)
+static bool ConcatenateFiles(const char *SrcFile1, const char *SrcFile2, const char *TargetFile)
 {
    
    int32         SysStatus;

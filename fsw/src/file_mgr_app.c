@@ -113,7 +113,7 @@ void FILE_MGR_AppMain(void)
 **
 */
 
-bool FILE_MGR_NoOpCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
+bool FILE_MGR_NoOpCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
    CFE_EVS_SendEvent (FILE_MGR_NOOP_EID, CFE_EVS_EventType_INFORMATION,
@@ -131,7 +131,7 @@ bool FILE_MGR_NoOpCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 **
 */
 
-bool FILE_MGR_ResetAppCmd(void* ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
+bool FILE_MGR_ResetAppCmd(void *ObjDataPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
    CMDMGR_ResetStatus(CMDMGR_OBJ);
