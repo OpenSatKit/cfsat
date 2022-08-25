@@ -197,7 +197,7 @@
         <EntryList>
           <Entry name="Name" type="BASE_TYPES/PathName" shortDescription="" />
           <Entry name="Size" type="BASE_TYPES/uint32"   shortDescription="File size in bytes" />
-          <Entry name="Time" type="BASE_TYPES/uint32"   shortDescription="File's Last Modification Times" />
+          <Entry name="Time" type="BASE_TYPES/uint32"   shortDescription="File's last modification time" />
           <Entry name="Mode" type="BASE_TYPES/uint32"   shortDescription="Mode of the file (Permissions)" />
         </EntryList>
       </ContainerDataType>

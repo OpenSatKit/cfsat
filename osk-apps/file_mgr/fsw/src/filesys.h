@@ -101,7 +101,7 @@ typedef struct
    bool                Registered;
    int32               Status;        /* Status of last cFE Table service call */
    CFE_TBL_Handle_t    Handle;
-   FILESYS_TblData_t*  DataPtr;
+   FILESYS_TblData_t   *DataPtr;
 
 } FILESYS_CfeTbl_t;
 
@@ -112,7 +112,7 @@ typedef struct
    ** App Framework
    */
    
-   const INITBL_Class_t* IniTbl;
+   const INITBL_Class_t *IniTbl;
 
    /*
    ** Tables
@@ -131,7 +131,7 @@ typedef struct
    ** Class State Data
    */
 
-   const char* CfeTblName;
+   const char *CfeTblName;
    FileUtil_OpenFileList_t OpenFileList;
    
 
@@ -179,7 +179,7 @@ void FILESYS_ResetStatus(void);
 ** Note:
 **  1. This function must comply with the CMDMGR_CmdFuncPtr_t definition
 */
-bool FILESYS_SendOpenFileTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
+bool FILESYS_SendOpenFileTlmCmd(void *DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
@@ -188,7 +188,7 @@ bool FILESYS_SendOpenFileTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPt
 ** Note:
 **  1. This function must comply with the CMDMGR_CmdFuncPtr_t definition
 */
-bool FILESYS_SetTblStateCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
+bool FILESYS_SetTblStateCmd(void *DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 /******************************************************************************
@@ -197,7 +197,7 @@ bool FILESYS_SetTblStateCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 ** Note:
 **  1. This function must comply with the CMDMGR_CmdFuncPtr_t definition
 */
-bool FILESYS_SendTblTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
+bool FILESYS_SendTblTlmCmd(void *DataObjPtr, const CFE_MSG_Message_t *MsgPtr);
 
 
 #endif /* _filesys_ */

@@ -77,7 +77,12 @@ void DIR_Constructor(DIR_Class_t*  DirPtr, const INITBL_Class_t* IniTbl)
    CFE_PSP_MemSet((void*)Dir, 0, sizeof(DIR_Class_t));
  
    Dir->IniTbl = IniTbl;
- 
+
+   /* These are used in loops so save value once */
+   Dir->TaskFileStatCnt   = INITBL_GetIntConfig(Dir->IniTbl, CFG_TASK_FILE_STAT_CNT);
+   Dir->TaskFileStatDelay = INITBL_GetIntConfig(Dir->IniTbl, CFG_TASK_FILE_STAT_DELAY);
+   Dir->ChildTaskPerfId   = INITBL_GetIntConfig(Dir->IniTbl, CFG_CHILD_TASK_PERF_ID);
+
 } /* End DIR_Constructor() */
 
 
@@ -85,7 +90,7 @@ void DIR_Constructor(DIR_Class_t*  DirPtr, const INITBL_Class_t* IniTbl)
 ** Function: DIR_CreateCmd
 **
 */
-bool DIR_CreateCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool DIR_CreateCmd(void *DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
    const FILE_MGR_CreateDir_Payload_t *CreateCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_MGR_CreateDir_t);
@@ -132,7 +137,7 @@ bool DIR_CreateCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 ** Function: DIR_DeleteAllCmd
 **
 */
-bool DIR_DeleteAllCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool DIR_DeleteAllCmd(void *DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
    const FILE_MGR_DeleteAllDir_Payload_t *DeleteAllCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_MGR_DeleteAllDir_t);
@@ -289,7 +294,7 @@ bool DIR_DeleteAllCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 ** Function: DIR_DeleteCmd
 **
 */
-bool DIR_DeleteCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool DIR_DeleteCmd(void *DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
    const FILE_MGR_DeleteDir_Payload_t *DeleteCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_MGR_DeleteDir_t);
@@ -395,7 +400,7 @@ void DIR_ResetStatus()
 ** Function: DIR_SendDirListTlmCmd
 **
 */
-bool DIR_SendDirListTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool DIR_SendDirListTlmCmd(void *DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
 
    const FILE_MGR_SendDirListTlm_Payload_t *SendDirListTlmCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_MGR_SendDirListTlm_t);      
@@ -417,7 +422,7 @@ bool DIR_SendDirListTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 **      DIR_SendDirListTlmCmd() for each sublisting. 
 ** 
 */
-bool DIR_SendDirTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool DIR_SendDirTlmCmd(void *DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
    const FILE_MGR_SendDirTlm_Payload_t *SendDirTlmCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_MGR_SendDirTlm_t);
@@ -439,7 +444,7 @@ bool DIR_SendDirTlmCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 **   1. Target file will be overwritten if it exists and is closed.
 ** 
 */
-bool DIR_WriteListFileCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
+bool DIR_WriteListFileCmd(void *DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 {
    
    const FILE_MGR_WriteDirListFile_Payload_t *WriteDirListFileCmd = CMDMGR_PAYLOAD_PTR(MsgPtr, FILE_MGR_WriteDirListFile_t);
@@ -564,7 +569,8 @@ bool DIR_WriteListFileCmd(void* DataObjPtr, const CFE_MSG_Message_t *MsgPtr)
 **      periodically suspended to prevent CPU hogging.
 ** 
 */
-static void LoadFileEntry(const char* PathFilename, DIR_FileEntry_t* FileEntry, uint16* TaskBlockCount, bool IncludeSizeTime)
+static void LoadFileEntry(const char *PathFilename, DIR_FileEntry_t *FileEntry, 
+                          uint16 *TaskBlockCount, bool IncludeSizeTime)
 {
    
    int32       SysStatus; 
@@ -574,10 +580,9 @@ static void LoadFileEntry(const char* PathFilename, DIR_FileEntry_t* FileEntry, 
    if (IncludeSizeTime)
    {
       
-      CHILDMGR_PauseTask(TaskBlockCount, INITBL_GetIntConfig(Dir->IniTbl, CFG_TASK_FILE_STAT_CNT), 
-                         INITBL_GetIntConfig(Dir->IniTbl, CFG_TASK_FILE_STAT_DELAY), 
-                         INITBL_GetIntConfig(Dir->IniTbl, CFG_CHILD_TASK_PERF_ID));
-      
+      CHILDMGR_PauseTask(TaskBlockCount, Dir->TaskFileStatCnt, 
+                         Dir->TaskFileStatDelay, Dir->ChildTaskPerfId);
+                         
       CFE_PSP_MemSet(&FileStatus, 0, sizeof(os_fstat_t));
       SysStatus = OS_stat(PathFilename, &FileStatus);
       
@@ -622,7 +627,8 @@ static void LoadFileEntry(const char* PathFilename, DIR_FileEntry_t* FileEntry, 
 **      is group of instructions that is CPU intensive and may need to be 
 **      periodically suspended to prevent CPU hogging.
 */
-bool SendDirListTlm(const char *DirName, uint16 DirListOffset, bool IncludeSizeTime, SendDirListOpt_t SendOpt)
+bool SendDirListTlm(const char *DirName, uint16 DirListOffset, bool IncludeSizeTime,
+                    SendDirListOpt_t SendOpt)
 {
    
    bool                RetStatus = false;
@@ -835,7 +841,8 @@ bool SendDirListTlm(const char *DirName, uint16 DirListOffset, bool IncludeSizeT
 **      periodically suspended to prevent CPU hogging.
 **
 */
-static bool WriteDirListToFile(const char* DirNameWithSep, osal_id_t DirId, int32 FileHandle, bool IncludeSizeTime)
+static bool WriteDirListToFile(const char *DirNameWithSep, osal_id_t DirId, 
+                               int32 FileHandle, bool IncludeSizeTime)
 {
    
    bool ReadingDir   = true;
