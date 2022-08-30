@@ -463,6 +463,7 @@ class TelemetryGuiClient(TelemetryObserver):
 
         self.current_msg = tlm_msg
         if not self.paused:
+            """
             logger.debug("%s %s received at %s" % (tlm_msg.app_name, tlm_msg.msg_name, str(tlm_msg.sec_hdr().Seconds)))
             self.window['-APP_ID-'].update(tlm_msg.pri_hdr().AppId)
             self.window['-LENGTH-'].update(tlm_msg.pri_hdr().Length)
@@ -471,6 +472,7 @@ class TelemetryGuiClient(TelemetryObserver):
             self.payload_text = ""
             self.format_payload_text(tlm_msg.eds_obj, tlm_msg.eds_entry.Name)
             self.window['-PAYLOAD_TEXT-'].update(self.payload_text)  
+            """
             self.window['-TLM_UPDATE-'].click()
         self.lock.release()
 
@@ -515,7 +517,7 @@ class TelemetryGuiClient(TelemetryObserver):
 
     def gui(self):
         print("TelemetryGuiClient() starting gui")
-        thread = threading.currentThread()
+        thread = threading.current_thread()
         
         hdr_label_font = ('Arial bold',12)
         hdr_value_font = ('Arial',12)
@@ -560,21 +562,16 @@ class TelemetryGuiClient(TelemetryObserver):
                 self.window['-PAUSED-'].update('')
 
             if self.event == '-TLM_UPDATE-':
-                #Keep hook becuase may need event loop context for updates
+                #Keep hook because may need event loop context for updates
                 #print("telemetry update click")
-                """
-                if not self.paused:
-                    logger.debug("%s %s received at %s" % (tlm_msg.app_name, tlm_msg.msg_name, str(tlm_msg.sec_hdr().Seconds)))
-                    self.window['-APP_ID-'].update(tlm_msg.pri_hdr().AppId)
-                    self.window['-LENGTH-'].update(tlm_msg.pri_hdr().Length)
-                    self.window['-SEQ_CNT-'].update(tlm_msg.pri_hdr().Sequence)
-                    self.window['-TIME-'].update(str(tlm_msg.sec_hdr().Seconds))
-                    self.payload_text = ""
-                    self.format_payload_text(tlm_msg.eds_obj, tlm_msg.eds_entry.Name)
-                    self.window['-PAYLOAD_TEXT-'].update(self.payload_text)
-                
-                pass
-                """
+                logger.debug("%s %s received at %s" % (self.current_msg.app_name, self.current_msg.msg_name, str(self.current_msg.sec_hdr().Seconds)))
+                self.window['-APP_ID-'].update(self.current_msg.pri_hdr().AppId)
+                self.window['-LENGTH-'].update(self.current_msg.pri_hdr().Length)
+                self.window['-SEQ_CNT-'].update(self.current_msg.pri_hdr().Sequence)
+                self.window['-TIME-'].update(str(self.current_msg.sec_hdr().Seconds))
+                self.payload_text = ""
+                self.format_payload_text(self.current_msg.eds_obj, self.current_msg.eds_entry.Name)
+                self.window['-PAYLOAD_TEXT-'].update(self.payload_text)
         self.tlm_server.remove_msg_observer(self.tlm_msg, self)
         self.window.close()
 
@@ -1351,7 +1348,7 @@ class App():
 
         #sg.Button('Send Cmd', enable_events=True, key='-SEND_CMD-', pad=(10,1)),
         #sg.Button('View Tlm', enable_events=True, key='-VIEW_TLM-', pad=(10,1)),
-        window = sg.Window('cFS Application Toolkit', layout, auto_size_text=True, finalize=True)
+        window = sg.Window('Base Camp - cFS Application Toolkit', layout, auto_size_text=True, finalize=True)
         return window
         
     def execute(self):
@@ -1395,7 +1392,7 @@ class App():
         # --- Loop taking in user input --- #
         while True:
     
-            self.event, self.values = self.window.read(timeout=100)
+            self.event, self.values = self.window.read(timeout=50)
             logger.debug("App Window Read()\nEvent: %s\nValues: %s" % (self.event, self.values))
 
             if self.event in (sg.WIN_CLOSED, 'Exit') or self.event is None:
